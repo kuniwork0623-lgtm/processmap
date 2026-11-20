@@ -56,6 +56,8 @@ async function newPage(browser,{mobile=false,mock=mockSupabase(),user=null,stora
   return {ctx,page,mock};
 }
 const state=page=>page.evaluate(()=>window.pmApp.get());
+// Opens a card's ⋯ menu and runs one action (data-act).
+async function menu(page,taskId,act){const card=page.locator(`[data-task-node="${taskId}"] > .task-card`);await card.hover();await card.locator('.more').click();await page.click(`#cardMenu [data-act="${act}"]`)}
 async function typeEnd(page,loc,text){await loc.click();await page.keyboard.press('End');await page.keyboard.press('Control+End');await page.keyboard.type(text);await page.locator('.brand').click()}
 const status=page=>page.locator('#syncStatus').textContent();
 async function waitStatus(page,text,ms=8000){await page.waitForFunction(t=>document.getElementById('syncStatus').textContent.includes(t),text,{timeout:ms})}
@@ -120,7 +122,7 @@ await test('[PC] 完了の集約: 孫を全部完了→子が完了、子が全�
   await page.locator('.stage').nth(2).locator('.task-checkbox').first().click();s=await state(page);assert.equal(s.stages[2].done,true,'子のないメインを直接チェックできません')});
 
 await test('[PC] 削除→Ctrl+Zで復元、改行(Alt+Enter)・空欄の保持',async b=>{const {page}=await newPage(b);
-  await page.locator('[data-task-node="t3"] .task-card').hover();await page.locator('[data-task-node="t3"] .remove').click();
+  await menu(page,'t3','delete');
   assert.equal((await state(page)).stages[0].tasks.length,2);await page.locator('.brand').click();await page.keyboard.press('Control+z');
   assert.equal((await state(page)).stages[0].tasks.length,3,'Ctrl+Zで戻りません');
   const t=page.locator('[data-task-node="t1"] .task-text');await t.click();await page.keyboard.press('End');await page.keyboard.press('Alt+Enter');await page.keyboard.type('二行目');
@@ -132,6 +134,48 @@ await test('[PC] 子タスクにホバーしても下のタスクが動かない
   const below=page.locator('[data-task-node="t3"] .task-card');const y0=(await below.boundingBox()).y;
   await page.locator('[data-task-node="t2"] > .task-card').hover();await page.waitForTimeout(250);
   assert.equal((await below.boundingBox()).y,y0);await page.locator('[data-task-node="tc1"] .task-card').hover();await page.waitForTimeout(250);assert.equal((await below.boundingBox()).y,y0)});
+
+await test('[操作性] ホバー時の操作ボタンが文字に重ならない（長いタスク名）',async b=>{const {page}=await newPage(b);
+  await page.evaluate(()=>{const s=window.pmApp.get();s.stages[0].tasks[0].text='参考になるデザインを集めるための資料を整理してまとめる';s.stages[0].tasks[0].width=260;window.pmApp.set(s)});
+  const card=page.locator('[data-task-node="t1"] > .task-card');await card.hover();await page.waitForTimeout(250);
+  const text=await card.locator('.task-text').boundingBox(),act=await card.locator('.task-actions').boundingBox();
+  assert.ok(text.x+text.width<=act.x+1,`文字(右端${Math.round(text.x+text.width)})とボタン(左端${Math.round(act.x)})が重なっています`);
+  assert.equal(await card.locator('.task-actions button').count(),1,'ホバーで出るボタンは⋯の1つだけ')});
+
+await test('[操作性][SP] スマホでも操作ボタンが文字に重ならない',async b=>{const {page}=await newPage(b,{mobile:true});
+  await page.evaluate(()=>{const s=window.pmApp.get();s.stages[0].tasks[2].text='スマホで長いタスク名を入力したときの折り返しを確認する';window.pmApp.set(s)});
+  const card=page.locator('[data-task-node="t3"] > .task-card'),box=await card.boundingBox();await page.touchscreen.tap(box.x+box.width/2,box.y+box.height-3);await page.waitForTimeout(250);
+  const text=await card.locator('.task-text').boundingBox(),act=await card.locator('.task-actions').boundingBox();assert.ok(text.x+text.width<=act.x+1,'重なっています')});
+
+await test('[操作性] 右クリック・⋯でメニュー、孫追加・完了・移動・削除ができる',async b=>{const {page}=await newPage(b);
+  await page.locator('[data-task-node="t3"] > .task-card').click({button:'right'});await page.waitForSelector('#cardMenu:not([hidden])');
+  await page.click('#cardMenu [data-act="done"]');assert.equal((await state(page)).stages[0].tasks[2].done,true);
+  await menu(page,'t3','up');assert.equal((await state(page)).stages[0].tasks[1].id,'t3');
+  await menu(page,'t3','add');await page.locator('.grand-draft .draft-input').waitFor();await page.keyboard.type('メニューで追加');await page.keyboard.press('Enter');
+  assert.equal((await state(page)).stages[0].tasks[1].children[0].text,'メニューで追加');
+  await page.keyboard.press('Escape');await page.locator('body').click({position:{x:5,y:5}});
+  await page.locator('[data-task-node="tc1"] > .task-card').click({button:'right'});await page.click('#cardMenu [data-act="outdent"]');
+  assert.ok((await state(page)).stages[0].tasks.some(t=>t.id==='tc1'),'子タスクに上がりません')});
+
+await test('[操作性] キーボード: Ctrl+Enter完了・↓移動・Shift+Tab・Backspace削除・Esc・Ctrl+Shift+↓',async b=>{const {page}=await newPage(b);
+  const t3=page.locator('[data-task-node="t3"] .task-text');await t3.click();await page.keyboard.press('Control+Enter');
+  assert.equal((await state(page)).stages[0].tasks[2].done,true,'Ctrl+Enterで完了しません');
+  await page.locator('[data-task-node="t1"] .task-text').click();await page.keyboard.press('ArrowDown');
+  assert.equal(await page.evaluate(()=>document.activeElement.closest('[data-task-node]')?.dataset.taskNode),'t2','↓で次のタスクへ移動しません');
+  await page.locator('[data-task-node="tc2"] .task-text').click();await page.keyboard.press('Shift+Tab');
+  let s=await state(page);assert.ok(s.stages[0].tasks.some(t=>t.id==='tc2'),'Shift+Tabで子に上がりません');
+  await page.locator('[data-task-node="t3"] .task-text').click();await page.keyboard.press('End');await page.keyboard.press('Enter');
+  const n=(await state(page)).stages[0].tasks.length;await page.keyboard.press('Backspace');assert.equal((await state(page)).stages[0].tasks.length,n-1,'空のタスクをBackspaceで消せません');
+  await page.locator('[data-task-node="t1"] .task-text').click();await page.keyboard.press('Escape');
+  assert.equal(await page.evaluate(()=>document.activeElement.classList.contains('task-card')),true,'Escで編集が終わりません');
+  await page.keyboard.press('Control+Shift+ArrowDown');assert.equal((await state(page)).stages[0].tasks[1].id,'t1','Ctrl+Shift+↓で下へ移動しません')});
+
+await test('[操作性] 編集していないカードは文字の上からドラッグで移動できる',async b=>{const {page}=await newPage(b);
+  const src=await page.locator('[data-task-node="t1"] .task-text').boundingBox(),dst=await page.locator('[data-task-node="t4"] .task-card').boundingBox();
+  await page.mouse.move(src.x+30,src.y+src.height/2);await page.mouse.down();await page.mouse.move(src.x+40,src.y+30,{steps:3});
+  await page.mouse.move(dst.x+dst.width/2,dst.y+dst.height-3,{steps:8});await page.mouse.up();
+  assert.ok((await state(page)).stages[1].tasks.some(t=>t.id==='t1'),'文字の上から掴んで移動できません');
+  await page.locator('[data-task-node="t4"] .task-text').click();assert.equal(await page.evaluate(()=>document.activeElement.classList.contains('task-text')),true,'クリックで編集に入れません')});
 
 await test('[PC] ホイールはスクロール、Ctrl+ホイールでズーム',async b=>{const {page}=await newPage(b);
   await page.evaluate(()=>{const s=window.pmApp.get();for(let i=0;i<12;i++)s.stages[0].tasks.push({id:'w'+i,text:'行'+i,children:[]});window.pmApp.set(s)});
@@ -193,7 +237,7 @@ await test('[新機能] 進捗表示（メインカードの n/m とシートタ
   await page.locator('[data-task-node="tc2"] .task-checkbox').click();assert.equal(await page.locator('.stage').first().locator('.stage-progress .count').textContent(),'3/4')});
 
 await test('[新機能] 期日・メモの設定、期限切れ表示、期日一覧から完了',async b=>{const {page}=await newPage(b);
-  await page.locator('[data-task-node="t3"] .task-card').hover();await page.locator('[data-task-node="t3"] .detail').click();
+  await menu(page,'t3','detail');
   await page.fill('#detailDue','2020-01-01');await page.fill('#detailNote','参考 https://example.com/doc');await page.click('#detailForm button[type=submit]');
   let s=await state(page);assert.equal(s.stages[0].tasks[2].due,'2020-01-01');assert.equal(s.stages[0].tasks[2].note,'参考 https://example.com/doc');
   assert.equal(await page.locator('[data-task-node="t3"] .due-chip.overdue').count(),1);assert.equal(await page.locator('[data-task-node="t3"] .note-chip').count(),1);
@@ -254,7 +298,7 @@ await test('[同期] 別ユーザーの行は取得されない（RLS相当の�
 
 await test('[同期] 期日・メモがサーバーに保存され別端末で読める／接続不可でメニューに目印',async b=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});const A=await newPage(b,{mock,user:USER});await waitStatus(A.page,'保存済み');
-  await A.page.locator('[data-task-node="t1"] > .task-card').hover();await A.page.locator('[data-task-node="t1"] > .task-card .detail').click();await A.page.fill('#detailDue','2027-01-05');await A.page.fill('#detailNote','メモ');await A.page.click('#detailForm button[type=submit]');
+  await menu(A.page,'t1','detail');await A.page.fill('#detailDue','2027-01-05');await A.page.fill('#detailNote','メモ');await A.page.click('#detailForm button[type=submit]');
   await waitStatus(A.page,'保存済み');await A.page.waitForTimeout(1200);const B=await newPage(b,{mock,user:USER});await waitStatus(B.page,'保存済み');
   const t=(await state(B.page)).stages[0].tasks[0];assert.equal(t.due,'2027-01-05');assert.equal(t.note,'メモ');
   mock.setOnline(false);await typeEnd(B.page,B.page.locator('.stage-title').first(),'z');await waitStatus(B.page,'接続できません',10000);
