@@ -177,6 +177,9 @@ await test('[操作性] 編集していないカードは文字の上からド�
   assert.ok((await state(page)).stages[1].tasks.some(t=>t.id==='t1'),'文字の上から掴んで移動できません');
   await page.locator('[data-task-node="t4"] .task-text').click();assert.equal(await page.evaluate(()=>document.activeElement.classList.contains('task-text')),true,'クリックで編集に入れません')});
 
+await test('[PC] サイトのアイコン（ファビコン）が読み込める',async b=>{const {page}=await newPage(b);
+  for(const sel of ['link[rel=icon]','link[rel=apple-touch-icon]']){const href=await page.getAttribute(sel,'href');const r=await page.request.get(new URL(href,page.url()).href);assert.equal(r.status(),200,href+' が読めません');assert.ok((await r.body()).length>200)}});
+
 await test('[PC] ホイールはスクロール、Ctrl+ホイールでズーム',async b=>{const {page}=await newPage(b);
   await page.evaluate(()=>{const s=window.pmApp.get();for(let i=0;i<12;i++)s.stages[0].tasks.push({id:'w'+i,text:'行'+i,children:[]});window.pmApp.set(s)});
   await page.mouse.move(700,500);await page.mouse.wheel(0,400);await page.waitForTimeout(300);

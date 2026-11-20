@@ -12,7 +12,7 @@ PROJECT_ID="prj_mgGN1KTY8uDhNAUm2P3MhVxHEovM"
 TEAM_ID="team_i4UjPFgpGkZ0WxHNVMwTLAam"
 TOKEN="${VERCEL_TOKEN:-proxy-injected}"
 API="https://api.vercel.com"
-FILES=(index.html config.js sync.js vercel.json)
+FILES=(index.html config.js sync.js vercel.json favicon.svg apple-touch-icon.png)
 TARGET="preview"; [[ "${1:-}" == "--prod" ]] && TARGET="production"
 
 # 1) 紐付け先の照合（別プロジェクトや常夜へ誤デプロイしない）

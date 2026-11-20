@@ -42,6 +42,7 @@
 | `index.html` | 画面のすべて（CSS + アプリ本体のJS）。タスク編集・Tab追加・URLリンク・ドラッグ・ズーム・配色・シート・期日/メモ・AI取り込み・AIスケジュール登録 |
 | `sync.js` | Supabase JS ライブラリを同梱したバンドル（約180KB）。**ProcessMap固有のログイン・同期処理は末尾の約7KB**（`var oa=ie(()=>{...` 以降） |
 | `config.js` | Supabase の URL と **publishable key（公開用キー）**。ブラウザに出してよいキー |
+| `favicon.svg` / `apple-touch-icon.png` | サイトのアイコン（タブ用／iPhoneホーム画面用） |
 | `vercel.json` | セキュリティヘッダーと `Cache-Control: no-store` |
 | `tests/run.mjs` | Playwright 回帰テスト（PC 1440×900 / スマホ 390×844）。Supabase は**模擬サーバー**で置き換え、本番DBに触れない |
 | `tests/serve.mjs` | ローカル確認用の静的サーバー |
