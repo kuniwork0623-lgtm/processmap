@@ -93,6 +93,7 @@
     .task-actions{position:absolute!important;right:3px;top:-1px;display:flex;gap:0;align-items:center;opacity:0;pointer-events:none;transition:opacity .14s;}
     .task-card:hover .task-actions,.task-card:focus-within .task-actions,.task-node.selected>.task-card .task-actions{opacity:1;pointer-events:auto}
     .task-actions .node-action{width:33px;height:34px;flex-basis:33px;font-size:13px}
+    .task-actions,.stage-actions{background:inherit;border-radius:8px}.stage-actions{background:var(--card-bg)}.task-checkbox-placeholder{flex:0 0 17px}
     .task-actions .remove{font-size:16px;font-weight:300;color:var(--node-muted)}
     .task-actions .fold{font-size:11px}
     /* Branch line ends at the CENTER of the last grandchild, even for wrapped text. */
@@ -131,8 +132,8 @@
     .drag-over-inside>.task-card{outline:1px solid #a7c5f0a0;background:#263850}
     .stage.drag-over-before>.stage-heading{outline:1px solid #789bcb}
     .drag-outline{position:fixed;z-index:20;pointer-events:none;opacity:.89;box-shadow:0 14px 42px #0007;max-width:300px;transform:rotate(-1deg);border-radius:10px;}
-    .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);padding:10px 13px;background:#253344;color:#e6ebf6;border:1px solid #ffffff1c;border-radius:10px;box-shadow:0 10px 25px #0005;display:flex;align-items:center;gap:15px;z-index:22;font-size:13px;white-space:nowrap}
-    .toast button{border:0;background:none;color:#b7d3ff;font-weight:700}
+    .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 24px);padding:10px 13px;background:#253344;color:#e6ebf6;border:1px solid #ffffff1c;border-radius:10px;box-shadow:0 10px 25px #0005;display:flex;align-items:center;gap:15px;z-index:22;font-size:13px;white-space:nowrap}
+    .toast button{border:0;background:none;color:#b7d3ff;font-weight:700;white-space:nowrap}
     .modal-backdrop{position:fixed;inset:0;z-index:30;background:#090c12cc;display:grid;place-items:center;padding:18px;backdrop-filter:blur(4px)}
     .dialog{width:min(570px,100%);background:#1a2533;border:1px solid #ffffff14;border-radius:15px;padding:25px;box-shadow:0 30px 90px #000a;max-height:88dvh;overflow:auto}
     .dialog h2{font-size:18px;font-weight:650;margin:0 0 11px}
@@ -166,16 +167,50 @@
       .task-children .task-node::before{left:-12px;width:9px}
       .node-action{width:42px;height:42px}
       .task-actions .node-action{width:39px;height:40px;flex-basis:39px}
-      .task-resize,.stage-resize{width:27px;right:-27px;opacity:.42;}
+      .task-resize,.stage-resize{width:27px;right:-27px;}
       .dialog{padding:18px}
+      .toast{white-space:normal;bottom:58px;width:max-content}
       .zoom-controls{right:11px;bottom:15px}
     }
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   
-    #syncBar{font-size:12px}#syncBar button{min-height:44px}.account-details,.sync-details{padding:9px 12px;line-height:1.6;overflow-wrap:anywhere}.menu-label{display:block;color:var(--soft);font-size:11px;margin-bottom:3px}#accountInfo,#syncStatus{display:block;color:var(--txt)}dialog{color:#e5edf5;background:#202c3a;border:1px solid #607085;border-radius:12px;max-width:min(90vw,520px)}dialog input{display:block;margin:12px 0;width:100%;padding:10px;box-sizing:border-box}dialog button{min-height:40px;margin:4px}dialog::backdrop{background:#0009}.task-checkbox,.task-parent-toggle{position:relative}.task-checkbox::after,.task-parent-toggle::after{content:'';position:absolute;inset:-10px}.node-action{min-width:28px;min-height:28px}@media(pointer:coarse){.task-actions,.stage-actions,.task-resize,.stage-resize{opacity:1!important;pointer-events:auto}.topbar{height:auto;min-height:62px;flex-wrap:wrap}}
+    #syncBar{font-size:12px}#syncBar button{min-height:44px}.account-details,.sync-details{padding:9px 12px;line-height:1.6;overflow-wrap:anywhere}.menu-label{display:block;color:var(--soft);font-size:11px;margin-bottom:3px}#accountInfo,#syncStatus{display:block;color:var(--txt)}dialog{color:#e5edf5;background:#202c3a;border:1px solid #607085;border-radius:12px;max-width:min(90vw,520px)}dialog input{display:block;margin:12px 0;width:100%;padding:10px;box-sizing:border-box}dialog button{min-height:40px;margin:4px}dialog::backdrop{background:#0009}.task-checkbox,.task-parent-toggle{position:relative}.task-checkbox::after,.task-parent-toggle::after{content:'';position:absolute;inset:-10px}.node-action{min-width:28px;min-height:28px}@media(pointer:coarse){.task-node.selected>.task-card .task-resize,.task-card:focus-within .task-resize,.stage.selected .stage-resize{opacity:.8}.topbar{height:auto;min-height:62px;flex-wrap:wrap}}
   .mobile-drag{display:none}@media(pointer:coarse){.mobile-drag{display:grid;place-items:center;position:absolute;right:2px;bottom:-7px;width:30px;height:30px;touch-action:none;user-select:none;color:#8f9fb5;z-index:5}}
 
     .sheet-bar{display:flex;align-items:center;gap:4px;flex:0 0 46px;min-width:0;padding:0 12px;border-top:1px solid #ffffff12;background:var(--bg);z-index:7}.sheet-tabs{display:flex;gap:3px;overflow-x:auto;min-width:0;flex:1;scrollbar-width:thin}.sheet-tab,.sheet-tool{border:0;background:transparent;color:var(--soft);min-height:40px;padding:8px 15px;border-radius:6px 6px 0 0;flex:0 0 auto}.sheet-tab{max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-bottom:2px solid transparent}.sheet-tab[aria-selected="true"]{color:var(--txt);background:#ffffff08;border-bottom-color:var(--accent)}.sheet-tab:hover,.sheet-tool:hover{background:#ffffff0b}.sheet-tool{min-width:40px;padding:8px;font-size:20px}.zoom-controls{bottom:66px}.menu button:disabled{opacity:.4;cursor:default}#emphasisDialog,#sheetDialog{width:min(90vw,420px)}.settings-row{display:flex;align-items:center;gap:10px;margin:12px 0}.settings-row input{margin:0;min-width:0}.settings-row input[type=color]{width:54px;height:42px;padding:3px;flex:0 0 54px}.settings-row input[type=number]{width:100px}#emphasisTarget{overflow-wrap:anywhere;max-height:100px;overflow:auto}.settings-label{font-size:13px;color:var(--soft)}.settings-actions{display:flex;flex-wrap:wrap;gap:4px}#emphasisPreview{padding:20px;border-radius:10px;margin:20px 6px;background:var(--card-bg)}
+    /* progress, due dates, notes */
+    .stage-heading.has-progress{padding-bottom:34px}
+    .stage-progress{position:absolute;left:48px;right:40px;bottom:11px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--node-muted);font-variant-numeric:tabular-nums;pointer-events:none}
+    .stage-progress .bar{flex:1;height:4px;border-radius:4px;background:color-mix(in srgb,var(--card-fg) 12%,transparent);overflow:hidden}
+    .stage-progress .bar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
+    .stage-progress .due-chip{pointer-events:auto}
+    .stage-due{position:absolute;left:48px;bottom:9px}
+    .task-meta{display:flex;gap:5px;align-items:center;flex:0 0 auto;margin-left:auto}
+    .due-chip,.note-chip{border:0;font:inherit;font-size:11px;line-height:1;padding:4px 6px;border-radius:6px;background:color-mix(in srgb,var(--card-fg) 9%,transparent);color:var(--node-muted);white-space:nowrap;cursor:pointer;font-variant-numeric:tabular-nums}
+    .due-chip.soon{background:#e2b54a2e;color:#e9c36b}
+    .due-chip.overdue{background:#e8836f30;color:#f0a291}
+    .is-done .due-chip{background:transparent;color:var(--node-muted);opacity:.7}
+    .node-action.detail svg{width:15px;height:15px;pointer-events:none}
+    .sheet-tab .pct{margin-left:6px;font-size:11px;opacity:.65;font-variant-numeric:tabular-nums}
+    .hide-done .is-done-node,.hide-done .is-done-stage{display:none}
+    #menuTrigger{position:relative}
+    #menuTrigger[data-alert]::after{content:"";position:absolute;top:5px;right:4px;width:8px;height:8px;border-radius:50%;background:#e8836f;box-shadow:0 0 0 2px var(--bg)}
+    #syncStatus[data-alert]{color:#f0a291}
+    .menu button[aria-pressed="true"]::after{content:"  ✓";color:var(--accent)}
+    #planDialog,#detailDialog,#dueDialog{width:min(92vw,620px)}
+    #planDialog textarea,#detailNote{display:block;width:100%;min-height:150px;margin:10px 0;padding:10px;border-radius:8px;border:1px solid #425067;background:#101824;color:#e4edf5;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;box-sizing:border-box}
+    #detailNote{font-family:inherit;min-height:110px}
+    .plan-steps{margin:6px 0 10px;padding-left:20px;font-size:13px;line-height:1.7;color:var(--soft)}
+    .plan-preview{max-height:260px;overflow:auto;border:1px solid #ffffff14;border-radius:8px;padding:8px 12px;font-size:13px;line-height:1.6}
+    .plan-preview:empty{display:none}
+    .plan-preview .lv1{padding-left:18px;color:#cfd9e6}.plan-preview .lv2{padding-left:36px;color:#aebbcc;font-size:12px}.plan-preview .lv0{font-weight:650;margin-top:6px}
+    .plan-preview .date{color:var(--accent);margin-left:6px;font-size:11px}.plan-preview .err{color:#ebb3aa}
+    .plan-target{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0;font-size:13px}.plan-target input{display:inline;width:auto;margin:0 4px 0 0}
+    .detail-note-label{display:block;margin-top:8px}.detail-links{font-size:12px;overflow-wrap:anywhere;color:var(--soft)}.detail-links:empty{display:none}
+    .due-list{max-height:60dvh;overflow:auto}.due-group{font-size:12px;color:var(--soft);margin:14px 0 4px;font-weight:600}
+    .due-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #ffffff10;font-size:13px}
+    .due-row .task-checkbox{flex:0 0 17px;min-height:0;height:17px;margin:0 4px}.due-row .due-text{flex:1;min-width:0;overflow-wrap:anywhere;cursor:pointer}.due-row .due-sheet{font-size:11px;color:var(--soft)}
+    .due-empty{color:var(--soft);font-size:13px;padding:14px 0}
 </style>
 </head>
 <body>
@@ -192,6 +227,10 @@
             <button id="logout" hidden>ログアウト</button>
             <div class="sync-details"><span class="menu-label">保存・同期</span><span id="syncStatus" role="status" aria-live="polite">端末内に保存</span></div>
           </section>
+          <hr>
+          <button data-menu="plan">AIでスケジュールを作る</button>
+          <button data-menu="due">期日が近いタスク</button>
+          <button data-menu="hidedone" id="hideDoneToggle" aria-pressed="false">完了したタスクを隠す</button>
           <hr>
           <button data-menu="prompt">AI用の現状をコピー</button>
           <button data-menu="ai">AI更新を取り込む</button>
@@ -242,6 +281,18 @@
 <dialog id="authDialog"><form id="authForm"><h3>ログイン・新規登録</h3><p>同じメールアドレスでPCとスマホを同期します。</p><input id="email" type="email" autocomplete="email" placeholder="メールアドレス" required><input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="パスワード（8文字以上）" required><button type="submit">ログイン</button><button type="button" id="signup">新規登録</button><p>初回登録後は確認メールのリンクをコピーし、下の欄に貼り付けてください。</p><input id="confirmationLink" type="url" placeholder="確認メールのリンク"><button type="button" id="verifyEmail">メール認証を完了</button><button type="button" id="authClose">閉じる</button><p id="authError" role="status"></p></form></dialog>
 <dialog id="conflictDialog"><h3>保存内容が競合しています</h3><p>両方のJSONを保存してから、採用する内容を選べます。上書き前に両方を端末内にも退避します。</p><button id="exportLocal">この端末をJSON保存</button><button id="exportRemote">サーバーをJSON保存</button><button id="keepLocal">この端末を採用</button><button id="keepRemote">サーバーを採用</button></dialog>
 <dialog id="emphasisDialog"><form id="emphasisForm"><h3>枠線で強調</h3><p id="emphasisTarget" class="settings-label"></p><label class="settings-row">太さ（px）<input id="emphasisWidth" type="number" min="0" max="32" step="any" required></label><label class="settings-row">色<input id="emphasisColor" type="color"><input id="emphasisHex" type="text" pattern="#[0-9a-fA-F]{6}" aria-label="枠線の色コード" required></label><div id="emphasisPreview">プレビュー</div><div class="settings-actions"><button type="submit">保存</button><button id="emphasisClear" type="button">強調を解除</button><button id="emphasisCancel" type="button">キャンセル</button></div></form></dialog>
+<dialog id="planDialog"><form id="planForm"><h3>AIでスケジュールを作る</h3>
+<ol class="plan-steps"><li>作りたいもの・期間を書いて「AIへの指示文をコピー」</li><li>ChatGPT・Claudeなどに貼り付けて送信</li><li>AIの返答をそのまま下の欄に貼り付け → 確認して登録</li></ol>
+<input id="planTheme" type="text" maxlength="200" placeholder="例：新作ゲームを来年3月までに公開する"><button type="button" id="planCopy">AIへの指示文をコピー</button>
+<textarea id="planText" spellcheck="false" placeholder="- 大きな工程 @2026-12-31&#10;  - 小さな工程 @2026-12-10&#10;    - さらに細かい作業"></textarea>
+<div id="planPreview" class="plan-preview" aria-live="polite"></div>
+<div class="plan-target"><label><input type="radio" name="planTarget" value="new" checked> 新しいシートに登録</label><label><input type="radio" name="planTarget" value="append"> 表示中のシートの末尾に追加</label></div>
+<div class="settings-actions"><button type="submit" id="planCommit" disabled>登録する</button><button type="button" id="planClose">閉じる</button></div></form></dialog>
+<dialog id="detailDialog"><form id="detailForm"><h3>期日・メモ</h3><p id="detailTarget" class="settings-label"></p>
+<label class="settings-row">期日<input id="detailDue" type="date"></label>
+<label class="detail-note-label">メモ<textarea id="detailNote" maxlength="5000" placeholder="補足・参考URLなど"></textarea></label><div id="detailLinks" class="detail-links"></div>
+<div class="settings-actions"><button type="submit">保存</button><button id="detailClearDue" type="button">期日を消す</button><button id="detailCancel" type="button">キャンセル</button></div></form></dialog>
+<dialog id="dueDialog"><h3>期日が近いタスク</h3><p class="settings-label">すべてのシートから、未完了で期日のあるタスクを表示します。</p><div id="dueList" class="due-list"></div><div class="settings-actions"><button id="dueClose" type="button">閉じる</button></div></dialog>
 <dialog id="sheetDialog"><form id="sheetForm"><h3>シートの設定</h3><label>シート名<input id="sheetName" type="text" maxlength="100" required></label><div class="settings-actions"><button type="submit">保存</button><button id="sheetLeft" type="button">左へ移動</button><button id="sheetRight" type="button">右へ移動</button><button id="sheetDelete" type="button">シートを削除</button><button id="sheetCancel" type="button">閉じる</button></div></form></dialog>
 <script>
 (()=>{'use strict';
@@ -278,7 +329,7 @@
   function activeChildren(items){return items}
   function effectiveDone(t){const children=activeChildren(t.children);return children.length?children.every(c=>c.done):!!t.done;}
   function effectiveMainDone(stage){const children=activeChildren(stage.tasks);return children.length?children.every(effectiveDone):!!stage.done;}
-  function taskWidth(t){if(Number.isFinite(t.width)&&t.width>=210)return t.width;const context=document.createElement('canvas').getContext('2d');context.font='430 14px system-ui, sans-serif';const longest=Math.max(0,...String(t.text||'').split('\n').map(line=>context.measureText(line).width));return Math.max(245,Math.min(560,Math.ceil(longest)+92));}
+  function taskWidth(t){if(Number.isFinite(t.width)&&t.width>=210)return t.width;const context=document.createElement('canvas').getContext('2d');context.font='430 14px system-ui, sans-serif';const longest=Math.max(0,...String(t.text||'').split('\n').map(line=>context.measureText(line).width));return Math.max(245,Math.min(560,Math.ceil(longest)+92+(t.due?100:0)+(t.note?46:0)));}
   function headingWidth(st){return Number.isFinite(st.width)&&st.width>=210?st.width:(matchMedia('(max-width:700px)').matches?269:296);}
   function stageWidth(st){let m=0;for(const t of st.tasks){m=Math.max(m,taskWidth(t));for(const c of t.children)m=Math.max(m,taskWidth(c)+30);}return Math.max(269,headingWidth(st),m+32);}
 
@@ -301,6 +352,13 @@
   const clone=o=>JSON.parse(JSON.stringify(o));
   const uid=p=>p+'_'+(crypto.randomUUID?.()||Math.random().toString(36).slice(2)).slice(0,12);
   function cleanText(v){return String(v??'').replace(/\r/g,'');}
+  // Due dates are plain local dates (YYYY-MM-DD). Anything else is dropped.
+  function validDate(v){if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))return null;const [y,m,d]=v.split('-').map(Number),t=new Date(Date.UTC(y,m-1,d));return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d?v:null}
+  function todayStr(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function dueClass(due,done){if(!due||done)return '';if(due<todayStr())return 'overdue';if(due<=todayStr(3))return 'soon';return ''}
+  function dueLabel(due){const [y,m,d]=due.split('-').map(Number);const t=todayStr();const base=(y===+t.slice(0,4)?'':y+'/')+m+'/'+d;if(due===t)return base+' 今日';if(due===todayStr(1))return base+' 明日';if(due<t)return base+' 期限切れ';return base}
+  // Progress counts the leaves: grandchildren, childless children, or a childless main task.
+  function progressOf(stages){let done=0,total=0;for(const st of stages){if(!st.tasks.length){total++;if(st.done)done++;continue}for(const t of st.tasks){if(t.children.length){for(const c of t.children){total++;if(c.done)done++}}else{total++;if(t.done)done++}}}return {done,total,pct:total?Math.round(done/total*100):0}}
   function normalizeEmphasis(v){
     if(!v)return null;
     if(!Number.isFinite(+v.width)||+v.width<0||+v.width>32||typeof v.color!=='string'||!/^#[0-9a-f]{6}$/i.test(v.color))throw Error('枠線の設定が不正です');
@@ -326,12 +384,12 @@
       const task=(t,depth=0)=>{
         if(!t||typeof t!=='object')throw Error('手順の内容が不正です');const children=Array.isArray(t.children)?t.children:[];
         if(depth>0&&children.length)throw Error('子タスクの階層が深すぎます');
-        return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,collapsed:!!t.collapsed,width:t.width!=null&&Number.isFinite(+t.width)&&+t.width>=210&&+t.width<=1200?+t.width:null,emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
+        return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,collapsed:!!t.collapsed,due:validDate(t.due),note:cleanText(t.note).slice(0,5000),width:t.width!=null&&Number.isFinite(+t.width)&&+t.width>=210&&+t.width<=1200?+t.width:null,emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
       };
       const inputStages=sheet.id===activeId?raw.stages:sheet.stages;if(inputStages.length>300)throw Error('工程が多すぎます');
       return {id:sheet.id,name:cleanText(sheet.name||'シート'+(index+1)),stages:inputStages.map(st=>{
         if(!st||!Array.isArray(st.tasks))throw Error('工程の内容が不正です');
-        return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,collapsed:!!st.collapsed,width:st.width!=null&&Number.isFinite(+st.width)&&+st.width>=210&&+st.width<=1200?+st.width:null,emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
+        return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,collapsed:!!st.collapsed,due:validDate(st.due),note:cleanText(st.note).slice(0,5000),width:st.width!=null&&Number.isFinite(+st.width)&&+st.width>=210&&+st.width<=1200?+st.width:null,emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
       })};
     });
     const isColor=v=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);
@@ -378,7 +436,7 @@
   function renderSheets(){
     const tabs=$('sheetTabs');tabs.replaceChildren();
     for(const sheet of state.sheets){
-      const tab=btn('sheet-tab',sheet.name,sheet.name,()=>selectSheet(sheet.id,true));tab.dataset.sheetId=sheet.id;tab.setAttribute('role','tab');tab.setAttribute('aria-selected',String(sheet.id===state.activeSheetId));tab.tabIndex=sheet.id===state.activeSheetId?0:-1;
+      const prog=progressOf(sheet.stages);const tab=btn('sheet-tab',sheet.name+(prog.total?'（進捗 '+prog.pct+'%）':''),sheet.name,()=>selectSheet(sheet.id,true));if(prog.total){const pc=el('span','pct',prog.pct+'%');tab.append(pc)}tab.dataset.sheetId=sheet.id;tab.setAttribute('role','tab');tab.setAttribute('aria-selected',String(sheet.id===state.activeSheetId));tab.tabIndex=sheet.id===state.activeSheetId?0:-1;
       tab.addEventListener('dblclick',openSheetSettings);tab.addEventListener('contextmenu',e=>{e.preventDefault();selectSheet(sheet.id);openSheetSettings()});
       tab.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const i=state.sheets.findIndex(s=>s.id===sheet.id),next=state.sheets[(i+(e.key==='ArrowRight'?1:-1)+state.sheets.length)%state.sheets.length];selectSheet(next.id,true)});tabs.append(tab);
     }
@@ -507,7 +565,7 @@
   let branchObserver=null;
   function updateBranchLines(){
     for(const branch of map.querySelectorAll('.task-children')){
-      const rows=[...branch.children].filter(n=>n.classList.contains('task-node'));
+      const rows=[...branch.children].filter(n=>n.classList.contains('task-node')&&n.offsetParent!==null);
       const last=rows.at(-1),card=last?.querySelector(':scope > .task-card');
       const h=last&&card ? Math.round(last.offsetTop + card.offsetHeight/2) : 0;
       branch.style.setProperty('--branch-height',Math.max(0,h)+'px');
@@ -526,9 +584,9 @@
     branchObserver?.disconnect();
     applyAppearance();renderSheets();
     if(!$('palettePanel').hidden)renderPalette();
-    map.replaceChildren();
+    map.replaceChildren();map.classList.toggle('hide-done',hideDone);
     state.stages.forEach((stage,si)=>{
-      const section=el('section','stage'+(stage.collapsed?' stage-collapsed':''));section.dataset.stageId=stage.id;section.style.setProperty('--stage-content-width',stageWidth(stage)+'px');section.style.setProperty('--heading-width',headingWidth(stage)+'px');
+      const section=el('section','stage'+(stage.collapsed?' stage-collapsed':'')+(effectiveMainDone(stage)?' is-done-stage':''));section.dataset.stageId=stage.id;section.style.setProperty('--stage-content-width',stageWidth(stage)+'px');section.style.setProperty('--heading-width',headingWidth(stage)+'px');
       const head=el('div','stage-heading'+(effectiveMainDone(stage)?' is-done':''));head.dataset.number=String(si+1).padStart(2,'0');head.dataset.stageHandle=stage.id;drawEmphasis(head,stage.emphasis);
       const leading=el('div','stage-leading');
       if(activeChildren(stage.tasks).length){
@@ -545,8 +603,10 @@
         else if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}
       });head.append(title);
       const actions=el('div','stage-actions');
-      actions.append(btn('node-action danger','メインタスクを削除','×',()=>removeStage(stage.id)));
+      actions.append(detailButton('stage',stage.id),btn('node-action danger','メインタスクを削除','×',()=>removeStage(stage.id)));
       head.append(actions);
+      if(stage.tasks.length){const prog=progressOf([stage]);const row=el('div','stage-progress');row.append(el('span','count',prog.done+'/'+prog.total));const bar=el('span','bar');const fill=el('i');fill.style.width=prog.pct+'%';bar.append(fill);row.append(bar);if(stage.due)row.append(dueChip('stage',stage.id,stage.due,effectiveMainDone(stage)));if(stage.note)row.append(noteChip('stage',stage.id));head.append(row);head.classList.add('has-progress');}
+      else if(stage.due||stage.note){const row=el('div','stage-progress');if(stage.due)row.append(dueChip('stage',stage.id,stage.due,effectiveMainDone(stage)));if(stage.note)row.append(noteChip('stage',stage.id));head.append(row);head.classList.add('has-progress');}
       const hr=btn('stage-resize','工程の幅を左右にドラッグして変更','',()=>{});hr.title='工程の幅を調整';hr.addEventListener('pointerdown',e=>beginResize(e,stage.id,head,'stage'));head.append(hr);
       head.tabIndex=0;head.addEventListener('keydown',e=>{if(e.target===head)lowerTaskKey(e,stage.id)});
       head.addEventListener('click',e=>{if(e.target.closest('button,a'))return;document.querySelectorAll('.selected').forEach(n=>n.classList.remove('selected'));selectedCard={kind:'stage',id:stage.id};section.classList.add('selected');if(!e.target.closest('[contenteditable]'))head.focus({preventScroll:true})});
@@ -559,7 +619,7 @@
     map.append(btn('add-stage','メインタスクを追加','＋',()=>{const s={id:uid('s'),title:'',done:false,collapsed:false,width:null,tasks:[]};change(()=>state.stages.push(s));focusStage(s.id)}));
     refreshBranchObserver();
   }
-  function makeTask(text=''){return {id:uid('t'),text,done:false,collapsed:false,width:null,children:[]}}
+  function makeTask(text='',due=null){return {id:uid('t'),text,done:false,collapsed:false,due:validDate(due),note:'',width:null,children:[]}}
   // A new empty input is only a draft. Existing saved empty tasks are never deleted.
   function openDraft(afterButton,stageId,parentId){
     const host=afterButton.parentElement;
@@ -602,7 +662,7 @@
     target.dispatchEvent(new Event('input',{bubbles:true}));
   }
   function renderTask(t,stage,index,depth){
-    const node=el('div','task-node'+(t.collapsed?' collapsed':''));node.dataset.taskNode=t.id;
+    const node=el('div','task-node'+(t.collapsed?' collapsed':'')+(effectiveDone(t)?' is-done-node':''));node.dataset.taskNode=t.id;
     const card=el('div','task-card'+(effectiveDone(t)?' is-done':''));card.dataset.taskCard=t.id;card.style.width=taskWidth(t)+'px';drawEmphasis(card,t.emphasis);
     if(activeChildren(t.children).length){const fold=btn('task-parent-toggle','子タスクを'+(t.collapsed?'展開':'折りたたむ'),t.collapsed?'▸':'▾',()=>change(()=>t.collapsed=!t.collapsed));card.append(fold);}else{
       const check=btn('task-checkbox','タスクを'+(t.done?'未完了':'完了')+'にする','',()=>change(()=>t.done=!t.done));
@@ -617,11 +677,11 @@
     const hadMainChildren=activeChildren(stage.tasks).length>0;
     edit.addEventListener('blur',()=>{
       // Re-evaluate leaf checkboxes and parent completion after edits without re-rendering during typing.
-      save();document.querySelectorAll('.task-node').forEach(n=>{const f=findTask(n.dataset.taskNode);if(f)n.querySelector('.task-card').classList.toggle('is-done',effectiveDone(f.task))});document.querySelectorAll('.stage').forEach(n=>n.querySelector('.stage-heading').classList.toggle('is-done',effectiveMainDone(findStage(n.dataset.stageId))));
+      save();document.querySelectorAll('.task-node').forEach(n=>{const f=findTask(n.dataset.taskNode);if(f){n.querySelector('.task-card').classList.toggle('is-done',effectiveDone(f.task));n.classList.toggle('is-done-node',effectiveDone(f.task))}});document.querySelectorAll('.stage').forEach(n=>n.querySelector('.stage-heading').classList.toggle('is-done',effectiveMainDone(findStage(n.dataset.stageId))));
     });
-    card.append(edit);const grip=el('span','mobile-drag','⠿');grip.setAttribute('aria-label','長押しして並べ替え');card.append(grip);
+    card.append(edit);if(t.due||t.note){const meta=el('span','task-meta');if(t.due)meta.append(dueChip('task',t.id,t.due,effectiveDone(t)));if(t.note)meta.append(noteChip('task',t.id));card.append(meta);}const grip=el('span','mobile-drag','⠿');grip.setAttribute('aria-label','長押しして並べ替え');card.append(grip);
     const tools=el('div','task-actions');
-    tools.append(btn('node-action remove danger','タスクを削除','×',()=>removeTask(t.id)));
+    tools.append(detailButton('task',t.id),btn('node-action remove danger','タスクを削除','×',()=>removeTask(t.id)));
     card.append(tools);
     const resize=btn('task-resize','タスクの幅を左右にドラッグして変更','',()=>{});resize.title='タスクの幅を調整';resize.addEventListener('pointerdown',e=>beginResize(e,t.id,card,'task'));card.append(resize);
     node.append(card);
@@ -809,23 +869,24 @@
   document.addEventListener('pointerdown',e=>{if(!e.target.closest('.menu-wrap')){$('menu').hidden=true;$('palettePanel').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false')} });
   $('menu').onclick=e=>{
     const v=e.target.closest('[data-menu]')?.dataset.menu;if(!v)return;$('menu').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false');
-    if(v==='emphasis'){openEmphasis();}else if(v==='palette'){renderPalette();$('palettePanel').hidden=false;}else if(v==='export')exportJSON();else if(v==='import')$('fileInput').click();else if(v==='prompt')copyPrompt();else if(v==='ai')openAI();else if(v==='reset'){
+    if(v==='emphasis'){openEmphasis();}else if(v==='plan'){openPlan();}else if(v==='due'){renderDueList();$('dueDialog').showModal();}else if(v==='hidedone'){setHideDone(!hideDone);}else if(v==='palette'){renderPalette();$('palettePanel').hidden=false;}else if(v==='export')exportJSON();else if(v==='import')$('fileInput').click();else if(v==='prompt')copyPrompt();else if(v==='ai')openAI();else if(v==='reset'){
       if(confirm('表示中のシートをサンプルに戻しますか？ このシートの工程を置き換えます。他のシートは保持します。')){
         try{localStorage.setItem('processmap_sample_backup_'+Date.now(),JSON.stringify(state))}catch{notify('バックアップできないため中止しました');return}
         captureUndo('表示中のシートをサンプルに戻しました');const sample=normalize(defaultData);state.stages=sample.stages.map(st=>({...st,id:uid('s'),tasks:st.tasks.map(t=>({...t,id:uid('t'),children:t.children.map(c=>({...c,id:uid('t')}))}))}));save();render();
       }
     }
   };
-  function exportJSON(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=el('a');a.href=url;a.download='tokoyo-cockpit-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+  function exportJSON(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=el('a');a.href=url;a.download='processmap-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
   $('fileInput').onchange=async e=>{
     const file=e.target.files?.[0];e.target.value='';if(!file)return;
     try{const raw=JSON.parse(await file.text());const parsed=normalize(raw);if(!confirm('読み込みプレビュー：'+parsed.sheets.length+'シート / '+parsed.stages.length+'工程（表示中）\n'+parsed.stages.map(s=>s.title).join(' / ').slice(0,400)+'\n現在の全シートをバックアップして、読み込んだ内容で置き換えますか？'))return;localStorage.setItem('processmap_import_backup_'+Date.now(),JSON.stringify(state));exportJSON();
       captureUndo('バックアップを読み込みました');state=parsed;save();render();
     }catch(err){notify('読み込み失敗: '+err.message)}
   };
-  function currentSummary(){return state.stages.map((s,i)=>`${i+1}. [${s.id}] ${effectiveMainDone(s)?'✓':'□'} ${s.title}（メインタスク）\n${s.tasks.map((t,j)=>`  ${j+1}. [${t.id}] ${t.done?'✓':'□'} ${t.text||'(空欄)'}${t.children.map(c=>`\n     - [${c.id}] ${c.done?'✓':'□'} ${c.text||'(空欄)'}`).join('')}`).join('\n')}`).join('\n\n')}
+  function currentSummary(){const d=x=>x.due?` （期日 ${x.due}）`:'';return state.stages.map((s,i)=>`${i+1}. [${s.id}] ${effectiveMainDone(s)?'✓':'□'} ${s.title}（メインタスク）${d(s)}\n${s.tasks.map((t,j)=>`  ${j+1}. [${t.id}] ${effectiveDone(t)?'✓':'□'} ${t.text||'(空欄)'}${d(t)}${t.children.map(c=>`\n     - [${c.id}] ${c.done?'✓':'□'} ${c.text||'(空欄)'}${d(c)}`).join('')}`).join('\n')}`).join('\n\n')}
   async function copyPrompt(){
-    const txt=`あなたは常夜の工程マップ用の進捗更新を整理する役です。以下は最新状態です。相談・実装で確認できた変化だけを検出して、次のJSON形式のみ返してください。決定していないことや推測を完了として扱わないでください。新しいIDは自分で付けないでください。\n\n${currentSummary()}\n\nJSON形式: {"source_key":"固有の更新キー","updates":[{"action":"set_main_done","stageId":"メインタスクID","done":true},{"action":"set_done","taskId":"既存の子／孫ID","done":true},{"action":"add_task","stageId":"メインタスクID","text":"子タスク名"},{"action":"add_child","parentTaskId":"子タスクID","text":"孫タスク名"},{"action":"add_stage","title":"メインタスク名"}]}\n\n変更がなければupdatesを空配列に。必ず会話の文脈にある事実だけ。`; 
+    const prog=progressOf(state.stages),overdue=allItems().filter(x=>x.sheet.id===state.activeSheetId&&!x.done&&x.due&&x.due<todayStr()).length;
+    const txt=`あなたはProcessMap（制作の工程表）の進捗更新を整理する役です。今日は${todayStr()}。以下は最新状態です（進捗 ${prog.done}/${prog.total}・${prog.pct}%、期限切れ ${overdue}件）。相談・実装で確認できた変化だけを検出して、次のJSON形式のみ返してください。決定していないことや推測を完了として扱わないでください。新しいIDは自分で付けないでください。遅れがあれば期日の見直し(set_due)も提案してください。\n\n${currentSummary()}\n\nJSON形式: {"source_key":"固有の更新キー","updates":[{"action":"set_main_done","stageId":"メインタスクID","done":true},{"action":"set_done","taskId":"既存の子／孫ID","done":true},{"action":"add_task","stageId":"メインタスクID","text":"子タスク名","due":"YYYY-MM-DD（任意）"},{"action":"add_child","parentTaskId":"子タスクID","text":"孫タスク名"},{"action":"add_stage","title":"メインタスク名"},{"action":"set_due","taskId":"子／孫ID（メインならstageId）","due":"YYYY-MM-DD または null"}]}\n\n変更がなければupdatesを空配列に。必ず会話の文脈にある事実だけ。`; 
     try{await navigator.clipboard.writeText(txt);notify('AI用の現状をコピーしました')}catch(e){openAI();$('aiText').value=txt;$('aiText').readOnly=true;$('aiText').select();$('modalTitle').textContent='AIへの指示をコピー';$('modalDesc').textContent='クリップボードを使えない環境のため、以下を選択してコピーしてください。';$('aiPreview').hidden=true;notify('指示文を選択しました。コピーしてください')}
   }
   function openAI(){$('modalTitle').textContent='AI更新を取り込む';$('modalDesc').textContent='ChatGPT・Claudeが作成した更新JSONを貼り付け、変更点を確認してから反映します。';$('aiText').readOnly=false;$('modal').hidden=false;$('aiError').hidden=true;$('aiReview').hidden=true;$('aiCommit').hidden=true;$('aiPreview').hidden=false;$('aiText').focus();pending=null}
@@ -844,19 +905,21 @@
       const f=()=>findTask(u.taskId,next);
       const s=()=>findStage(u.stageId,next);
       if(action==='add_stage'){
-        const title=requireText(u.title,'title');next.stages.push({id:uid('s'),title,done:false,collapsed:false,tasks:[]});details.push('メインタスクを追加：'+title);
+        const title=requireText(u.title,'title');next.stages.push({id:uid('s'),title,done:false,collapsed:false,due:validDate(u.due),note:'',width:null,emphasis:null,tasks:[]});details.push('メインタスクを追加：'+title);
       }else if(action==='rename_stage'){
         const v=s();if(!v)fail();const t=requireText(u.title,'title');details.push('工程名：'+v.title+' → '+t);v.title=t;
       }else if(action==='add_task'){
-        const v=s();if(!v)fail();const t=requireText(u.text,'text');if(!t.trim())throw Error('空の子タスクは新規登録できません');v.tasks.push(makeTask(t));v.done=false;details.push(v.title+' に子タスク追加：'+t);
+        const v=s();if(!v)fail();const t=requireText(u.text,'text');if(!t.trim())throw Error('空の子タスクは新規登録できません');v.tasks.push(makeTask(t,u.due));v.done=false;details.push(v.title+' に子タスク追加：'+t);
       }else if(action==='add_child'){
-        const v=findTask(u.parentTaskId,next);if(!v||v.depth!==0)fail();const t=requireText(u.text,'text');if(!t.trim())throw Error('空の孫タスクは新規登録できません');v.task.children.push(makeTask(t));v.task.done=false;v.task.collapsed=false;details.push('孫タスク追加：'+v.task.text+' → '+t);
+        const v=findTask(u.parentTaskId,next);if(!v||v.depth!==0)fail();const t=requireText(u.text,'text');if(!t.trim())throw Error('空の孫タスクは新規登録できません');v.task.children.push(makeTask(t,u.due));v.task.done=false;v.task.collapsed=false;details.push('孫タスク追加：'+v.task.text+' → '+t);
       }else if(action==='update_task_text'){
         const v=f();if(!v)fail();const t=requireText(u.text,'text');details.push('タスク名：'+v.task.text+' → '+t);v.task.text=t;
       }else if(action==='set_main_done'){
         const v=s();if(!v)fail();if(typeof u.done!=='boolean')throw Error('done はtrue/falseで指定してください');if(activeChildren(v.tasks).length)throw Error('子タスクがあるメインタスクの完了は自動判定です');v.done=u.done;details.push((u.done?'メインタスク完了：':'メインタスク未完了：')+v.title);
       }else if(action==='set_done'){
         const v=f();if(!v)fail();if(typeof u.done!=='boolean')throw Error('done はtrue/falseで指定してください');if(activeChildren(v.task.children).length)throw Error('孫タスクがある子タスクの完了は自動判定です');v.task.done=u.done;details.push((u.done?'完了：':'未完了：')+v.task.text);
+      }else if(action==='set_due'){
+        const v=u.stageId?s():f()?.task;if(!v)fail();const due=u.due==null||u.due===''?null:validDate(u.due);if(u.due&&!due)throw Error('更新 '+(i+1)+' : 期日はYYYY-MM-DD形式で指定してください');v.due=due;details.push('期日：'+(v.title??v.text)+' → '+(due||'なし'));
       }else if(action==='move_task'){
         const v=f(),to=findStage(u.toStageId,next);if(!v||!to)fail();v.list.splice(v.index,1);to.tasks.push(v.task);details.push('タスクを移動：'+v.task.text+' → '+to.title);
       }else throw Error('未対応の更新：'+action);
@@ -883,8 +946,104 @@
     if(!pending)return;
     captureUndo('AIの更新を反映しました');state=pending.next;state.processedKeys.push(pending.key);save();render();closeAI();
   };
+  // ---------- 期日・メモ ----------
+  const CAL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
+  function findAny(kind,id){for(const sheet of state.sheets)for(const st of sheet.stages){if(kind==='stage'){if(st.id===id)return {sheet,item:st};continue}for(const t of st.tasks){if(t.id===id)return {sheet,item:t,stage:st};for(const c of t.children)if(c.id===id)return {sheet,item:c,stage:st,parent:t}}}return null}
+  function detailButton(kind,id){const b=btn('node-action detail','期日・メモを設定','',()=>openDetail(kind,id));b.innerHTML=CAL;return b}
+  function dueChip(kind,id,due,done){const b=btn('due-chip '+dueClass(due,done),'期日 '+due+'（クリックで変更）',dueLabel(due),()=>openDetail(kind,id));return b}
+  function noteChip(kind,id){return btn('note-chip','メモを開く','メモ',()=>openDetail(kind,id))}
+  let detailEditing=null;
+  function openDetail(kind,id){const f=findAny(kind,id);if(!f)return;detailEditing={kind,id};$('detailTarget').textContent=(kind==='stage'?f.item.title:f.item.text)||'（空欄のタスク）';$('detailDue').value=f.item.due||'';$('detailNote').value=f.item.note||'';linkText($('detailLinks'),$('detailNote').value.match(/https?:\/\/\S+/g)?.join('\n')||'');$('detailDialog').showModal()}
+  $('detailNote').oninput=()=>linkText($('detailLinks'),$('detailNote').value.match(/https?:\/\/\S+/g)?.join('\n')||'');
+  $('detailForm').onsubmit=e=>{e.preventDefault();const target=detailEditing&&findAny(detailEditing.kind,detailEditing.id);$('detailDialog').close();if(!target)return;const due=validDate($('detailDue').value),note=cleanText($('detailNote').value).slice(0,5000);if(target.item.due===due&&(target.item.note||'')===note)return;change(()=>{target.item.due=due;target.item.note=note})};
+  $('detailClearDue').onclick=()=>{$('detailDue').value=''};$('detailCancel').onclick=()=>$('detailDialog').close();
+  $('detailDialog').addEventListener('close',()=>{detailEditing=null});
+
+  // ---------- 期日が近いタスク ----------
+  function allItems(){const out=[];for(const sheet of state.sheets)for(const st of sheet.stages){out.push({sheet,kind:'stage',item:st,title:st.title,due:st.due,done:effectiveMainDone(st),leaf:!st.tasks.length});for(const t of st.tasks){out.push({sheet,kind:'task',item:t,title:t.text,due:t.due,done:effectiveDone(t),leaf:!t.children.length,parentTitle:st.title});for(const c of t.children)out.push({sheet,kind:'task',item:c,title:c.text,due:c.due,done:!!c.done,leaf:true,parentTitle:t.text})}}return out}
+  function renderDueList(){
+    const list=$('dueList');list.replaceChildren();const today=todayStr(),week=todayStr(7);
+    const items=allItems().filter(x=>x.due&&!x.done).sort((a,b)=>a.due.localeCompare(b.due));
+    const groups=[['期限切れ',x=>x.due<today],['今日',x=>x.due===today],['7日以内',x=>x.due>today&&x.due<=week],['それ以降',x=>x.due>week]];
+    for(const [label,test] of groups){const rows=items.filter(test);if(!rows.length)continue;list.append(el('div','due-group',label+'（'+rows.length+'）'));
+      for(const x of rows){const row=el('div','due-row');
+        if(x.leaf){const c=btn('task-checkbox','完了にする','',()=>{const f=findAny(x.kind,x.item.id);if(!f)return;change(()=>f.item.done=true);renderDueList();notify('完了にしました',true)});c.setAttribute('role','checkbox');c.setAttribute('aria-checked','false');row.append(c)}else row.append(el('span','task-checkbox-placeholder'));
+        const text=el('div','due-text');text.append(el('div','',x.title||'（空欄）'));text.append(el('div','due-sheet',x.sheet.name+(x.parentTitle?' › '+x.parentTitle:'')));text.onclick=()=>{$('dueDialog').close();jumpTo(x)};row.append(text);
+        row.append(el('span','due-chip '+dueClass(x.due,false),dueLabel(x.due)));list.append(row)}}
+    if(!items.length)list.append(el('div','due-empty','期日が設定された未完了タスクはありません。カードの「期日・メモ」ボタン（カレンダーの印）から設定できます。'));
+  }
+  function jumpTo(x){if(state.activeSheetId!==x.sheet.id)selectSheet(x.sheet.id);if(hideDone&&x.done)setHideDone(false);requestAnimationFrame(()=>{const n=x.kind==='stage'?[...map.querySelectorAll('.stage')].find(s=>s.dataset.stageId===x.item.id)?.querySelector('.stage-heading'):[...map.querySelectorAll('.task-node')].find(s=>s.dataset.taskNode===x.item.id)?.querySelector('.task-card');if(!n)return;n.scrollIntoView({block:'center',inline:'center',behavior:'smooth'});n.click()})}
+  $('dueClose').onclick=()=>$('dueDialog').close();
+
+  // ---------- 完了したタスクを隠す（この端末だけの表示設定） ----------
+  let hideDone=false;try{hideDone=localStorage.getItem('processmap_hide_done')==='1'}catch{}
+  function setHideDone(v){hideDone=v;try{localStorage.setItem('processmap_hide_done',v?'1':'0')}catch{}$('hideDoneToggle').setAttribute('aria-pressed',String(v));render();if(v)notify('完了したタスクを隠しています（メニューから再表示）')}
+  $('hideDoneToggle').setAttribute('aria-pressed',String(hideDone));
+
+  // ---------- AIでスケジュールを作る ----------
+  function planPrompt(theme){return `あなたは制作スケジュールを組むアシスタントです。\nテーマ：「${theme||'（ここに作りたいもの・期間を書いてください）'}」\n今日は${todayStr()}です。\n\n次の形式の箇条書き「だけ」を日本語で返してください。前置き・説明・コードブロックは不要です。\n\n- 大きな工程（メインタスク） @YYYY-MM-DD\n  - 小さな工程（子タスク） @YYYY-MM-DD\n    - さらに細かい作業（孫タスク。必要なときだけ）\n\nルール：\n・字下げは半角スペース2つ。階層は最大3段\n・期日は現実的な日付を行末に @YYYY-MM-DD で（不明なら省略可）\n・1行に1つ。短く具体的に、完了したか判断できる作業にする\n・大きな工程は時系列順に5〜8個程度`}
+  function parsePlan(input){
+    let text=String(input||'').replace(/\r/g,'').trim();if(!text)return {stages:[],errors:[]};
+    if(/^[\[{]/.test(text)){
+      const j=JSON.parse(text);const arr=Array.isArray(j)?j:(j.stages||j.items||j.tasks||[]);if(!Array.isArray(arr))throw Error('JSONの形式が分かりません');
+      const label=o=>cleanText(typeof o==='string'?o:(o.title??o.text??o.name??''));const kids=o=>Array.isArray(o?.tasks)?o.tasks:Array.isArray(o?.children)?o.children:[];
+      return {errors:[],stages:arr.map(s=>({title:label(s),due:validDate(s?.due),tasks:kids(s).map(t=>({text:label(t),due:validDate(t?.due),children:kids(t).map(c=>({text:label(c),due:validDate(c?.due)}))}))}))};
+    }
+    const lines=text.split('\n').filter(l=>l.trim()&&!/^\s*```/.test(l)&&!/^\s*([-*_=])\1{2,}\s*$/.test(l)&&!/^\s*\|/.test(l));
+    const headDepths=[...new Set(lines.map(l=>l.match(/^\s*(#{1,6})\s/)?.[1].length).filter(Boolean))].sort();
+    // A single top-level heading followed by deeper headings is a document title: skip it.
+    if(headDepths.length>1&&lines.filter(l=>l.match(/^\s*(#{1,6})\s/)?.[1].length===headDepths[0]).length===1)headDepths.shift();
+    const items=[];let headLevel=-1,indents=[];
+    for(const raw of lines){
+      const ind=raw.match(/^[\t 　]*/)[0].replace(/\t/g,'  ').replace(/　/g,'  ').length;let line=raw.trim(),level;
+      const hm=line.match(/^(#{1,6})\s+(.*)$/);
+      if(hm){const r=headDepths.indexOf(hm[1].length);if(r<0)continue;headLevel=r;level=r;line=hm[2];indents=[];}
+      else{
+        const bm=line.match(/^(?:[-*+・•●○◦▪︎]|\d{1,3}[.)．、）]|[（(]\d{1,3}[)）])\s*(.*)$/);if(bm)line=bm[1];
+        while(indents.length&&indents.at(-1)>ind)indents.pop();if(!indents.length||indents.at(-1)<ind)indents.push(ind);
+        level=(headLevel>=0?headLevel+1:0)+indents.length-1;
+      }
+      let done=false;const cm=line.match(/^\[([ xX✓])\]\s*(.*)$/);if(cm){done=cm[1]!==' ';line=cm[2]}
+      line=line.replace(/\*\*(.+?)\*\*/g,'$1').replace(/__(.+?)__/g,'$1').replace(/`([^`]+)`/g,'$1');
+      let due=null;const dm=line.match(/\s*(?:[@＠]\s*|[（(]\s*(?:期日|期限|締切|締め切り|due)?\s*[:：]?\s*)(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?\s*[)）]?\s*$/i);
+      if(dm){due=validDate(dm[1]+'-'+dm[2].padStart(2,'0')+'-'+dm[3].padStart(2,'0'));line=line.slice(0,dm.index)}
+      line=line.replace(/[\s:：]+$/,'').trim();if(!line)continue;items.push({level,text:line,due,done});
+    }
+    const stages=[];
+    for(const it of items){
+      let level=Math.min(2,it.level);const st=stages.at(-1),t=st?.tasks.at(-1);
+      if(level===2&&!t)level=1;if(level>=1&&!st)level=0;
+      if(level===0)stages.push({title:it.text,due:it.due,done:it.done,tasks:[]});
+      else if(level===1)st.tasks.push({text:it.text,due:it.due,done:it.done,children:[]});
+      else t.children.push({text:it.text,due:it.due,done:it.done});
+    }
+    return {stages,errors:[]};
+  }
+  function buildStages(parsed){return parsed.stages.map(s=>({id:uid('s'),title:s.title,done:!!s.done&&!s.tasks?.length,collapsed:false,due:s.due||null,note:'',width:null,emphasis:null,tasks:(s.tasks||[]).map(t=>{const x=makeTask(t.text,t.due);x.done=!!t.done;x.children=(t.children||[]).map(c=>{const y=makeTask(c.text,c.due);y.done=!!c.done;return y});return x})}))}
+  let planParsed=null;
+  function previewPlan(){
+    const box=$('planPreview');box.replaceChildren();planParsed=null;$('planCommit').disabled=true;
+    try{const r=parsePlan($('planText').value);if(!r.stages.length){if($('planText').value.trim())box.append(el('div','err','工程を読み取れませんでした。「- 工程名」の箇条書きで貼り付けてください。'));return}
+      let n=0;for(const s of r.stages){const a=el('div','lv0',s.title);if(s.due)a.append(el('span','date',s.due));box.append(a);n++;for(const t of s.tasks){const b=el('div','lv1','└ '+t.text);if(t.due)b.append(el('span','date',t.due));box.append(b);n++;for(const c of t.children){const d=el('div','lv2','└ '+c.text);if(c.due)d.append(el('span','date',c.due));box.append(d);n++}}}
+      if(r.stages.length>300||n>3000)throw Error('工程が多すぎます（メイン300件まで）');
+      box.prepend(el('div','',`メインタスク ${r.stages.length}件・合計 ${n}件を読み取りました`));planParsed=r;$('planCommit').disabled=false;
+    }catch(err){box.append(el('div','err','読み取れません：'+err.message))}
+  }
+  $('planText').oninput=previewPlan;
+  $('planCopy').onclick=async()=>{const txt=planPrompt($('planTheme').value.trim());try{await navigator.clipboard.writeText(txt);notify('AIへの指示文をコピーしました')}catch{$('planText').value=txt;$('planText').select();previewPlan();notify('コピーできない環境です。欄の文章を選択してコピーしてください')}};
+  $('planClose').onclick=()=>$('planDialog').close();
+  $('planForm').onsubmit=e=>{e.preventDefault();if(!planParsed)return;const stages=buildStages(planParsed);const mode=$('planForm').elements.planTarget.value;
+    if(mode==='new'&&state.sheets.length>=100){notify('シートは100枚までです');return}
+    $('planDialog').close();
+    change(()=>{if(mode==='new'){const used=new Set(state.sheets.map(s=>s.name));let name=($('planTheme').value.trim()||'AIスケジュール').slice(0,40),base=name,i=2;while(used.has(name))name=base+' '+(i++);const sheet={id:uid('sheet'),name,stages};state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;selectedCard=null;rememberSheet();}else state.stages.push(...stages)});
+    canvas.scrollLeft=0;canvas.scrollTop=0;notify('スケジュールを登録しました（Ctrl+Zで取り消し）',true);$('planText').value='';planParsed=null;};
+  function openPlan(){previewPlan();$('planDialog').showModal();$('planTheme').focus()}
+
+  // ---------- 同期異常の目印（メニューを開かなくても気づけるように） ----------
+  new MutationObserver(()=>{const t=$('syncStatus').textContent,bad=/競合|接続できません|オフライン/.test(t);$('menuTrigger').toggleAttribute('data-alert',bad);$('syncStatus').toggleAttribute('data-alert',bad);$('menuTrigger').setAttribute('aria-label',bad?'メニューを開く（同期に問題があります：'+t+'）':'メニューを開く');$('menuTrigger').title=bad?'同期に問題があります：'+t:'メニュー'}).observe($('syncStatus'),{childList:true,characterData:true,subtree:true});
+
   document.addEventListener('keydown',e=>{
-    if(document.querySelector('#sheetDialog[open],#emphasisDialog[open]'))return;
+    if(document.querySelector('dialog[open]'))return;
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='z'&&!e.target.closest('textarea,input')){e.preventDefault();if(e.shiftKey)redo();else undo();return;}
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='y'&&!e.target.closest('textarea,input')){e.preventDefault();redo();return;}
     if(e.key==='Escape'){closeAI();$('menu').hidden=true;$('palettePanel').hidden=true;$('stageContext')?.remove()}

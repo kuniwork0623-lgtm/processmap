@@ -61,6 +61,7 @@ const status=page=>page.locator('#syncStatus').textContent();
 async function waitStatus(page,text,ms=8000){await page.waitForFunction(t=>document.getElementById('syncStatus').textContent.includes(t),text,{timeout:ms})}
 
 async function test(name,fn){
+  if(process.env.TEST_FILTER&&!name.includes(process.env.TEST_FILTER))return;
   const browser=await chromium.launch();
   try{await fn(browser);results.push(['PASS',name]);console.log('PASS',name)}
   catch(e){results.push(['FAIL',name,e.message]);console.log('FAIL',name,'\n   ',e.message.split('\n').slice(0,4).join('\n    '))}
@@ -146,6 +147,68 @@ await test('[PC] 配色の一括変更',async b=>{const {page}=await newPage(b);
   await page.click('#menuTrigger');await page.click('[data-menu="palette"]');await page.locator('#taskSwatches .palette-swatch').nth(2).click();
   assert.equal((await state(page)).appearance.task,'#273d3f')});
 
+// ---------- 新機能 ----------
+const PLAN_MD=`# ゲーム制作スケジュール
+## 企画 @2026-12-05
+- コンセプトを決める @2026-11-30
+  - 参考作品を3つ遊ぶ
+  - [x] ターゲットを書く
+- 企画書を作る（期日：2026/12/5）
+## 開発
+1. **プロトタイプ** @2026-12-20
+   1. 操作感を作る
+2. 素材を作る
+`;
+await test('[新機能] AIの箇条書き(見出し・番号・字下げ・期日・[x])を3階層で読み取る',async b=>{const {page}=await newPage(b);
+  const r=await page.evaluate(md=>{document.getElementById('planText').value=md;document.getElementById('planText').dispatchEvent(new Event('input'));return document.getElementById('planPreview').textContent},PLAN_MD);
+  assert.ok(r.includes('メインタスク 2件'),r);
+  await page.click('#menuTrigger');await page.click('[data-menu="plan"]');await page.fill('#planTheme','ゲーム');await page.fill('#planText',PLAN_MD);await page.click('#planCommit');
+  const s=await state(page);assert.equal(s.sheets.length,2);assert.equal(s.activeSheetId,s.sheets[1].id);assert.equal(s.sheets[1].name,'ゲーム');
+  const [a,d]=s.stages;assert.equal(a.title,'企画');assert.equal(a.due,'2026-12-05');assert.equal(a.tasks[0].text,'コンセプトを決める');assert.equal(a.tasks[0].due,'2026-11-30');
+  assert.equal(a.tasks[0].children.length,2);assert.equal(a.tasks[0].children[1].done,true);assert.equal(a.tasks[1].text,'企画書を作る');assert.equal(a.tasks[1].due,'2026-12-05');
+  assert.equal(d.tasks[0].text,'プロトタイプ');assert.equal(d.tasks[0].children[0].text,'操作感を作る');assert.equal(d.tasks[1].text,'素材を作る');
+  await page.keyboard.press('Control+z');assert.equal((await state(page)).sheets.length,1,'Ctrl+Zで取り消せません')});
+
+await test('[新機能] 見出しなしの字下げ箇条書き・JSONも読み取る、表示中シートへ追加',async b=>{const {page}=await newPage(b);
+  await page.click('#menuTrigger');await page.click('[data-menu="plan"]');
+  await page.fill('#planText','- A @2027-01-10\n  - A1\n    - A1a\n      - 深すぎ\n- B');await page.check('input[value="append"]');await page.click('#planCommit');
+  let s=await state(page);assert.equal(s.sheets.length,1);const a=s.stages.at(-2);assert.equal(a.title,'A');assert.equal(a.tasks[0].children.map(c=>c.text).join(','),'A1a,深すぎ');assert.equal(s.stages.at(-1).title,'B');
+  await page.click('#menuTrigger');await page.click('[data-menu="plan"]');await page.fill('#planText','[{"title":"J","due":"2027-02-01","tasks":[{"text":"J1","children":[{"text":"J1a"}]}]}]');await page.click('#planCommit');
+  s=await state(page);assert.equal(s.stages.at(-1).title,'J');assert.equal(s.stages.at(-1).tasks[0].children[0].text,'J1a')});
+
+await test('[新機能] 進捗表示（メインカードの n/m とシートタブの%）',async b=>{const {page}=await newPage(b);
+  // sample: stage1 leaves = t1(done), tc1(done), tc2, t3 => 2/4
+  assert.equal(await page.locator('.stage').first().locator('.stage-progress .count').textContent(),'2/4');
+  assert.equal(await page.locator('.sheet-tab .pct').textContent(),'29%'); // 2/7: a main task without children counts as one leaf
+  await page.locator('[data-task-node="tc2"] .task-checkbox').click();assert.equal(await page.locator('.stage').first().locator('.stage-progress .count').textContent(),'3/4')});
+
+await test('[新機能] 期日・メモの設定、期限切れ表示、期日一覧から完了',async b=>{const {page}=await newPage(b);
+  await page.locator('[data-task-node="t3"] .task-card').hover();await page.locator('[data-task-node="t3"] .detail').click();
+  await page.fill('#detailDue','2020-01-01');await page.fill('#detailNote','参考 https://example.com/doc');await page.click('#detailForm button[type=submit]');
+  let s=await state(page);assert.equal(s.stages[0].tasks[2].due,'2020-01-01');assert.equal(s.stages[0].tasks[2].note,'参考 https://example.com/doc');
+  assert.equal(await page.locator('[data-task-node="t3"] .due-chip.overdue').count(),1);assert.equal(await page.locator('[data-task-node="t3"] .note-chip').count(),1);
+  await page.click('#menuTrigger');await page.click('[data-menu="due"]');assert.ok((await page.textContent('#dueList')).includes('期限切れ（1）'));
+  await page.locator('#dueList .task-checkbox').first().click();s=await state(page);assert.equal(s.stages[0].tasks[2].done,true);
+  await page.click('#dueClose');await page.locator('[data-task-node="t3"] .due-chip').click();await page.click('#detailClearDue');await page.click('#detailForm button[type=submit]');
+  assert.equal((await state(page)).stages[0].tasks[2].due,null)});
+
+await test('[新機能] 完了したタスクを隠す（再表示も可能）',async b=>{const {page}=await newPage(b);
+  await page.click('#menuTrigger');await page.click('[data-menu="hidedone"]');assert.equal(await page.locator('[data-task-node="t1"]').isVisible(),false);
+  assert.equal(await page.locator('[data-task-node="t3"]').isVisible(),true);await page.reload();await page.waitForSelector('.stage');assert.equal(await page.locator('[data-task-node="t1"]').isVisible(),false,'設定が保持されません');
+  await page.click('#menuTrigger');await page.click('[data-menu="hidedone"]');assert.equal(await page.locator('[data-task-node="t1"]').isVisible(),true)});
+
+await test('[新機能] AI更新のset_due・add_taskのdue、指示文がProcessMap向け',async b=>{const {page,ctx}=await newPage(b);
+  await page.click('#menuTrigger');await page.click('[data-menu="ai"]');
+  await page.fill('#aiText',JSON.stringify({source_key:'k1',updates:[{action:'set_due',taskId:'t4',due:'2027-03-01'},{action:'add_task',stageId:'s2',text:'新規',due:'2027-03-02'},{action:'set_due',stageId:'s1',due:'2027-03-03'}]}));
+  await page.click('#aiPreview');await page.click('#aiCommit');const s=await state(page);
+  assert.equal(s.stages[1].tasks[0].due,'2027-03-01');assert.equal(s.stages[1].tasks.at(-1).due,'2027-03-02');assert.equal(s.stages[0].due,'2027-03-03');
+  await ctx.grantPermissions(['clipboard-read','clipboard-write']);await page.click('#menuTrigger');await page.click('[data-menu="prompt"]');
+  const clip=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(clip.includes('ProcessMap')&&!clip.includes('常夜'),'指示文に常夜の名残があります');assert.ok(clip.includes('期日 2027-03-01'))});
+
+await test('[新機能][SP] スマホで削除×は選択したカードだけに出る',async b=>{const {page}=await newPage(b,{mobile:true});
+  const op=n=>page.locator(`[data-task-node="${n}"] > .task-card .task-actions`).evaluate(e=>getComputedStyle(e).opacity);
+  assert.equal(await op('t3'),'0');const box=await page.locator('[data-task-node="t3"] .task-card').boundingBox();await page.touchscreen.tap(box.x+box.width/2,box.y+box.height-3);await page.waitForTimeout(250);assert.equal(await op('t3'),'1');assert.equal(await op('t1'),'0')});
+
 // ---------- 認証・同期（モック） ----------
 await test('[同期] ログイン済みでサーバーの工程表を読み込み、編集をrevision付きで保存',async b=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:5});const {page}=await newPage(b,{mock,user:USER});
@@ -178,6 +241,14 @@ await test('[同期] 別ユーザーの行は取得されない（RLS相当の�
   const mock=mockSupabase();mock.db.set(OTHER.id,{document:doc('他人の工程'),revision:3});mock.db.set(USER.id,{document:doc('自分の工程'),revision:1});
   const {page}=await newPage(b,{mock,user:USER});await waitStatus(page,'保存済み');assert.equal((await state(page)).stages[0].title,'自分の工程');
   const q=mock.calls.filter(c=>c.includes('processmap_documents'));assert.ok(q.length>0)});
+
+await test('[同期] 期日・メモがサーバーに保存され別端末で読める／接続不可でメニューに目印',async b=>{
+  const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});const A=await newPage(b,{mock,user:USER});await waitStatus(A.page,'保存済み');
+  await A.page.locator('[data-task-node="t1"] > .task-card').hover();await A.page.locator('[data-task-node="t1"] > .task-card .detail').click();await A.page.fill('#detailDue','2027-01-05');await A.page.fill('#detailNote','メモ');await A.page.click('#detailForm button[type=submit]');
+  await waitStatus(A.page,'保存済み');await A.page.waitForTimeout(1200);const B=await newPage(b,{mock,user:USER});await waitStatus(B.page,'保存済み');
+  const t=(await state(B.page)).stages[0].tasks[0];assert.equal(t.due,'2027-01-05');assert.equal(t.note,'メモ');
+  mock.setOnline(false);await typeEnd(B.page,B.page.locator('.stage-title').first(),'z');await waitStatus(B.page,'接続できません',10000);
+  assert.equal(await B.page.locator('#menuTrigger[data-alert]').count(),1,'同期異常の目印が出ません');mock.setOnline(true);await waitStatus(B.page,'保存済み',10000);assert.equal(await B.page.locator('#menuTrigger[data-alert]').count(),0)});
 
 await test('[同期] 再読み込みを繰り返しても端末保存(localStorage)が増え続けない',async b=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});const {page}=await newPage(b,{mock,user:USER});await waitStatus(page,'保存済み');
