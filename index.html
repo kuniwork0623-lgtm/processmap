@@ -269,11 +269,18 @@
     .is-mindmap [data-process-only]{display:none!important}
     .map.mind-map-view{display:grid;place-items:center;padding:48px 60px 76px}
     .mind-board{position:relative;display:flex;align-items:center;gap:54px;min-width:max-content}
+    .mind-board.mind-positioned{display:block;min-width:0}
+    .mind-positioned>.mind-node{position:absolute;transform:translate(-50%,-50%)}
+    .mind-positioned>.mind-node[data-moving]{z-index:2}
+    .canvas[data-mind-dragging],.canvas[data-mind-dragging] *{cursor:grabbing;user-select:none}
     .mind-branch{display:flex;align-items:center;gap:54px}
     .mind-branch.left{flex-direction:row-reverse}
     .mind-children{display:grid;align-items:center;gap:20px}
     .mind-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
     .mind-node{--branch-color:var(--accent);position:relative;z-index:1;width:184px;min-height:56px;padding:9px 10px;background:var(--card-bg);color:var(--card-fg);border:1px solid color-mix(in srgb,var(--branch-color) 52%,var(--card-bg));border-radius:11px;display:flex;flex-direction:column;justify-content:center}
+    .mind-node:not(.root){padding-inline-start:34px}
+    .mind-grip{position:absolute;left:0;top:50%;transform:translateY(-50%);width:32px;height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--card-fg);font-size:18px;cursor:grab;touch-action:none;user-select:none}
+    .mind-grip:hover,.mind-grip:focus-visible{background:color-mix(in srgb,var(--card-fg) 13%,var(--card-bg))}
     .mind-node.root{width:208px;min-height:74px;border:2px solid var(--accent);border-radius:15px}
     .mind-node[data-selected]{outline:2px solid var(--branch-color);outline-offset:3px}
     .mind-title{display:block;width:100%;min-height:32px;max-height:150px;resize:none;padding:5px 3px;margin:0;border:0;background:none;color:inherit;font:inherit;font-size:15px;line-height:22px;overflow-wrap:anywhere;outline:0;cursor:text}
@@ -281,7 +288,7 @@
     .mind-title::placeholder{color:var(--card-fg);opacity:.7}
     .mind-node .mind-note-chip{align-self:flex-start;min-height:32px;border:0;background:transparent;color:var(--card-fg);font-size:12px;text-decoration:underline;text-underline-offset:3px}
     .mind-fold{position:absolute;top:50%;transform:translateY(-50%);left:calc(100% + 5px);z-index:1;min-width:40px;min-height:40px;padding:0 3px;border-radius:8px;border:1px solid var(--branch-color);background:var(--card-bg);color:var(--card-fg);font-size:14px}
-    .mind-branch.left>.mind-node .mind-fold{left:auto;right:calc(100% + 5px)}
+    .mind-node[data-left] .mind-fold{left:auto;right:calc(100% + 5px)}
     #sheetTypeDialog .sheet-types{display:grid;gap:8px}
     #sheetTypeDialog .sheet-types button{text-align:left;padding:12px 14px;margin:0}
     .sheet-types button strong,.sheet-types button span{display:block}
@@ -295,7 +302,8 @@
     .mind-tab-indicator{margin-right:6px;font-size:12px;color:var(--accent)}
     @media(max-width:700px){
       .mind-tools{padding-inline:8px;gap:2px;flex-wrap:wrap}.mind-tools button{padding:0 8px}.mind-shortcuts{display:none}
-      .map.mind-map-view{padding:36px 27px 68px}.mind-node{width:138px}.mind-node.root{width:154px}
+      .map.mind-map-view{padding:36px 27px 68px}.mind-node{width:150px}.mind-node.root{width:154px}
+      .mind-title{font-size:16px}
       .mind-board,.mind-branch{gap:36px}.mind-fold{left:calc(100% + 3px);min-width:30px;min-height:36px}
     }
   </style>
@@ -358,7 +366,7 @@
     <button type="button" id="mindReviewOpen">一覧・検索</button>
     <button type="button" id="mindFit" title="表示中の枝を画面に収める">全体表示</button>
     <button type="button" id="mindMore" aria-label="トピックの操作">⋯</button>
-    <span class="mind-shortcuts">Tabで枝を追加 · Enterで同列に追加</span>
+    <span class="mind-shortcuts">Tabで枝 · Enterで同列 · つまみをドラッグして移動</span>
   </div>
   <main id="canvas" class="canvas" aria-label="工程マップ"><div id="map" class="map"></div></main>
   <nav class="sheet-bar" aria-label="シートの切り替え"><div id="sheetTabs" class="sheet-tabs" role="tablist" aria-label="シート"></div><button id="addSheet" class="sheet-tool" aria-label="シートを追加" title="シートを追加">＋</button><button id="sheetOptions" class="sheet-tool" aria-label="シートの設定" title="シートの名前・並び順・削除">···</button></nav>
@@ -408,7 +416,7 @@
 <label class="check-row"><input type="checkbox" id="consultKeepOpen"> AIの案から外れた未完了タスクも消さずに残す</label><label class="check-row" id="consultInboxRow"><input type="checkbox" id="consultClearInbox" checked> あとで箱を空にする（AIの案に取り込まれたため）</label>
 <div class="settings-actions"><button type="submit" id="consultCommit" disabled>この内容で反映</button><button type="button" id="consultClose">閉じる</button></div></form></dialog>
 <dialog id="historyDialog"><h3>変更履歴</h3><p class="settings-label">見直しやAIの提案でスケジュールを変えた記録です（新しい順）。</p><div id="historyList" class="due-list"></div><div class="settings-actions"><button type="button" id="historyClose">閉じる</button></div></dialog>
-<dialog id="sheetDialog"><form id="sheetForm"><h3>シートの設定</h3><label>シート名（プロジェクト名）<input id="sheetName" type="text" maxlength="100" required></label><label class="settings-row" id="sheetDeadlineRow">締切<input id="sheetDeadline" type="date"></label><div class="settings-actions"><button type="submit">保存</button><button id="sheetLeft" type="button">左へ移動</button><button id="sheetRight" type="button">右へ移動</button><button id="sheetDelete" type="button">シートを削除</button><button id="sheetCancel" type="button">閉じる</button></div></form></dialog>
+<dialog id="sheetDialog"><form id="sheetForm"><h3>シートの設定</h3><label>シート名（プロジェクト名）<input id="sheetName" type="text" maxlength="100" required></label><label class="settings-row" id="sheetDeadlineRow">締切<input id="sheetDeadline" type="date"></label><div class="settings-actions"><button type="submit">保存</button><button id="sheetLeft" type="button">左へ移動</button><button id="sheetRight" type="button">右へ移動</button><button id="mindResetLayout" type="button" hidden>自動配置に戻す</button><button id="sheetDelete" type="button">シートを削除</button><button id="sheetCancel" type="button">閉じる</button></div></form></dialog>
 <dialog id="sheetTypeDialog" aria-labelledby="sheetTypeTitle">
   <h3 id="sheetTypeTitle">シートを追加</h3>
   <div class="sheet-types">
@@ -434,7 +442,7 @@
 <dialog id="mindTopicDialog" aria-labelledby="mindTopicHeading">
   <h3 id="mindTopicHeading">トピックの操作</h3>
   <p id="mindTopicTitle" class="settings-label"></p>
-  <div id="mindMoveGroup"><label>別の枝へ移動<select id="mindMoveTo"></select></label><button type="button" id="mindMove">移動</button></div>
+  <div id="mindMoveGroup"><label>つなぎ先<select id="mindMoveTo"></select></label><button type="button" id="mindMove">つなぎ直す</button></div>
   <div class="settings-actions"><button type="button" id="mindDelete">この枝を削除</button><button type="button" id="mindTopicClose">閉じる</button></div>
 </dialog>
 <script>
@@ -465,6 +473,7 @@
   const MIND_EMPTY_SHEET='sheet_mindmap_placeholder';
   const MIND_TOPIC_LIMIT=500;
   const MIND_DEPTH_LIMIT=32;
+  const MIND_POSITION_LIMIT=50000;
   let state=load();
   let drag=null, dragTimer=null,pan=null,ghost=null;
   let selection=null, selectedCard=null, emphasisEditing=null, toastTimer=null;
@@ -481,6 +490,7 @@
   function stageWidth(st){let m=0;for(const t of st.tasks){m=Math.max(m,taskWidth(t));for(const c of t.children)m=Math.max(m,taskWidth(c)+30);}return Math.max(269,headingWidth(st),m+32);}
 
   function applyZoom(value,anchor=null,precise=false){
+    if(mindDrag?.base)return;
     const mind=map.classList.contains('mind-map-view');
     const old=zoom,min=mind ? .05 : .3;
     zoom=Math.max(min,Math.min(1.8,precise?Math.round(value*100)/100:Math.round(value*10)/10));
@@ -632,6 +642,7 @@
   }
   function openSheetSettings(focusDeadline=false){
     const i=state.sheets.findIndex(s=>s.id===state.activeSheetId);$('sheetDeadlineRow').hidden=!!state.sheets[i].mindMap;$('sheetName').value=state.sheets[i].name;$('sheetDeadline').value=state.sheets[i].goal?.deadline||'';$('sheetLeft').disabled=i===0;$('sheetRight').disabled=i===state.sheets.length-1;$('sheetDelete').disabled=state.sheets.length===1;
+    $('mindResetLayout').hidden=!mindTopics(state.sheets[i].mindMap).some(({node})=>node.position);
     $('sheetDialog').showModal();if(focusDeadline===true&&!state.sheets[i].mindMap){$('sheetDeadline').focus();try{$('sheetDeadline').showPicker()}catch{}}else{$('sheetName').focus();$('sheetName').select()}
   }
   $('addSheet').onclick=()=>{
@@ -794,7 +805,7 @@
     branchObserver?.disconnect();
     applyAppearance();renderSheets();
     if(!$('palettePanel').hidden)renderPalette();
-    map.replaceChildren();map.classList.toggle('hide-done',hideDone);
+    map.classList.toggle('hide-done',hideDone);
     const sheet=state.sheets.find(sheet=>sheet.id===state.activeSheetId);
     const mind=!!sheet.mindMap,changedMode=mind!==map.classList.contains('mind-map-view');
     map.classList.toggle('mind-map-view',mind);
@@ -803,7 +814,8 @@
     canvas.setAttribute('aria-label',mind?'マインドマップ':'工程マップ');
     if(changedMode)applyZoom(mind?mindZoom:processZoom,null,true);
     if(mind){renderMindMap(sheet);return}
-    mindResize.disconnect();mindLayout=null;mindRenderedSheet=null;
+    clearMindDrag();mindResize.disconnect();mindLayout=null;mindRenderedSheet=null;
+    map.replaceChildren();
     state.stages.forEach((stage,si)=>{
       const section=el('section','stage'+(stage.collapsed?' stage-collapsed':'')+(effectiveMainDone(stage)?' is-done-stage':''));section.dataset.stageId=stage.id;section.style.setProperty('--stage-content-width',stageWidth(stage)+'px');section.style.setProperty('--heading-width',headingWidth(stage)+'px');
       const head=el('div','stage-heading'+(effectiveMainDone(stage)?' is-done':''));head.dataset.number=String(si+1).padStart(2,'0');head.dataset.stageHandle=stage.id;drawEmphasis(head,stage.emphasis);
@@ -1648,7 +1660,12 @@ ${outlineOf(sh.stages)}
         const node=visit(child,depth+1);
         if(node)children.push(node);
       }
-      return {id:value.id,text:cleanText(value.text),note:cleanText(value.note),folded:value.folded===true,children};
+      const topic={id:value.id,text:cleanText(value.text),note:cleanText(value.note),folded:value.folded===true,children};
+      const point=value.position;
+      if(Number.isFinite(point?.x)&&Number.isFinite(point?.y)&&Math.abs(point.x)<=MIND_POSITION_LIMIT&&Math.abs(point.y)<=MIND_POSITION_LIMIT){
+        topic.position={x:point.x,y:point.y};
+      }
+      return topic;
     }
     return visit(raw,0);
   }
@@ -1665,7 +1682,7 @@ ${outlineOf(sh.stages)}
     if(root)visit(root,[]);
     return rows;
   }
-  let mindSelected=null,mindRenderedSheet=null,mindLayout=null,mindNoteTarget=null;
+  let mindSelected=null,mindRenderedSheet=null,mindLayout=null,mindNoteTarget=null,mindDrag=null;
   const mindNarrow=matchMedia('(max-width:700px)');
   const mindColors=['#79b7f1','#70d6ad','#f4af75','#c9a4f5','#e993b5','#dfcc74'];
   const svgNS='http://www.w3.org/2000/svg';
@@ -1682,10 +1699,13 @@ ${outlineOf(sh.stages)}
     const root=node===currentMindSheet()?.mindMap;
     $('mindMore').disabled=root;$('mindSibling').disabled=root;
   }
+  function centerMindRect(box){
+    const viewport=canvas.getBoundingClientRect(),center=rectCenter(box);
+    canvas.scrollLeft+=center.x-(viewport.left+canvas.clientWidth/2);
+    canvas.scrollTop+=center.y-(viewport.top+canvas.clientHeight/2);
+  }
   function centerMindElement(element){
-    const viewport=canvas.getBoundingClientRect(),box=element.getBoundingClientRect();
-    canvas.scrollLeft+=box.left+box.width/2-(viewport.left+canvas.clientWidth/2);
-    canvas.scrollTop+=box.top+box.height/2-(viewport.top+canvas.clientHeight/2);
+    if(element)centerMindRect(element.getBoundingClientRect());
   }
   function focusMindTopic(id){
     const card=mindLayout?.nodes.get(id);
@@ -1699,14 +1719,232 @@ ${outlineOf(sh.stages)}
     input.style.height='auto';
     input.style.height=input.scrollHeight+'px';
   }
+  function rectCenter(rect){return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}}
+  function elementBounds(elements){
+    const boxes=elements.map(element=>element.getBoundingClientRect());
+    const left=Math.min(...boxes.map(box=>box.left)),right=Math.max(...boxes.map(box=>box.right));
+    const top=Math.min(...boxes.map(box=>box.top)),bottom=Math.max(...boxes.map(box=>box.bottom));
+    return {left,top,width:right-left,height:bottom-top};
+  }
+  function keepMindCardInView(card,previous){
+    const before=rectCenter(previous),after=rectCenter(card.getBoundingClientRect());
+    canvas.scrollLeft+=after.x-before.x;
+    canvas.scrollTop+=after.y-before.y;
+  }
+  function measureMindPoints(){
+    const root=rectCenter(mindLayout.root.getBoundingClientRect());
+    return new Map([...mindLayout.nodes].map(([id,card])=>{
+      const center=rectCenter(card.getBoundingClientRect());
+      return [id,{x:Math.round((center.x-root.x)/zoom),y:Math.round((center.y-root.y)/zoom)}];
+    }));
+  }
+  function freeMindPoint(ideal,cardSize,points){
+    const {width,height}=cardSize;
+    const x=Math.max(-MIND_POSITION_LIMIT,Math.min(MIND_POSITION_LIMIT,Math.round(ideal.x)));
+    let y=Math.round(ideal.y);
+    const gaps={x:42,y:20};
+    const occupied=[...points].map(([id,point])=>{
+      const card=mindLayout.nodes.get(id);
+      return {point,width:card?.offsetWidth||width,height:card?.offsetHeight||height};
+    }).filter(box=>Math.abs(box.point.x-x)<(box.width+width)/2+gaps.x);
+    occupied.sort((a,b)=>(a.point.y-a.height/2)-(b.point.y-b.height/2));
+    for(const box of occupied){
+      const spacing=(box.height+height)/2+gaps.y;
+      if(Math.abs(y-box.point.y)<spacing)y=Math.ceil(box.point.y+spacing);
+    }
+    return {x,y:Math.max(-MIND_POSITION_LIMIT,Math.min(MIND_POSITION_LIMIT,y))};
+  }
+  function layoutMindPoints(topics){
+    const automatic=measureMindPoints(),points=new Map();
+    for(const {node,parent} of topics){
+      if(automatic.has(node.id)&&(node.position||!parent))points.set(node.id,node.position||automatic.get(node.id));
+    }
+    for(const {node,parent} of topics){
+      const card=mindLayout.nodes.get(node.id);
+      if(!card||points.has(node.id))continue;
+      const p=points.get(parent.id),autoParent=automatic.get(parent.id),autoNode=automatic.get(node.id);
+      const dx=autoNode.x-autoParent.x;
+      const side=Math.sign(p.x)||Math.sign(dx)||1;
+      const ideal={x:p.x+side*Math.abs(dx),y:p.y+autoNode.y-autoParent.y};
+      points.set(node.id,freeMindPoint(ideal,{width:card.offsetWidth,height:card.offsetHeight},points));
+    }
+    return points;
+  }
+  function placeNewMindTopic(selected,parent,sibling){
+    const {nodes,points}=mindLayout;
+    const card=nodes.get(selected.id),parentCard=nodes.get(parent.id);
+    const point=points.get(selected.id),anchor=points.get(parent.id);
+    const width=mindNarrow.matches?150:184,height=56;
+    const direction=Math.sign(anchor.x)||1;
+    const ideal=sibling?{x:point.x,y:point.y+(card.offsetHeight+height)/2+20}
+      :{x:anchor.x+direction*((parentCard.offsetWidth+width)/2+54),y:anchor.y};
+    const occupied=new Map(points);
+    if(parent.folded)for(const {node} of mindTopics(parent)){
+      if(!occupied.has(node.id)&&node.position)occupied.set(node.id,node.position);
+    }
+    return freeMindPoint(ideal,{width,height},occupied);
+  }
+  function paintMindPoints(){
+    const {nodes,links,points,origin}=mindLayout;
+    for(const [id,card] of nodes){
+      const point=points.get(id);
+      card.style.left=point.x+origin.x+'px';
+      card.style.top=point.y+origin.y+'px';
+    }
+    for(const {parent,card} of links){
+      card.toggleAttribute('data-left',points.get(card.dataset.mindId).x<points.get(parent.dataset.mindId).x);
+    }
+    drawMindLines();
+  }
+  function positionMindBoard(points,room=.62){
+    const {board,lines,nodes}=mindLayout;
+    const paddedX=Math.max(100,canvas.clientWidth/zoom*room),paddedY=Math.max(100,canvas.clientHeight/zoom*room);
+    const boxes=[...points].map(([id,point])=>({point,width:nodes.get(id).offsetWidth,height:nodes.get(id).offsetHeight}));
+    const left=Math.min(...boxes.map(box=>box.point.x-box.width/2));
+    const right=Math.max(...boxes.map(box=>box.point.x+box.width/2));
+    const top=Math.min(...boxes.map(box=>box.point.y-box.height/2));
+    const bottom=Math.max(...boxes.map(box=>box.point.y+box.height/2));
+    if(!board.classList.contains('mind-positioned')){
+      board.classList.add('mind-positioned');
+      board.replaceChildren(lines,...nodes.values());
+    }
+    board.style.width=right-left+2*paddedX+'px';
+    board.style.height=bottom-top+2*paddedY+'px';
+    mindLayout.points=points;
+    mindLayout.origin={x:paddedX-left,y:paddedY-top};
+    paintMindPoints();
+  }
+  function startMindDrag(event,node,card,fromTitle){
+    if(event.button!==0||mindDrag||!event.isPrimary)return;
+    event.stopPropagation();
+    mindDrag={id:event.pointerId,node,card,startX:event.clientX,startY:event.clientY,frame:0};
+    if(!fromTitle){
+      event.preventDefault();
+      chooseMindTopic(node);
+      card.focus({preventScroll:true});
+    }
+  }
+  function activateMindDrag(drag){
+    const initial=drag.card.getBoundingClientRect();
+    drag.base=new Map(mindLayout.points||measureMindPoints());
+    drag.branch=mindTopics(drag.node).map(({node})=>node);
+    drag.moving=drag.branch.map(node=>drag.base.get(node.id)||node.position).filter(Boolean);
+    drag.offset={x:0,y:0};
+    canvas.setPointerCapture(drag.id);
+    canvas.setAttribute('data-mind-dragging','');
+    positionMindBoard(new Map(drag.base),1.35);
+    keepMindCardInView(drag.card,initial);
+    drag.scrollLeft=canvas.scrollLeft;
+    drag.scrollTop=canvas.scrollTop;
+    for(const node of drag.branch)mindLayout.nodes.get(node.id)?.setAttribute('data-moving','');
+    chooseMindTopic(drag.node);
+    drag.card.focus({preventScroll:true});
+  }
+  function moveMindBranch(drag){
+    const dx=(drag.x-drag.startX+canvas.scrollLeft-drag.scrollLeft)/zoom;
+    const dy=(drag.y-drag.startY+canvas.scrollTop-drag.scrollTop)/zoom;
+    const bounded=(axis,delta)=>{
+      const values=drag.moving.map(point=>point[axis]);
+      return Math.max(-MIND_POSITION_LIMIT-Math.min(...values),Math.min(MIND_POSITION_LIMIT-Math.max(...values),Math.round(delta)));
+    };
+    const offset={x:bounded('x',dx),y:bounded('y',dy)};
+    if(offset.x===drag.offset.x&&offset.y===drag.offset.y)return;
+    drag.offset=offset;
+    for(const node of drag.branch){
+      const base=drag.base.get(node.id);
+      if(base)mindLayout.points.set(node.id,{x:base.x+offset.x,y:base.y+offset.y});
+    }
+    paintMindPoints();
+  }
+  function dragMindFrame(){
+    const drag=mindDrag;
+    if(!drag?.base)return;
+    drag.frame=0;
+    const {scrollLeft,scrollTop}=canvas;
+    edgeScroll(drag.x,drag.y);
+    moveMindBranch(drag);
+    if(canvas.scrollLeft!==scrollLeft||canvas.scrollTop!==scrollTop)drag.frame=requestAnimationFrame(dragMindFrame);
+  }
+  function clearMindDrag(){
+    const drag=mindDrag;
+    if(!drag)return;
+    mindDrag=null;
+    cancelAnimationFrame(drag.frame);
+    canvas.removeAttribute('data-mind-dragging');
+    if(canvas.hasPointerCapture(drag.id))canvas.releasePointerCapture(drag.id);
+  }
+  function finishMindDrag(cancel=false){
+    const drag=mindDrag;
+    if(!drag)return;
+    clearMindDrag();
+    if(!drag.base)return;
+    if(cancel||(!drag.offset.x&&!drag.offset.y)){
+      const sheet=currentMindSheet();
+      if(sheet){
+        renderMindMap(sheet);
+        const card=mindLayout.nodes.get(drag.node.id);
+        centerMindElement(card);card?.focus({preventScroll:true});
+      }
+      return;
+    }
+    // Freeze the visible layout once, so adding, folding and reopening branches
+    // cannot shift topics that the user placed intentionally.
+    recordUndo();
+    const moving=new Set(drag.branch);
+    for(const {node} of mindTopics(currentMindSheet().mindMap)){
+      const shown=mindLayout.points.get(node.id);
+      if(shown)node.position={...shown};
+      else if(node.position&&moving.has(node)){
+        node.position={x:node.position.x+drag.offset.x,y:node.position.y+drag.offset.y};
+      }
+      mindLayout.nodes.get(node.id)?.removeAttribute('data-moving');
+    }
+    save();
+    drag.card.focus({preventScroll:true});
+    notify('枝を移動しました',true);
+  }
+  document.addEventListener('pointermove',event=>{
+    const drag=mindDrag;
+    if(!drag||event.pointerId!==drag.id)return;
+    if(!drag.base){
+      if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)<5)return;
+      activateMindDrag(drag);
+    }
+    event.preventDefault();
+    drag.x=event.clientX;drag.y=event.clientY;
+    if(!drag.frame)drag.frame=requestAnimationFrame(dragMindFrame);
+  },{passive:false});
+  document.addEventListener('pointerup',event=>{
+    if(event.pointerId!==mindDrag?.id)return;
+    if(mindDrag.base){
+      mindDrag.x=event.clientX;mindDrag.y=event.clientY;moveMindBranch(mindDrag);
+    }
+    finishMindDrag();
+  });
+  document.addEventListener('pointercancel',event=>{
+    if(event.pointerId===mindDrag?.id)finishMindDrag(true);
+  });
+  canvas.addEventListener('lostpointercapture',event=>{
+    if(event.target===canvas&&event.pointerId===mindDrag?.id)finishMindDrag(true);
+  });
+  $('mindResetLayout').onclick=()=>{
+    const sheet=currentMindSheet();
+    if(!sheet)return;
+    $('sheetDialog').close();
+    mindRenderedSheet=null;
+    change(()=>{for(const {node} of mindTopics(sheet.mindMap))delete node.position});
+    notify('自動配置に戻しました',true);
+  };
   function mindCard(node,root,color){
     const card=el('div','mind-node'+(root?' root':''));
     card.dataset.mindId=node.id;
+    card.tabIndex=-1;
     card.setAttribute('role','group');
     card.setAttribute('aria-label',mindLabel(node));
     card.style.setProperty('--branch-color',color);
     const input=el('textarea','mind-title');
     input.rows=1;
+    input.enterKeyHint='next';
     input.placeholder=root?'中心テーマを入力':'思いついたことを入力';
     input.setAttribute('aria-label',root?'中心テーマ':'トピック名');
     input.spellcheck=false;
@@ -1721,15 +1959,25 @@ ${outlineOf(sh.stages)}
       drawMindLines();
       save();
     };
-    input.onkeydown=e=>{
+    card.onkeydown=e=>{
+      if(e.target!==card&&e.target!==input)return;
       if(e.isComposing||e.keyCode===229||e.ctrlKey||e.metaKey||e.altKey||e.shiftKey)return;
-      if(e.key==='Escape'){input.blur();return}
+      if(e.key==='Escape'&&e.target===input){card.focus({preventScroll:true});return}
       if(e.key!=='Tab'&&e.key!=='Enter')return;
       e.preventDefault();
-      if(e.key==='Enter'&&!root&&!node.text.trim()&&!node.note.trim()){input.blur();return}
+      if(e.repeat||mindDrag?.base)return;
+      chooseMindTopic(node);
       addMindTopic(e.key==='Enter');
     };
+    if(!root)card.append(btn('mind-grip','ドラッグで枝を移動','⠿',()=>{
+      chooseMindTopic(node);card.focus({preventScroll:true});
+    }));
     card.append(input);
+    if(!root)card.addEventListener('pointerdown',event=>{
+      if(event.target.closest('button:not(.mind-grip)'))return;
+      if(event.target===input&&(event.pointerType!=='mouse'||document.activeElement===input))return;
+      startMindDrag(event,node,card,event.target===input);
+    });
     if(node.note.trim()){
       card.append(btn('mind-note-chip','このトピックのメモを開く','メモを読む',()=>{
         chooseMindTopic(node);openMindNote();
@@ -1747,10 +1995,18 @@ ${outlineOf(sh.stages)}
       fold.setAttribute('aria-expanded',String(!node.folded));
       card.append(fold);
     }
-    card.onclick=()=>chooseMindTopic(node);
+    card.onclick=event=>{
+      chooseMindTopic(node);
+      if(event.target===card)card.focus({preventScroll:true});
+      if(event.target===input&&zoom<.8){applyZoom(1);centerMindElement(card)}
+    };
     return card;
   }
   function renderMindMap(sheet){
+    clearMindDrag();
+    const previous=mindLayout?.sheet===sheet.id&&mindLayout.root.isConnected?mindLayout:null;
+    const previousRoot=previous?.root.getBoundingClientRect();
+    const keepCardFocus=previous?.nodes.get(mindSelected)===document.activeElement;
     const root=sheet.mindMap;
     const board=el('div','mind-board');
     const lines=document.createElementNS(svgNS,'svg');
@@ -1761,6 +2017,7 @@ ${outlineOf(sh.stages)}
     function branch(node,parent,side,color){
       const row=el('div','mind-branch '+side);
       const card=mindCard(node,false,color);
+      card.toggleAttribute('data-left',side==='left');
       nodes.set(node.id,card);links.push({parent,card,color});row.append(card);
       if(!node.folded&&node.children.length){
         const children=el('div','mind-children');
@@ -1780,14 +2037,18 @@ ${outlineOf(sh.stages)}
     if(right.childElementCount)board.append(right);
     mindResize.disconnect();
     map.replaceChildren(board);
-    mindLayout={board,lines,nodes,links};
+    mindLayout={sheet:sheet.id,board,lines,nodes,links,root:rootCard,points:null,origin:null};
     for(const input of board.querySelectorAll('.mind-title'))resizeMindTitle(input);
+    const topics=mindTopics(root);
+    if(topics.some(({node})=>node.position))positionMindBoard(layoutMindPoints(topics));
     const changedSheet=mindRenderedSheet!==sheet.id;
     mindRenderedSheet=sheet.id;
     const selected=nodes.has(mindSelected)&&!changedSheet?mindSelected:root.id;
-    chooseMindTopic(mindTopics(root).find(row=>row.node.id===selected).node);
+    chooseMindTopic(topics.find(row=>row.node.id===selected).node);
     drawMindLines();mindResize.observe(board);
     if(changedSheet)centerMindElement(rootCard);
+    else if(previousRoot)keepMindCardInView(rootCard,previousRoot);
+    if(keepCardFocus)nodes.get(selected)?.focus({preventScroll:true});
   }
   function drawMindLines(){
     if(!mindLayout)return;
@@ -1796,14 +2057,17 @@ ${outlineOf(sh.stages)}
     const fragment=document.createDocumentFragment();
     for(const {parent,card,color} of links){
       const a=parent.getBoundingClientRect(),b=card.getBoundingClientRect();
-      const left=b.right<a.left;
-      const x1=((left?a.left:a.right)-bounds.left)/zoom;
-      const x2=((left?b.right:b.left)-bounds.left)/zoom;
-      const y1=(a.top+a.height/2-bounds.top)/zoom;
-      const y2=(b.top+b.height/2-bounds.top)/zoom;
-      const mid=(x1+x2)/2;
+      const ac=rectCenter(a),bc=rectCenter(b);
+      const dx=bc.x-ac.x,dy=bc.y-ac.y;
+      const vertical=Math.abs(dx)<(a.width+b.width)/2&&Math.abs(dy)>=(a.height+b.height)/2;
+      const x1=((vertical?ac.x:dx<0?a.left:a.right)-bounds.left)/zoom;
+      const x2=((vertical?bc.x:dx<0?b.right:b.left)-bounds.left)/zoom;
+      const y1=((vertical?(dy<0?a.top:a.bottom):ac.y)-bounds.top)/zoom;
+      const y2=((vertical?(dy<0?b.bottom:b.top):bc.y)-bounds.top)/zoom;
+      const midX=(x1+x2)/2,midY=(y1+y2)/2;
       const line=document.createElementNS(svgNS,'path');
-      line.setAttribute('d',`M ${x1} ${y1} C ${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`);
+      const bend=vertical?`${x1} ${midY} ${x2} ${midY}`:`${midX} ${y1} ${midX} ${y2}`;
+      line.setAttribute('d',`M ${x1} ${y1} C ${bend} ${x2} ${y2}`);
       line.setAttribute('stroke',color);line.setAttribute('stroke-width','2.5');line.setAttribute('fill','none');
       fragment.append(line);
     }
@@ -1818,6 +2082,7 @@ ${outlineOf(sh.stages)}
     if(rows.length>=MIND_TOPIC_LIMIT||depth>MIND_DEPTH_LIMIT){notify('これ以上は別のシートに分けてください');return}
     const parent=beside||selected.node;
     const topic=newMindTopic();
+    if(mindLayout?.points)topic.position=placeNewMindTopic(selected.node,parent,!!beside);
     const index=beside?parent.children.indexOf(selected.node)+1:parent.children.length;
     change(()=>{parent.folded=false;parent.children.splice(index,0,topic);mindSelected=topic.id});
     focusMindTopic(topic.id);
@@ -1835,12 +2100,16 @@ ${outlineOf(sh.stages)}
     $('mindNoteDialog').showModal();
   }
   $('mindNoteOpen').onclick=openMindNote;
-  $('mindNoteCancel').onclick=()=>$('mindNoteDialog').close();
+  $('mindNoteCancel').onclick=()=>{
+    $('mindNoteDialog').close();
+    mindLayout?.nodes.get(mindNoteTarget?.id)?.focus({preventScroll:true});
+  };
   $('mindNoteForm').onsubmit=e=>{
     e.preventDefault();
     const node=mindNoteTarget,note=cleanText($('mindNoteInput').value);
     $('mindNoteDialog').close();
     if(selectedMindRow()?.node===node&&node.note!==note)change(()=>node.note=note);
+    mindLayout?.nodes.get(node?.id)?.focus({preventScroll:true});
   };
   function showMindTopic(row){
     mindSelected=row.node.id;
@@ -1850,6 +2119,7 @@ ${outlineOf(sh.stages)}
     if(card){
       if(zoom<.8)applyZoom(1);
       centerMindElement(card);
+      card.focus({preventScroll:true});
     }
   }
   function renderMindReview(){
@@ -1876,11 +2146,13 @@ ${outlineOf(sh.stages)}
   $('mindReviewClose').onclick=()=>$('mindReviewDialog').close();
   $('mindAdd').onclick=()=>addMindTopic();
   $('mindFit').onclick=()=>{
-    const board=mindLayout?.board;
-    if(!board)return;
-    const rect=board.getBoundingClientRect();
-    const fitting=Math.min(1,(canvas.clientWidth-48)/(rect.width/zoom),(canvas.clientHeight-48)/(rect.height/zoom));
-    applyZoom(Math.floor(fitting*100)/100,null,true);drawMindLines();centerMindElement(board);
+    if(!mindLayout)return;
+    const boxes=[...mindLayout.board.querySelectorAll('.mind-node,.mind-fold')];
+    const before=elementBounds(boxes);
+    const fitting=Math.min(1,(canvas.clientWidth-48)/(before.width/zoom),(canvas.clientHeight-48)/(before.height/zoom));
+    applyZoom(Math.floor(fitting*100)/100,null,true);
+    drawMindLines();
+    centerMindRect(elementBounds(boxes));
   };
   function mindMoveChoices(selected){
     const subDepth=Math.max(...mindTopics(selected.node).map(row=>row.ancestors.length));
@@ -1914,7 +2186,8 @@ ${outlineOf(sh.stages)}
       to.node.children.push(from.node);
       for(const node of [...to.ancestors,to.node])node.folded=false;
     });
-    centerMindElement(mindLayout.nodes.get(from.node.id));
+    const card=mindLayout.nodes.get(from.node.id);
+    centerMindElement(card);card?.focus({preventScroll:true});
   };
   $('mindDelete').onclick=()=>{
     const row=selectedMindRow();
@@ -1929,6 +2202,10 @@ ${outlineOf(sh.stages)}
 
   document.addEventListener('keydown',e=>{
     if(document.querySelector('dialog[open]'))return;
+    if(mindDrag?.base){
+      if(e.key==='Escape'){e.preventDefault();finishMindDrag(true)}
+      return;
+    }
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='z'&&!e.target.closest('textarea,input')){e.preventDefault();if(e.shiftKey)redo();else undo();return;}
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='y'&&!e.target.closest('textarea,input')){e.preventDefault();redo();return;}
     if(e.key==='Escape'){closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('stageContext')?.remove()}

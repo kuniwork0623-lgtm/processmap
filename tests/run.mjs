@@ -523,7 +523,7 @@ await test('[マインドマップ][SP] タップで枝・同列を追加し、�
   assert.deepEqual(page.errors,[]);
 });
 
-await test('[マインドマップ][同期] PCとスマホで枝・メモを双方向同期し、各端末の表示を保持',async browser=>{
+await test('[マインドマップ][同期] PCとスマホで枝の配置とメモを同期し、各端末の表示を保持',async browser=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});
   const {page:a}=await newPage(browser,{mock,user:USER});
   const {page:b}=await newPage(browser,{mobile:true,mock,user:USER});
@@ -531,9 +531,14 @@ await test('[マインドマップ][同期] PCとスマホで枝・メモを双�
   await addMindSheet(a);await mindRoot(a).fill('制作アイデア');
   await a.keyboard.press('Tab');await activeMindTitle(a).fill('PCからの枝');
   await a.locator('.brand').click();await waitStatus(a,'保存済み');
+  await beginMouseMindDrag(a,mindCardFor(a,'PCからの枝').locator('.mind-grip'),-83,119);
+  await a.mouse.up();await waitStatus(a,'保存済み');
+  const placed=readMindMaps(await state(a))[0].root.children[0].position;
+  assert.ok(placed);
   const tab=b.getByRole('tab',{name:/マインドマップ/});
   await tab.waitFor();assert.equal(await b.locator('.stage-title').first().textContent(),'サーバーの工程');
   await tab.tap();assert.equal(await mindRoot(b).inputValue(),'制作アイデア');
+  await b.waitForFunction(placed=>{const key=pmApp.get().processedKeys.find(key=>key.startsWith('__processmap_mindmaps_v1__:'));const p=JSON.parse(key.split('__processmap_mindmaps_v1__:')[1]).maps[0].root.children[0].position;return p?.x===placed.x&&p?.y===placed.y},placed);
   await mindTitle(b,'PCからの枝').tap();await b.locator('#mindNoteOpen').tap();
   await b.locator('#mindNoteInput').fill('スマホから補足');
   await b.locator('#mindNoteForm button[type=submit]').tap();await waitStatus(b,'保存済み');
@@ -563,6 +568,143 @@ await test('[マインドマップ] 旧版形式の再読込と、マインド�
   await page.locator('#addSheet').click();await page.locator('#addProcessSheet').click();
   assert.equal(await page.getByRole('tab').count(),2);
   assert.equal(await page.locator('.add-stage').isVisible(),true);
+  assert.deepEqual(page.errors,[]);
+});
+
+function mindCardFor(page,name){return page.getByRole('group',{name,exact:true})}
+async function pointOf(locator){
+  const box=await locator.boundingBox();
+  assert.ok(box,'対象のカードが見つかりません');
+  return {x:box.x+box.width/2,y:box.y+box.height/2};
+}
+function movement(before,after){return {x:after.x-before.x,y:after.y-before.y}}
+async function beginMouseMindDrag(page,card,dx,dy){
+  await card.scrollIntoViewIfNeeded();
+  const start=await pointOf(card);
+  await page.mouse.move(start.x,start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x+dx,start.y+dy,{steps:10});
+}
+
+await test('[マインドマップ][PC] 空の枝・選択した下位カード・検索結果からEnterで同列に追加',async browser=>{
+  const {page}=await newPage(browser);
+  await addMindSheet(page);await mindRoot(page).fill('中心テーマ');
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter');
+  assert.equal(readMindMaps(await state(page))[0].root.children.length,2);
+  await activeMindTitle(page).fill('親の枝');
+  await page.keyboard.press('Tab');await activeMindTitle(page).fill('下にある枝');
+  await mindCardFor(page,'下にある枝').click({position:{x:78,y:3}});
+  await page.keyboard.press('Enter');await activeMindTitle(page).fill('クリック後に追加');
+  await page.locator('#mindReviewOpen').click();
+  await page.locator('#mindSearch').fill('下にある枝');
+  await page.getByRole('button',{name:'下にある枝を表示',exact:true}).click();
+  await page.keyboard.press('Enter');await activeMindTitle(page).fill('検索から追加');
+  await activeMindTitle(page).evaluate(input=>input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true,isComposing:true})));
+  const root=readMindMaps(await state(page))[0].root;
+  assert.equal(root.children.length,2);
+  assert.deepEqual(root.children[1].children.map(node=>node.text),['下にある枝','検索から追加','クリック後に追加']);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[マインドマップ][PC] 枝を自由配置し、子の位置・リンク・取り消しを確認',async browser=>{
+  const {page}=await newPage(browser);
+  await addMindSheet(page);await mindRoot(page).fill('中心');
+  await page.keyboard.press('Tab');await activeMindTitle(page).fill('動かす枝');
+  await page.keyboard.press('Tab');await activeMindTitle(page).fill('枝の下');
+  await mindRoot(page).focus();await page.keyboard.press('Tab');await activeMindTitle(page).fill('別の枝');
+  await page.locator('#mindFit').click();
+  const branch=mindCardFor(page,'動かす枝'),child=mindCardFor(page,'枝の下'),root=mindCardFor(page,'中心');
+  const before=await pointOf(branch),childBefore=await pointOf(child),rootBefore=await pointOf(root);
+  const zoom=await page.locator('#zoomLevel').textContent();
+  await beginMouseMindDrag(page,branch.locator('.mind-grip'),-115,124);
+  await page.mouse.up();
+  const shift=movement(before,await pointOf(branch));
+  const childShift=movement(childBefore,await pointOf(child));
+  assert.ok(Math.abs(shift.x+115)<2&&Math.abs(shift.y-124)<2);
+  assert.ok(Math.abs(childShift.x-shift.x)<1&&Math.abs(childShift.y-shift.y)<1);
+  const rootShift=movement(rootBefore,await pointOf(root));
+  assert.ok(Math.hypot(rootShift.x,rootShift.y)<2);
+  assert.equal(await page.locator('.mind-lines path').count(),3);
+  assert.equal(await page.locator('#zoomLevel').textContent(),zoom);
+  const stored=readMindMaps(await state(page))[0].root;
+  assert.equal(stored.children[0].children[0].text,'枝の下');
+  assert.ok(stored.children[0].position.y>80);
+  await page.keyboard.press('Control+z');
+  assert.equal(readMindMaps(await state(page))[0].root.children[0].position,undefined);
+  await page.keyboard.press('Control+Shift+z');
+  assert.deepEqual(readMindMaps(await state(page))[0].root,stored);
+  await page.reload();
+  assert.deepEqual(readMindMaps(await state(page))[0].root,stored);
+  await page.locator('#mindFit').click();
+  // A title that is not being edited can also be used to pick up the branch on PC.
+  await beginMouseMindDrag(page,branch.locator('.mind-title'),36,44);
+  assert.equal(await page.locator('#canvas[data-mind-dragging]').count(),1);
+  await page.keyboard.press('Escape');await page.mouse.up();
+  assert.deepEqual(readMindMaps(await state(page))[0].root,stored);
+  await page.locator('#sheetOptions').click();await page.locator('#mindResetLayout').click();
+  const reset=readMindMaps(await state(page))[0].root;
+  assert.equal(reset.children[0].position,undefined);
+  assert.equal(reset.children[0].children[0].text,'枝の下');
+  await page.locator('#toastUndo').click();
+  assert.deepEqual(readMindMaps(await state(page))[0].root,stored);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[マインドマップ][SP] タッチで枝をドラッグし、全体表示から文字を編集',async browser=>{
+  const {ctx,page}=await newPage(browser,{mobile:true});
+  await addMindSheet(page);await mindRoot(page).fill('中心');
+  await page.locator('#mindAdd').tap();await activeMindTitle(page).fill('動かす枝');
+  await page.locator('#mindAdd').tap();await activeMindTitle(page).fill('子の枝');
+  await page.locator('#mindFit').tap();
+  const branch=mindCardFor(page,'動かす枝'),child=mindCardFor(page,'子の枝');
+  const start=await pointOf(branch.locator('.mind-grip')),before=await pointOf(child);
+  const cdp=await ctx.newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});
+  for(let i=1;i<=12;i++){
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:start.x-39*i/12,y:start.y+105*i/12}]});
+  }
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await cdp.detach();
+  const delta=movement(before,await pointOf(child));
+  assert.ok(Math.abs(delta.x+39)<2&&Math.abs(delta.y-105)<2,JSON.stringify(delta));
+  assert.ok(readMindMaps(await state(page))[0].root.children[0].position.y>90);
+  await page.locator('#mindFit').tap();
+  const fits=await page.locator('#canvas').evaluate(canvas=>{
+    const box=canvas.getBoundingClientRect();
+    return [...canvas.querySelectorAll('.mind-node,.mind-fold')].every(node=>{
+      const r=node.getBoundingClientRect();
+      return r.left>=box.left&&r.right<=box.right&&r.top>=box.top&&r.bottom<=box.bottom;
+    });
+  });
+  assert.equal(fits,true);
+  await mindTitle(page,'動かす枝').tap();
+  assert.equal(await page.locator('#zoomLevel').textContent(),'100%');
+  await activeMindTitle(page).fill('移動後も編集できる');
+  assert.ok(readMindMaps(await state(page))[0].root.children[0].position);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[マインドマップ][同期] ドラッグ中に届いた更新は描画を中断せず、確定後に競合を知らせる',async browser=>{
+  const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});
+  const {page}=await newPage(browser,{mock,user:USER});
+  await waitStatus(page,'保存済み');
+  await addMindSheet(page);await mindRoot(page).fill('中心');
+  await page.keyboard.press('Tab');await activeMindTitle(page).fill('動かす枝');
+  await page.locator('.brand').click();await waitStatus(page,'保存済み');
+  const branch=mindCardFor(page,'動かす枝');
+  await beginMouseMindDrag(page,branch.locator('.mind-grip'),-58,110);
+  await page.locator('#canvas[data-mind-dragging]').waitFor();
+  const {document:remote,revision}=structuredClone(mock.db.get(USER.id));
+  remote.stages[0].title='別端末の工程';
+  mock.db.set(USER.id,{document:remote,revision:revision+1});
+  await page.waitForResponse(res=>res.url().includes('/rest/v1/processmap_documents')&&res.request().method()==='GET');
+  assert.equal(await page.locator('#canvas[data-mind-dragging]').count(),1);
+  assert.equal(await page.locator('#conflictDialog').isVisible(),false);
+  await page.mouse.up();
+  await page.locator('#conflictDialog[open]').waitFor();
+  assert.equal(mock.db.get(USER.id).document.stages[0].title,'別端末の工程');
+  assert.ok(readMindMaps(await state(page))[0].root.children[0].position);
   assert.deepEqual(page.errors,[]);
 });
 
