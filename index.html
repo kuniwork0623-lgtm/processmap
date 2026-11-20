@@ -360,7 +360,7 @@
     }
     syncWorkbook(data);
   }
-  function save(){syncParents();try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(state));window.pmChanged?.();}catch(e){notify('保存に失敗しました。バックアップを書き出してください。');}}
+  function save(){syncParents();try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(state));}catch(e){notify(window.pmStorageKey?'端末への保存に失敗しました（サーバー同期は継続します）':'保存に失敗しました。バックアップを書き出してください。');}window.pmChanged?.();}
   function change(fn){recordUndo();fn();save();render();}
   function sheetViewKey(){return 'processmap_sheet_view_'+(window.pmStorageKey?.match(/^processmap_user_([^_]+)/)?.[1]||'guest')}
   function restoreSheetView(data){

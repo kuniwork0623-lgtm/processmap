@@ -1,0 +1,9 @@
+{
+  "name": "processmap",
+  "private": true,
+  "description": "ProcessMap static app (Vercel) + Supabase sync",
+  "scripts": {
+    "serve": "node tests/serve.mjs",
+    "test": "node tests/run.mjs"
+  }
+}
