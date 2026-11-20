@@ -366,6 +366,10 @@
   function cleanText(v){return String(v??'').replace(/\r/g,'');}
   // Due dates are plain local dates (YYYY-MM-DD). Anything else is dropped.
   function validDate(v){if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))return null;const [y,m,d]=v.split('-').map(Number),t=new Date(Date.UTC(y,m-1,d));return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d?v:null}
+  // Highlights left by an AI schedule update (cleared when the user acknowledges them).
+  const CHANGE_TYPES=['added','due','renamed','moved','done','kept'];
+  function normChanges(v){if(!Array.isArray(v))return [];return v.filter(c=>c&&CHANGE_TYPES.includes(c.t)).slice(0,6).map(c=>{const o={t:c.t};for(const k of ['from','to'])if(typeof c[k]==='string')o[k]=c[k].slice(0,200);else if(c[k]===null)o[k]=null;return o})}
+  function normRevisions(v){if(!Array.isArray(v))return [];return v.filter(r=>r&&typeof r.at==='string').slice(0,30).map(r=>({at:r.at.slice(0,40),request:cleanText(r.request).slice(0,1000),lines:Array.isArray(r.lines)?r.lines.filter(x=>typeof x==='string').slice(0,300).map(x=>x.slice(0,300)):[]}))}
   function todayStr(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   function dueClass(due,done){if(!due||done)return '';if(due<todayStr())return 'overdue';if(due<=todayStr(3))return 'soon';return ''}
   function dueLabel(due){const [y,m,d]=due.split('-').map(Number);const t=todayStr();const base=(y===+t.slice(0,4)?'':y+'/')+m+'/'+d;if(due===t)return base+' 今日';if(due===todayStr(1))return base+' 明日';if(due<t)return base+' 期限切れ';return base}
@@ -396,12 +400,12 @@
       const task=(t,depth=0)=>{
         if(!t||typeof t!=='object')throw Error('手順の内容が不正です');const children=Array.isArray(t.children)?t.children:[];
         if(depth>0&&children.length)throw Error('子タスクの階層が深すぎます');
-        return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,collapsed:!!t.collapsed,due:validDate(t.due),note:cleanText(t.note).slice(0,5000),width:t.width!=null&&Number.isFinite(+t.width)&&+t.width>=210&&+t.width<=1200?+t.width:null,emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
+        return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,collapsed:!!t.collapsed,due:validDate(t.due),note:cleanText(t.note).slice(0,5000),changes:normChanges(t.changes),width:t.width!=null&&Number.isFinite(+t.width)&&+t.width>=210&&+t.width<=1200?+t.width:null,emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
       };
       const inputStages=sheet.id===activeId?raw.stages:sheet.stages;if(inputStages.length>300)throw Error('工程が多すぎます');
-      return {id:sheet.id,name:cleanText(sheet.name||'シート'+(index+1)),stages:inputStages.map(st=>{
+      return {id:sheet.id,name:cleanText(sheet.name||'シート'+(index+1)),revisions:normRevisions(sheet.revisions),stages:inputStages.map(st=>{
         if(!st||!Array.isArray(st.tasks))throw Error('工程の内容が不正です');
-        return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,collapsed:!!st.collapsed,due:validDate(st.due),note:cleanText(st.note).slice(0,5000),width:st.width!=null&&Number.isFinite(+st.width)&&+st.width>=210&&+st.width<=1200?+st.width:null,emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
+        return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,collapsed:!!st.collapsed,due:validDate(st.due),note:cleanText(st.note).slice(0,5000),changes:normChanges(st.changes),width:st.width!=null&&Number.isFinite(+st.width)&&+st.width>=210&&+st.width<=1200?+st.width:null,emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
       })};
     });
     const isColor=v=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);
@@ -1063,12 +1067,13 @@
 
   // ---------- AIでスケジュールを作る ----------
   function planPrompt(theme){return `あなたは制作スケジュールを組むアシスタントです。\nテーマ：「${theme||'（ここに作りたいもの・期間を書いてください）'}」\n今日は${todayStr()}です。\n\n次の形式の箇条書き「だけ」を日本語で返してください。前置き・説明・コードブロックは不要です。\n\n- 大きな工程（メインタスク） @YYYY-MM-DD\n  - 小さな工程（子タスク） @YYYY-MM-DD\n    - さらに細かい作業（孫タスク。必要なときだけ）\n\nルール：\n・字下げは半角スペース2つ。階層は最大3段\n・期日は現実的な日付を行末に @YYYY-MM-DD で（不明なら省略可）\n・1行に1つ。短く具体的に、完了したか判断できる作業にする\n・大きな工程は時系列順に5〜8個程度`}
-  function parsePlan(input){
+  function parsePlan(input,knownIds=null){
     let text=String(input||'').replace(/\r/g,'').trim();if(!text)return {stages:[],errors:[]};
     if(/^[\[{]/.test(text)){
       const j=JSON.parse(text);const arr=Array.isArray(j)?j:(j.stages||j.items||j.tasks||[]);if(!Array.isArray(arr))throw Error('JSONの形式が分かりません');
       const label=o=>cleanText(typeof o==='string'?o:(o.title??o.text??o.name??''));const kids=o=>Array.isArray(o?.tasks)?o.tasks:Array.isArray(o?.children)?o.children:[];
-      return {errors:[],stages:arr.map(s=>({title:label(s),due:validDate(s?.due),tasks:kids(s).map(t=>({text:label(t),due:validDate(t?.due),children:kids(t).map(c=>({text:label(c),due:validDate(c?.due)}))}))}))};
+      const idOf=o=>typeof o?.id==='string'&&knownIds?.has(o.id)?o.id:null;const dn=o=>o?.done===true;
+      return {errors:[],stages:arr.map(s=>({id:idOf(s),title:label(s),due:validDate(s?.due),done:dn(s),tasks:kids(s).map(t=>({id:idOf(t),text:label(t),due:validDate(t?.due),done:dn(t),children:kids(t).map(c=>({id:idOf(c),text:label(c),due:validDate(c?.due),done:dn(c)}))}))}))};
     }
     const lines=text.split('\n').filter(l=>l.trim()&&!/^\s*```/.test(l)&&!/^\s*([-*_=])\1{2,}\s*$/.test(l)&&!/^\s*\|/.test(l));
     const headDepths=[...new Set(lines.map(l=>l.match(/^\s*(#{1,6})\s/)?.[1].length).filter(Boolean))].sort();
@@ -1085,18 +1090,19 @@
         level=(headLevel>=0?headLevel+1:0)+indents.length-1;
       }
       let done=false;const cm=line.match(/^\[([ xX✓])\]\s*(.*)$/);if(cm){done=cm[1]!==' ';line=cm[2]}
+      let id=null;if(knownIds)line=line.replace(/(^|\s)#([\w-]{1,60})(?=\s|$)/g,(m,sp,k)=>{if(!id&&knownIds.has(k)){id=k;return sp}return m}).trim();
       line=line.replace(/\*\*(.+?)\*\*/g,'$1').replace(/__(.+?)__/g,'$1').replace(/`([^`]+)`/g,'$1');
       let due=null;const dm=line.match(/\s*(?:[@＠]\s*|[（(]\s*(?:期日|期限|締切|締め切り|due)?\s*[:：]?\s*)(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?\s*[)）]?\s*$/i);
       if(dm){due=validDate(dm[1]+'-'+dm[2].padStart(2,'0')+'-'+dm[3].padStart(2,'0'));line=line.slice(0,dm.index)}
-      line=line.replace(/[\s:：]+$/,'').trim();if(!line)continue;items.push({level,text:line,due,done});
+      line=line.replace(/[\s:：]+$/,'').trim();if(!line)continue;items.push({level,text:line,due,done,id});
     }
     const stages=[];
     for(const it of items){
       let level=Math.min(2,it.level);const st=stages.at(-1),t=st?.tasks.at(-1);
       if(level===2&&!t)level=1;if(level>=1&&!st)level=0;
-      if(level===0)stages.push({title:it.text,due:it.due,done:it.done,tasks:[]});
-      else if(level===1)st.tasks.push({text:it.text,due:it.due,done:it.done,children:[]});
-      else t.children.push({text:it.text,due:it.due,done:it.done});
+      if(level===0)stages.push({id:it.id,title:it.text,due:it.due,done:it.done,tasks:[]});
+      else if(level===1)st.tasks.push({id:it.id,text:it.text,due:it.due,done:it.done,children:[]});
+      else t.children.push({id:it.id,text:it.text,due:it.due,done:it.done});
     }
     return {stages,errors:[]};
   }
