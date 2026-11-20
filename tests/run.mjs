@@ -64,7 +64,7 @@ async function waitStatus(page,text,ms=8000){await page.waitForFunction(t=>docum
 
 async function test(name,fn){
   if(process.env.TEST_FILTER&&!name.includes(process.env.TEST_FILTER))return;
-  const browser=await chromium.launch();
+  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE_PATH});
   try{await fn(browser);results.push(['PASS',name]);console.log('PASS',name)}
   catch(e){results.push(['FAIL',name,e.message]);console.log('FAIL',name,'\n   ',e.message.split('\n').slice(0,4).join('\n    '))}
   finally{await browser.close()}
@@ -104,7 +104,7 @@ for(const mobile of [false,true]){
     assert.equal(await link.getAttribute('href'),'https://example.com/a?b=1');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await link.getAttribute('rel'),'noopener noreferrer');
     assert.equal(await page.locator('.task-text img').count(),0,'HTMLが挿入されました');
     await ctx.route('https://example.com/**',r=>r.fulfill({body:'ok'}));
-    const [popup]=await Promise.all([ctx.waitForEvent('page'),mobile?link.tap():link.click()]);assert.ok(popup.url().startsWith('https://example.com/a'));
+    const [popup]=await Promise.all([ctx.waitForEvent('page'),mobile?link.tap():link.click()]);await popup.waitForURL('https://example.com/a?b=1');
     assert.equal(new URL(page.url()).pathname,'/','元のタブが遷移しました');
     const s=await state(page);assert.ok(s.stages[0].tasks[0].text.includes('<img'),'保存本文がテキストのままではありません')});
 }
@@ -437,6 +437,134 @@ await test('[同期] 端末の保存容量が満杯でもサーバー同期は�
   await page.evaluate(()=>{const orig=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(String(k).startsWith('processmap_'))throw new DOMException('full','QuotaExceededError');return orig.call(this,k,v)}});
   await typeEnd(page,page.locator('.stage-title').first(),'容量');await page.waitForTimeout(2500);
   assert.ok(mock.db.get(USER.id).document.stages[0].title.endsWith('容量'),'端末保存の失敗でサーバー同期も止まりました')});
+
+// ---------- マインドマップ ----------
+async function addMindSheet(page){
+  await page.locator('#addSheet').click();
+  await page.locator('#addMindSheet').click();
+  await page.locator('.mind-node.root .mind-title').waitFor();
+}
+
+const mindTitle=(page,title)=>page.getByRole('group',{name:title,exact:true}).locator('.mind-title');
+const mindRoot=page=>page.getByRole('textbox',{name:'中心テーマ',exact:true});
+const activeMindTitle=page=>page.locator('.mind-title:focus');
+const readMindMaps=doc=>{
+  const prefix='__processmap_mindmaps_v1__:';
+  const entry=doc.processedKeys.find(key=>key.startsWith(prefix));
+  return entry?JSON.parse(entry.slice(prefix.length)).maps:[];
+};
+
+await test('[マインドマップ][PC] Tab/Enter・IME・深い枝・折りたたみからメモ検索',async browser=>{
+  const {page}=await newPage(browser);
+  const original=(await state(page)).stages;
+  await addMindSheet(page);
+  assert.equal(await page.locator('#secretary').isVisible(),false);
+  assert.equal(await mindRoot(page).evaluate(input=>input===document.activeElement),true);
+  await mindRoot(page).fill('次回の展示');
+  await page.keyboard.press('Tab');
+  await activeMindTitle(page).fill('会場');
+  await page.keyboard.press('Enter');
+  await activeMindTitle(page).fill('告知');
+  for(const text of ['写真','撮影の候補','雨天時','代替案']){
+    await page.keyboard.press('Tab');
+    await activeMindTitle(page).fill(text);
+  }
+  const count=await page.locator('.mind-node').count();
+  await activeMindTitle(page).evaluate(input=>input.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true,isComposing:true})));
+  assert.equal(await page.locator('.mind-node').count(),count);
+  await page.locator('#mindNoteOpen').click();
+  await page.locator('#mindNoteInput').fill('ホールの屋内許可を確認\n見学できる日も聞く');
+  await page.locator('#mindNoteForm button[type=submit]').click();
+  const text=readMindMaps(await state(page))[0].root;
+  assert.equal(text.children[0].text,'会場');
+  assert.equal(text.children[1].children[0].children[0].children[0].children[0].text,'代替案');
+  const branch=page.getByRole('group',{name:'告知',exact:true});
+  await branch.locator('.mind-fold').click();
+  assert.equal(await mindTitle(page,'代替案').count(),0);
+  await page.locator('#mindReviewOpen').click();
+  await page.locator('#mindSearch').fill('屋内許可');
+  const result=page.getByRole('button',{name:'代替案を表示',exact:true});
+  assert.match(await result.innerText(),/ホールの屋内許可/);
+  await result.click();
+  const selected=page.locator('.mind-node[data-selected]');
+  assert.equal(await selected.locator('.mind-title').inputValue(),'代替案');
+  await selected.getByRole('button',{name:'このトピックのメモを開く'}).click();
+  assert.equal(await page.locator('#mindNoteInput').inputValue(),'ホールの屋内許可を確認\n見学できる日も聞く');
+  await page.locator('#mindNoteCancel').click();
+  await page.reload();
+  assert.equal(await mindRoot(page).inputValue(),'次回の展示');
+  await page.getByRole('tab',{name:/シート1/}).click();
+  assert.deepEqual((await state(page)).stages,original);
+  assert.equal(await page.locator('#secretary').isVisible(),true);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[マインドマップ][SP] タップで枝・同列を追加し、枝を移動して全体を表示',async browser=>{
+  const {page}=await newPage(browser,{mobile:true});
+  await addMindSheet(page);
+  await mindRoot(page).fill('週末に作りたいもの');
+  await page.locator('#mindAdd').tap();await activeMindTitle(page).fill('準備');
+  await page.locator('#mindSibling').tap();await activeMindTitle(page).fill('参考');
+  await page.locator('#mindMore').tap();
+  await page.locator('#mindMoveTo').selectOption({label:'週末に作りたいもの › 準備'});
+  await page.locator('#mindMove').tap();
+  assert.equal(readMindMaps(await state(page))[0].root.children[0].children[0].text,'参考');
+  await page.locator('#mindFit').tap();
+  const fits=await page.locator('.mind-board').evaluate(board=>{
+    const map=document.querySelector('#canvas').getBoundingClientRect(),rect=board.getBoundingClientRect();
+    return rect.left>=map.left-1&&rect.right<=map.right+1&&rect.top>=map.top-1&&rect.bottom<=map.bottom+1;
+  });
+  assert.equal(fits,true);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.locator('#mindMore').tap();await page.locator('#mindDelete').tap();
+  assert.equal(await mindTitle(page,'参考').count(),0);
+  await page.locator('#toastUndo').tap();
+  assert.equal(await mindTitle(page,'参考').count(),1);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[マインドマップ][同期] PCとスマホで枝・メモを双方向同期し、各端末の表示を保持',async browser=>{
+  const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});
+  const {page:a}=await newPage(browser,{mock,user:USER});
+  const {page:b}=await newPage(browser,{mobile:true,mock,user:USER});
+  await waitStatus(a,'保存済み');await waitStatus(b,'保存済み');
+  await addMindSheet(a);await mindRoot(a).fill('制作アイデア');
+  await a.keyboard.press('Tab');await activeMindTitle(a).fill('PCからの枝');
+  await a.locator('.brand').click();await waitStatus(a,'保存済み');
+  const tab=b.getByRole('tab',{name:/マインドマップ/});
+  await tab.waitFor();assert.equal(await b.locator('.stage-title').first().textContent(),'サーバーの工程');
+  await tab.tap();assert.equal(await mindRoot(b).inputValue(),'制作アイデア');
+  await mindTitle(b,'PCからの枝').tap();await b.locator('#mindNoteOpen').tap();
+  await b.locator('#mindNoteInput').fill('スマホから補足');
+  await b.locator('#mindNoteForm button[type=submit]').tap();await waitStatus(b,'保存済み');
+  await a.getByRole('button',{name:'このトピックのメモを開く'}).waitFor();
+  const saved=mock.db.get(USER.id).document;
+  assert.equal(saved.stages[0].title,'サーバーの工程');
+  assert.equal(readMindMaps(saved)[0].root.children[0].note,'スマホから補足');
+  assert.deepEqual([...a.errors,...b.errors],[]);
+});
+
+await test('[マインドマップ] 旧版形式の再読込と、マインドマップだけのブックを保持',async browser=>{
+  const {page}=await newPage(browser);
+  await addMindSheet(page);await mindRoot(page).fill('保存する発想');await page.locator('.brand').click();
+  const legacy=await state(page);
+  delete legacy.sheets;delete legacy.activeSheetId;
+  legacy.stages[0].title='旧版から更新した工程';
+  await page.evaluate(doc=>window.pmApp.set(doc),legacy);
+  assert.equal(await mindRoot(page).inputValue(),'保存する発想');
+  await page.getByRole('tab',{name:/シート1/}).click();
+  assert.equal(await page.locator('.stage-title').first().textContent(),'旧版から更新した工程');
+  await page.locator('#sheetOptions').click();await page.locator('#sheetDelete').click();
+  assert.equal(await page.getByRole('tab').count(),1);
+  await page.reload();
+  assert.equal(await page.getByRole('tab').count(),1);
+  assert.equal(await mindRoot(page).inputValue(),'保存する発想');
+  assert.equal(readMindMaps(await state(page)).length,1);
+  await page.locator('#addSheet').click();await page.locator('#addProcessSheet').click();
+  assert.equal(await page.getByRole('tab').count(),2);
+  assert.equal(await page.locator('.add-stage').isVisible(),true);
+  assert.deepEqual(page.errors,[]);
+});
 
 server?.close();
 const failed=results.filter(r=>r[0]==='FAIL');
