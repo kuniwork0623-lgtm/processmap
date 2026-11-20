@@ -6,6 +6,19 @@
 - ソース: このリポジトリ（`kuniwork0623-lgtm/processmap`）。**唯一の正本**
 - 本番の基準点: `main` の最初のコミット `1905d92` = Vercel本番デプロイ `dpl_7LDsZ8dQGE2PLYa5jvZS4Bea4XTT`（2026-11-15）をそのまま取り込んだもの
 
+## 管理のしくみ（秘書）
+
+計画は必ず崩れる前提で、ツール側が次のルールを守らせる。
+
+1. **締切は固定、中身で調整** — 間に合わないときは期日を延ばさず「あったら良い」（後回し可）に回す
+2. **思いついたら「あとで箱」** — 作業中は予定をいじらない。画面左下「💡 思いついた」
+3. **細かく決めるのは今週だけ** — 「★今週」は最大5個
+4. **週1回5分の見直し** — 終わったものをチェック → あとで箱の仕分け → 間に合うか確認 → 今週の★を選ぶ
+
+画面上部の**秘書バー**が状況から「今やること」を1つ指示する（段取り未作成 → 締切未設定 → 見直し期限 → 遅れ → あとで箱が多い → 期限切れ → ★未選択 → 次のタスク）。「今週・困ったとき」を開くと、今週の★、完了見込み、困ったときの対処が出る。
+**AIに相談**は状況と工程表（#ID・[x]・★・（あったら良い）付き）を相談文にしてコピーし、AIの返答の「---工程表---」以降を取り込む。完了済みは名前・期日・完了を変えず、AIの案から消えても残す。変わった項目は色付きでハイライトされ、見直し・相談の内容は「変更履歴」に残る。
+完了見込みは、最近14日間の完了数（完了日 `doneAt`）から計算する。
+
 ## 操作（主なもの）
 
 | 操作 | 方法 |
@@ -42,7 +55,7 @@
 - 端末側: localStorage にも保存（`processmap_user_<uid>_<タブID>`、未ログイン時は `processmap_guest_v1`）。2.5秒ごと・フォーカス時・オンライン復帰時に同期
 - 認証: Supabase Auth（メール＋パスワード）。確認メールのリンクを画面に貼って認証完了
 - 未ログインの利用者はテーブルに権限なし（`permission denied`、2026-11-20 確認）
-- 文書の形（`schemaVersion: 7`）: `{appearance, processedKeys, sheets:[{id,name,stages}], activeSheetId, stages}`。stage = `{id,title,done,collapsed,due,note,width,emphasis,tasks}`、task = `{id,text,done,collapsed,due,note,width,emphasis,children}`（孫の children は常に空）。`due` は `YYYY-MM-DD` か null。`processedKeys` 内の `__processmap_workbook_v1__:` は旧版クライアントが他シートを消さないための互換データ
+- 文書の形（`schemaVersion: 7`）: `{appearance, processedKeys, sheets:[{id,name,stages}], activeSheetId, stages}`。sheet = `{id,name,stages,inbox,goal:{deadline},lastReview,revisions}`、stage = `{id,title,done,doneAt,star,nice,collapsed,due,note,changes,width,emphasis,tasks}`、task = `{id,text,done,doneAt,star,nice,collapsed,due,note,changes,width,emphasis,children}`。`doneAt` は完了日（`''`=過去分で不明）（孫の children は常に空）。`due` は `YYYY-MM-DD` か null。`processedKeys` 内の `__processmap_workbook_v1__:` は旧版クライアントが他シートを消さないための互換データ
 
 ## ローカルで動かす・テストする
 

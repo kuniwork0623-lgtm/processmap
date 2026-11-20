@@ -187,11 +187,48 @@
   .mobile-drag{display:none}
   .task-card:has(.editable:focus),.stage-heading:has(.editable:focus){outline:1.5px solid color-mix(in srgb,var(--accent) 75%,transparent);outline-offset:1px}@media(pointer:coarse){.mobile-drag{display:grid;place-items:center;position:absolute;right:2px;bottom:-7px;width:30px;height:30px;touch-action:none;user-select:none;color:#8f9fb5;z-index:5}}
 
-    .sheet-bar{display:flex;align-items:center;gap:4px;flex:0 0 46px;min-width:0;padding:0 12px;border-top:1px solid #ffffff12;background:var(--bg);z-index:7}.sheet-tabs{display:flex;gap:3px;overflow-x:auto;min-width:0;flex:1;scrollbar-width:thin}.sheet-tab,.sheet-tool{border:0;background:transparent;color:var(--soft);min-height:40px;padding:8px 15px;border-radius:6px 6px 0 0;flex:0 0 auto}.sheet-tab{max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-bottom:2px solid transparent}.sheet-tab[aria-selected="true"]{color:var(--txt);background:#ffffff08;border-bottom-color:var(--accent)}.sheet-tab:hover,.sheet-tool:hover{background:#ffffff0b}.sheet-tool{min-width:40px;padding:8px;font-size:20px}.zoom-controls{bottom:66px}.menu button:disabled{opacity:.4;cursor:default}#emphasisDialog,#sheetDialog{width:min(90vw,420px)}.settings-row{display:flex;align-items:center;gap:10px;margin:12px 0}.settings-row input{margin:0;min-width:0}.settings-row input[type=color]{width:54px;height:42px;padding:3px;flex:0 0 54px}.settings-row input[type=number]{width:100px}#emphasisTarget{overflow-wrap:anywhere;max-height:100px;overflow:auto}.settings-label{font-size:13px;color:var(--soft)}.settings-actions{display:flex;flex-wrap:wrap;gap:4px}#emphasisPreview{padding:20px;border-radius:10px;margin:20px 6px;background:var(--card-bg)}
+    .sheet-bar{display:flex;align-items:center;gap:4px;flex:0 0 46px;min-width:0;padding:0 12px;border-top:1px solid #ffffff12;background:var(--bg);z-index:7}.sheet-tabs{display:flex;gap:3px;overflow-x:auto;min-width:0;flex:1;scrollbar-width:thin}.sheet-tab,.sheet-tool{border:0;background:transparent;color:var(--soft);min-height:40px;padding:8px 15px;border-radius:6px 6px 0 0;flex:0 0 auto}.sheet-tab{max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-bottom:2px solid transparent}.sheet-tab[aria-selected="true"]{color:var(--txt);background:#ffffff08;border-bottom-color:var(--accent)}.sheet-tab:hover,.sheet-tool:hover{background:#ffffff0b}.sheet-tool{min-width:40px;padding:8px;font-size:20px}.zoom-controls{bottom:66px}.menu button:disabled{opacity:.4;cursor:default}#emphasisDialog,#sheetDialog{width:min(90vw,420px)}.settings-row{display:flex;align-items:center;gap:10px;margin:12px 0;white-space:nowrap}.settings-row input{margin:0;min-width:0;flex:1}.settings-row input[type=color]{width:54px;height:42px;padding:3px;flex:0 0 54px}.settings-row input[type=number]{width:100px}#emphasisTarget{overflow-wrap:anywhere;max-height:100px;overflow:auto}.settings-label{font-size:13px;color:var(--soft)}.settings-actions{display:flex;flex-wrap:wrap;gap:4px}#emphasisPreview{padding:20px;border-radius:10px;margin:20px 6px;background:var(--card-bg)}
+    /* secretary */
+    .secretary{flex:0 0 auto;background:var(--bg);border-bottom:1px solid #ffffff0d;z-index:9;position:relative}
+    .sec-bar{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 18px 6px 27px}
+    .sec-icon{font-size:10px;color:var(--accent)}.secretary[data-tone=warn] .sec-icon{color:#e9c36b}.secretary[data-tone=alert] .sec-icon{color:#f0a291}.secretary[data-tone=good] .sec-icon{color:#7fd1a0}
+    .sec-text{flex:1;min-width:0;font-size:14px;line-height:1.45;color:#dbe5f1}.sec-text small{display:block;color:var(--soft);font-size:12px}
+    .sec-action{border:0;border-radius:8px;background:#749dd7;color:#0b1728;font-weight:700;font-size:13px;padding:8px 14px;white-space:nowrap}.sec-action:hover{background:#86acdf}.sec-action[hidden]{display:none}
+    .sec-toggle{border:1px solid #ffffff1c;background:transparent;color:var(--soft);border-radius:8px;font-size:12px;padding:7px 10px;white-space:nowrap}.sec-toggle:hover{background:#ffffff0b;color:var(--txt)}
+    .sec-panel{padding:4px 27px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 22px;max-height:min(62dvh,560px);overflow:auto;border-top:1px solid #ffffff0b;background:#0f1620}
+    .sec-panel h4{margin:12px 0 6px;font-size:12px;color:var(--soft);font-weight:600;letter-spacing:.04em}
+    .sec-week .due-row{border-bottom:1px solid #ffffff0d}.sec-stats{font-size:13px;line-height:1.9;color:#cfd9e6}.sec-stats b{color:var(--txt)}.sec-stats .late{color:#f0a291}.sec-stats .ok{color:#7fd1a0}
+    .help-item{border:1px solid #ffffff12;border-radius:9px;margin:0 0 6px;background:#ffffff05}.help-item summary{cursor:pointer;padding:9px 11px;font-size:13px;color:#dbe5f1;list-style:none}.help-item summary::before{content:"▸ ";color:var(--soft)}.help-item[open] summary::before{content:"▾ "}
+    .help-item p{margin:0 11px 8px;font-size:13px;line-height:1.65;color:#bccadb}.help-item .settings-actions{margin:0 7px 8px}
+    .help-item button,.sec-panel .mini{border:1px solid #41526a;background:#273850;color:#e3efff;border-radius:7px;font-size:12px;padding:6px 10px;margin:2px}
+    .capture-fab{position:fixed;left:14px;bottom:60px;z-index:6;border:1px solid #ffffff1a;background:#1b2635ee;color:#e3efff;border-radius:999px;padding:9px 14px;font-size:13px;box-shadow:0 6px 20px #0004}.capture-fab:hover{background:#243146}
+    .inbox-count{margin-left:6px;background:#e9c36b;color:#1b1406;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700}.inbox-count:empty{display:none}
+    .inbox-list{max-height:220px;overflow:auto;margin:6px 0}.inbox-row{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #ffffff0d;font-size:13px}.inbox-row span{flex:1;overflow-wrap:anywhere}.inbox-row .date{flex:0 0 auto;font-size:11px;color:var(--soft)}
+    .inbox-row button{min-height:30px;padding:3px 9px;font-size:12px;margin:0}
+    #captureDialog,#reviewDialog,#consultDialog,#historyDialog{width:min(94vw,680px)}
+    #captureText,#consultRequest,#consultReply{display:block;width:100%;margin:8px 0;padding:10px;border-radius:8px;border:1px solid #425067;background:#101824;color:#e4edf5;font:14px/1.6 inherit;resize:vertical;box-sizing:border-box}#consultReply{min-height:120px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+    .review-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.review-body{max-height:56dvh;overflow:auto;margin:8px 0}
+    .review-row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid #ffffff0d;font-size:14px}.review-row .grow{flex:1;min-width:0;overflow-wrap:anywhere}.review-row .sub{display:block;font-size:11px;color:var(--soft)}
+    .review-row select{background:#101824;color:#e4edf5;border:1px solid #425067;border-radius:7px;padding:6px;font-size:13px;max-width:46%}
+    .review-row input[type=checkbox],.check-row input{width:18px;height:18px;flex:0 0 18px;margin:0;accent-color:#86a9df}
+    .check-row{display:flex!important;align-items:center;gap:8px;font-size:13px;margin:6px 0;color:#cfd9e6}
+    .forecast{border-radius:10px;padding:12px 14px;margin:6px 0 10px;background:#ffffff08;font-size:14px;line-height:1.8}.forecast.late{background:#e8836f1c}.forecast.ok{background:#7fd1a014}
+    .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.chip-row button{min-height:32px;padding:5px 10px;font-size:12px;border-radius:999px;margin:0}
+    .diff-row{padding:3px 0;font-size:13px}.diff-row .tag{display:inline-block;min-width:70px;font-size:11px;border-radius:5px;padding:1px 6px;margin-right:8px;text-align:center}
+    .tag.added{background:#7fd1a02a;color:#8fe0b0}.tag.due{background:#e2b54a2e;color:#e9c36b}.tag.renamed{background:#86a9df30;color:#a9c4ef}.tag.moved{background:#b48ee636;color:#cdb2f3}.tag.removed{background:#e8836f30;color:#f0a291}.tag.kept,.tag.done{background:#ffffff14;color:#c3cfdd}.tag.nice{background:#ffffff14;color:#c3cfdd}
+    /* card badges */
+    .chg-chip{border:0;font:inherit;font-size:11px;line-height:1;padding:4px 6px;border-radius:6px;white-space:nowrap;cursor:pointer}
+    .chg-chip.added{background:#7fd1a02a;color:#8fe0b0}.chg-chip.due{background:#e2b54a2e;color:#e9c36b}.chg-chip.renamed{background:#86a9df30;color:#a9c4ef}.chg-chip.moved{background:#b48ee636;color:#cdb2f3}.chg-chip.kept,.chg-chip.done,.chg-chip.nice{background:#ffffff14;color:#c3cfdd}
+    .task-card.changed,.stage-heading.changed{box-shadow:inset 3px 0 0 #8fe0b0}
+    .star-chip{border:0;background:#e2b54a24;color:#f0cf7a;border-radius:6px;font-size:11px;padding:4px 6px;cursor:pointer;white-space:nowrap}
+    .nice-chip.just-changed{box-shadow:inset 0 0 0 1px #8fe0b0}.nice-chip{border:0;background:#ffffff10;color:#9fb0c6;border-radius:6px;font-size:11px;padding:4px 6px;white-space:nowrap;cursor:pointer}
+    .is-nice>.task-card:not(:hover) .task-text,.task-card.is-nice:not(:hover) .task-text{opacity:.72}
+    @media(max-width:700px){.sec-icon{display:none}.sec-bar{padding:8px 12px;flex-wrap:wrap}.sec-text{flex-basis:100%;font-size:13px}.sec-action{flex:1}.sec-panel{padding:4px 12px 14px;grid-template-columns:1fr}.capture-fab{bottom:56px;left:10px;padding:8px 12px}}
     /* progress, due dates, notes */
-    .stage-heading.has-progress{padding-bottom:34px}
-    .stage-progress{position:absolute;left:48px;right:40px;bottom:11px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--node-muted);font-variant-numeric:tabular-nums;pointer-events:none}
-    .stage-progress .bar{flex:1;height:4px;border-radius:4px;background:color-mix(in srgb,var(--card-fg) 12%,transparent);overflow:hidden}
+    .stage-heading.has-progress{flex-wrap:wrap;align-content:center}
+    .stage-heading.has-progress .stage-title{flex:1 1 100%}
+    .stage-progress{position:static;flex-basis:100%;margin-top:8px;display:flex;flex-wrap:wrap;row-gap:6px;align-items:center;gap:8px;font-size:12px;color:var(--node-muted);font-variant-numeric:tabular-nums;pointer-events:none}
+    .stage-progress .bar{flex:1;min-width:70px;height:4px;border-radius:4px;background:color-mix(in srgb,var(--card-fg) 12%,transparent);overflow:hidden}
     .stage-progress .bar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
     .stage-progress .due-chip{pointer-events:auto}
     .stage-due{position:absolute;left:48px;bottom:9px}
@@ -238,18 +275,23 @@
             <div class="sync-details"><span class="menu-label">保存・同期</span><span id="syncStatus" role="status" aria-live="polite">端末内に保存</span></div>
           </section>
           <hr>
-          <button data-menu="plan">AIでスケジュールを作る</button>
+          <button data-menu="review">週の見直し（5分）</button>
+          <button data-menu="consult">AIに相談する</button>
+          <button data-menu="plan">AIで段取りを作る</button>
+          <button data-menu="inbox">あとで箱</button>
+          <button data-menu="history">変更履歴</button>
+          <hr>
           <button data-menu="due">期日が近いタスク</button>
           <button data-menu="hidedone" id="hideDoneToggle" aria-pressed="false">完了したタスクを隠す</button>
-          <hr>
-          <button data-menu="prompt">AI用の現状をコピー</button>
-          <button data-menu="ai">AI更新を取り込む</button>
+          <button data-menu="clearmarks">変更のハイライトを消す</button>
           <button data-menu="palette">配色を変更</button>
           <button data-menu="emphasis" id="emphasisOpen" disabled title="先にカードをクリックして選択してください">選択したタスクの枠線…</button>
           <hr>
           <button data-menu="export">バックアップを書き出す</button>
           <button data-menu="import">バックアップを読み込む</button>
           <hr>
+          <button data-menu="prompt">上級：AI用の現状をコピー（JSON更新用）</button>
+          <button data-menu="ai">上級：AI更新を取り込む（JSON）</button>
           <button data-menu="reset">サンプルに戻す</button>
           <hr>
           <div class="menu-help"><b>操作のヒント</b><br>Enter：次のタスク／Tab：一段下に追加<br>Shift+Tab：孫を子に上げる／Ctrl+Enter：完了<br>↑↓：移動／Ctrl+Shift+↑↓：並べ替え<br>Esc：編集終了／Alt+Enter：改行／Ctrl+Z：取り消し<br>右クリック・⋯：カードのメニュー<br>Ctrl（⌘）+ホイール・ピンチ：ズーム<br>URLはクリックで別タブ、Alt+クリックで編集</div>
@@ -268,6 +310,7 @@
       </div>
     </div>
   </header>
+  <section id="secretary" class="secretary" aria-label="秘書"><div class="sec-bar"><span class="sec-icon" aria-hidden="true">●</span><div id="secText" class="sec-text" role="status" aria-live="polite"></div><button id="secAction" class="sec-action" type="button"></button><button id="secToggle" class="sec-toggle" type="button" aria-expanded="false" aria-controls="secPanel">今週・困ったとき ▾</button></div><div id="secPanel" class="sec-panel" hidden></div></section>
   <main id="canvas" class="canvas" aria-label="工程マップ"><div id="map" class="map"></div></main>
   <nav class="sheet-bar" aria-label="工程表のシート"><div id="sheetTabs" class="sheet-tabs" role="tablist" aria-label="シート"></div><button id="addSheet" class="sheet-tool" aria-label="シートを追加" title="シートを追加">＋</button><button id="sheetOptions" class="sheet-tool" aria-label="シートの設定" title="シートの名前・並び順・削除">···</button></nav>
   <div class="zoom-controls" role="group" aria-label="表示倍率">
@@ -278,6 +321,7 @@
     <button id="zoomReset" aria-label="標準倍率100%に戻す" title="標準倍率100%に戻す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.4-5.6"/><path d="M20 4v5h-5"/></svg></button>
   </div>
 </div>
+<button id="captureOpen" class="capture-fab" type="button" title="作業中に思いついたことを、予定をいじらずに一旦しまう">💡 思いついた<span id="inboxCount" class="inbox-count"></span></button>
 <input type="file" id="fileInput" class="hidden-input" accept="application/json,.json">
 <div id="toast" class="toast" hidden><span id="toastText"></span><button id="toastUndo" hidden>元に戻す</button></div>
 <div id="modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="AI更新の取り込み">
@@ -293,9 +337,10 @@
 <dialog id="authDialog"><form id="authForm"><h3>ログイン・新規登録</h3><p>同じメールアドレスでPCとスマホを同期します。</p><input id="email" type="email" autocomplete="email" placeholder="メールアドレス" required><input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="パスワード（8文字以上）" required><button type="submit">ログイン</button><button type="button" id="signup">新規登録</button><p>初回登録後は確認メールのリンクをコピーし、下の欄に貼り付けてください。</p><input id="confirmationLink" type="url" placeholder="確認メールのリンク"><button type="button" id="verifyEmail">メール認証を完了</button><button type="button" id="authClose">閉じる</button><p id="authError" role="status"></p></form></dialog>
 <dialog id="conflictDialog"><h3>保存内容が競合しています</h3><p>両方のJSONを保存してから、採用する内容を選べます。上書き前に両方を端末内にも退避します。</p><button id="exportLocal">この端末をJSON保存</button><button id="exportRemote">サーバーをJSON保存</button><button id="keepLocal">この端末を採用</button><button id="keepRemote">サーバーを採用</button></dialog>
 <dialog id="emphasisDialog"><form id="emphasisForm"><h3>枠線で強調</h3><p id="emphasisTarget" class="settings-label"></p><label class="settings-row">太さ（px）<input id="emphasisWidth" type="number" min="0" max="32" step="any" required></label><label class="settings-row">色<input id="emphasisColor" type="color"><input id="emphasisHex" type="text" pattern="#[0-9a-fA-F]{6}" aria-label="枠線の色コード" required></label><div id="emphasisPreview">プレビュー</div><div class="settings-actions"><button type="submit">保存</button><button id="emphasisClear" type="button">強調を解除</button><button id="emphasisCancel" type="button">キャンセル</button></div></form></dialog>
-<dialog id="planDialog"><form id="planForm"><h3>AIでスケジュールを作る</h3>
-<ol class="plan-steps"><li>作りたいもの・期間を書いて「AIへの指示文をコピー」</li><li>ChatGPT・Claudeなどに貼り付けて送信</li><li>AIの返答をそのまま下の欄に貼り付け → 確認して登録</li></ol>
-<input id="planTheme" type="text" maxlength="200" placeholder="例：新作ゲームを来年3月までに公開する"><button type="button" id="planCopy">AIへの指示文をコピー</button>
+<dialog id="planDialog"><form id="planForm"><h3>AIで段取りを作る</h3>
+<div class="plan-target plan-mode"><label><input type="radio" name="planMode" value="chat" checked> いま話しているAIチャットの内容から作る</label><label><input type="radio" name="planMode" value="theme"> テーマから新しく作る</label></div>
+<ol class="plan-steps" id="planSteps"></ol>
+<input id="planTheme" type="text" maxlength="200" placeholder="プロジェクト名（例：新作ゲーム）"><label class="settings-row">締切<input id="planDeadline" type="date"></label><button type="button" id="planCopy">AIへの指示文をコピー</button>
 <textarea id="planText" spellcheck="false" placeholder="- 大きな工程 @2026-12-31&#10;  - 小さな工程 @2026-12-10&#10;    - さらに細かい作業"></textarea>
 <div id="planPreview" class="plan-preview" aria-live="polite"></div>
 <div class="plan-target"><label><input type="radio" name="planTarget" value="new" checked> 新しいシートに登録</label><label><input type="radio" name="planTarget" value="append"> 表示中のシートの末尾に追加</label></div>
@@ -305,7 +350,16 @@
 <label class="detail-note-label">メモ<textarea id="detailNote" maxlength="5000" placeholder="補足・参考URLなど"></textarea></label><div id="detailLinks" class="detail-links"></div>
 <div class="settings-actions"><button type="submit">保存</button><button id="detailClearDue" type="button">期日を消す</button><button id="detailCancel" type="button">キャンセル</button></div></form></dialog>
 <dialog id="dueDialog"><h3>期日が近いタスク</h3><p class="settings-label">すべてのシートから、未完了で期日のあるタスクを表示します。</p><div id="dueList" class="due-list"></div><div class="settings-actions"><button id="dueClose" type="button">閉じる</button></div></dialog>
-<dialog id="sheetDialog"><form id="sheetForm"><h3>シートの設定</h3><label>シート名<input id="sheetName" type="text" maxlength="100" required></label><div class="settings-actions"><button type="submit">保存</button><button id="sheetLeft" type="button">左へ移動</button><button id="sheetRight" type="button">右へ移動</button><button id="sheetDelete" type="button">シートを削除</button><button id="sheetCancel" type="button">閉じる</button></div></form></dialog>
+<dialog id="captureDialog"><form id="captureForm"><h3>💡 思いついたこと → あとで箱</h3><p>作業中に見つかったことは、予定に差し込まずにここへ。週の見直しで仕分けます。</p><textarea id="captureText" rows="2" maxlength="1000" placeholder="例：タイトル画面にBGMが要る（Enterで追加・続けて入力できます）"></textarea><div id="inboxList" class="inbox-list"></div><div class="settings-actions"><button type="submit">あとで箱に入れる</button><button type="button" id="captureClose">閉じる</button></div></form></dialog>
+<dialog id="reviewDialog"><form id="reviewForm"><div class="review-head"><h3 id="reviewTitle">週の見直し</h3><span id="reviewStep" class="settings-label"></span></div><p id="reviewLead"></p><div id="reviewBody" class="review-body"></div><div class="settings-actions"><button type="button" id="reviewBack">戻る</button><button type="submit" id="reviewNext">次へ</button><button type="button" id="reviewCancel">あとでやる</button></div></form></dialog>
+<dialog id="consultDialog"><form id="consultForm"><h3>AIに相談する</h3>
+<ol class="plan-steps"><li>相談したいことを選ぶ・書く</li><li>「相談文をコピー」→ AIチャット（いつものチャットでOK）に貼り付けて送信</li><li>AIの返答を全部そのまま下に貼り付け → 変更点を確認して反映</li></ol>
+<div id="consultChips" class="chip-row"></div><textarea id="consultRequest" rows="2" maxlength="1000" placeholder="例：2週間遅れている。間に合うように組み直したい"></textarea><button type="button" id="consultCopy">相談文をコピー</button>
+<textarea id="consultReply" spellcheck="false" placeholder="AIの返答をここに貼り付け"></textarea><div id="consultPreview" class="plan-preview" aria-live="polite"></div>
+<label class="check-row"><input type="checkbox" id="consultKeepOpen"> AIの案から外れた未完了タスクも消さずに残す</label><label class="check-row" id="consultInboxRow"><input type="checkbox" id="consultClearInbox" checked> あとで箱を空にする（AIの案に取り込まれたため）</label>
+<div class="settings-actions"><button type="submit" id="consultCommit" disabled>この内容で反映</button><button type="button" id="consultClose">閉じる</button></div></form></dialog>
+<dialog id="historyDialog"><h3>変更履歴</h3><p class="settings-label">見直しやAIの提案でスケジュールを変えた記録です（新しい順）。</p><div id="historyList" class="due-list"></div><div class="settings-actions"><button type="button" id="historyClose">閉じる</button></div></dialog>
+<dialog id="sheetDialog"><form id="sheetForm"><h3>シートの設定</h3><label>シート名（プロジェクト名）<input id="sheetName" type="text" maxlength="100" required></label><label class="settings-row">締切<input id="sheetDeadline" type="date"></label><div class="settings-actions"><button type="submit">保存</button><button id="sheetLeft" type="button">左へ移動</button><button id="sheetRight" type="button">右へ移動</button><button id="sheetDelete" type="button">シートを削除</button><button id="sheetCancel" type="button">閉じる</button></div></form></dialog>
 <script>
 (()=>{'use strict';
   const KEY='processmap_guest_v1';
@@ -341,7 +395,7 @@
   function activeChildren(items){return items}
   function effectiveDone(t){const children=activeChildren(t.children);return children.length?children.every(c=>c.done):!!t.done;}
   function effectiveMainDone(stage){const children=activeChildren(stage.tasks);return children.length?children.every(effectiveDone):!!stage.done;}
-  function taskWidth(t){if(Number.isFinite(t.width)&&t.width>=210)return t.width;const context=document.createElement('canvas').getContext('2d');context.font='430 15px system-ui, sans-serif';const longest=Math.max(0,...String(t.text||'').split('\n').map(line=>context.measureText(line).width));return Math.max(245,Math.min(560,Math.ceil(longest)+92+(t.due?100:0)+(t.note?46:0)));}
+  function taskWidth(t){if(Number.isFinite(t.width)&&t.width>=210)return t.width;const context=document.createElement('canvas').getContext('2d');context.font='430 15px system-ui, sans-serif';const longest=Math.max(0,...String(t.text||'').split('\n').map(line=>context.measureText(line).width));return Math.max(245,Math.min(560,Math.ceil(longest)+92+(t.due?100:0)+(t.note?46:0)+(t.star?52:0)+(t.nice?84:0)+(t.changes?.length?96:0)));}
   function headingWidth(st){return Number.isFinite(st.width)&&st.width>=210?st.width:(matchMedia('(max-width:700px)').matches?269:296);}
   function stageWidth(st){let m=0;for(const t of st.tasks){m=Math.max(m,taskWidth(t));for(const c of t.children)m=Math.max(m,taskWidth(c)+30);}return Math.max(269,headingWidth(st),m+32);}
 
@@ -367,8 +421,9 @@
   // Due dates are plain local dates (YYYY-MM-DD). Anything else is dropped.
   function validDate(v){if(typeof v!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v))return null;const [y,m,d]=v.split('-').map(Number),t=new Date(Date.UTC(y,m-1,d));return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d?v:null}
   // Highlights left by an AI schedule update (cleared when the user acknowledges them).
-  const CHANGE_TYPES=['added','due','renamed','moved','done','kept'];
+  const CHANGE_TYPES=['added','due','renamed','moved','done','kept','nice'];
   function normChanges(v){if(!Array.isArray(v))return [];return v.filter(c=>c&&CHANGE_TYPES.includes(c.t)).slice(0,6).map(c=>{const o={t:c.t};for(const k of ['from','to'])if(typeof c[k]==='string')o[k]=c[k].slice(0,200);else if(c[k]===null)o[k]=null;return o})}
+  function normInbox(v){if(!Array.isArray(v))return [];return v.filter(x=>x&&typeof x.text==='string'&&x.text.trim()).slice(0,500).map(x=>({id:typeof x.id==='string'&&x.id?x.id.slice(0,60):uid('in'),text:cleanText(x.text).slice(0,1000),at:validDate(x.at)||todayStr()}))}
   function normRevisions(v){if(!Array.isArray(v))return [];return v.filter(r=>r&&typeof r.at==='string').slice(0,30).map(r=>({at:r.at.slice(0,40),request:cleanText(r.request).slice(0,1000),lines:Array.isArray(r.lines)?r.lines.filter(x=>typeof x==='string').slice(0,300).map(x=>x.slice(0,300)):[]}))}
   function todayStr(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   function dueClass(due,done){if(!due||done)return '';if(due<todayStr())return 'overdue';if(due<=todayStr(3))return 'soon';return ''}
@@ -400,12 +455,12 @@
       const task=(t,depth=0)=>{
         if(!t||typeof t!=='object')throw Error('手順の内容が不正です');const children=Array.isArray(t.children)?t.children:[];
         if(depth>0&&children.length)throw Error('子タスクの階層が深すぎます');
-        return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,collapsed:!!t.collapsed,due:validDate(t.due),note:cleanText(t.note).slice(0,5000),changes:normChanges(t.changes),width:t.width!=null&&Number.isFinite(+t.width)&&+t.width>=210&&+t.width<=1200?+t.width:null,emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
+        return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,doneAt:t.done?(validDate(t.doneAt)??''):null,star:!!t.star,nice:!!t.nice,collapsed:!!t.collapsed,due:validDate(t.due),note:cleanText(t.note).slice(0,5000),changes:normChanges(t.changes),width:t.width!=null&&Number.isFinite(+t.width)&&+t.width>=210&&+t.width<=1200?+t.width:null,emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
       };
       const inputStages=sheet.id===activeId?raw.stages:sheet.stages;if(inputStages.length>300)throw Error('工程が多すぎます');
-      return {id:sheet.id,name:cleanText(sheet.name||'シート'+(index+1)),revisions:normRevisions(sheet.revisions),stages:inputStages.map(st=>{
+      return {id:sheet.id,name:cleanText(sheet.name||'シート'+(index+1)),revisions:normRevisions(sheet.revisions),inbox:normInbox(sheet.inbox),goal:{deadline:validDate(sheet.goal?.deadline),text:cleanText(sheet.goal?.text).slice(0,300)},lastReview:validDate(sheet.lastReview),stages:inputStages.map(st=>{
         if(!st||!Array.isArray(st.tasks))throw Error('工程の内容が不正です');
-        return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,collapsed:!!st.collapsed,due:validDate(st.due),note:cleanText(st.note).slice(0,5000),changes:normChanges(st.changes),width:st.width!=null&&Number.isFinite(+st.width)&&+st.width>=210&&+st.width<=1200?+st.width:null,emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
+        return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,doneAt:st.done?(validDate(st.doneAt)??''):null,star:!!st.star,nice:!!st.nice,collapsed:!!st.collapsed,due:validDate(st.due),note:cleanText(st.note).slice(0,5000),changes:normChanges(st.changes),width:st.width!=null&&Number.isFinite(+st.width)&&+st.width>=210&&+st.width<=1200?+st.width:null,emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
       })};
     });
     const isColor=v=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);
@@ -434,7 +489,8 @@
     }
     syncWorkbook(data);
   }
-  function save(){syncParents();try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(state));}catch(e){notify(window.pmStorageKey?'端末への保存に失敗しました（サーバー同期は継続します）':'保存に失敗しました。バックアップを書き出してください。');}window.pmChanged?.();}
+  function stampDone(data){for(const sh of data.sheets||[{stages:data.stages}])for(const st of sh.stages){const leaf=x=>{if(x.done&&x.doneAt==null)x.doneAt=todayStr();else if(!x.done&&x.doneAt!=null)x.doneAt=null};if(!st.tasks.length)leaf(st);for(const t of st.tasks){if(!t.children.length)leaf(t);for(const c of t.children)leaf(c)}}}
+  function save(){syncParents();stampDone(state);try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(state));}catch(e){notify(window.pmStorageKey?'端末への保存に失敗しました（サーバー同期は継続します）':'保存に失敗しました。バックアップを書き出してください。');}window.pmChanged?.();}
   function change(fn){recordUndo();fn();save();render();}
   function sheetViewKey(){return 'processmap_sheet_view_'+(window.pmStorageKey?.match(/^processmap_user_([^_]+)/)?.[1]||'guest')}
   function restoreSheetView(data){
@@ -458,13 +514,13 @@
     }
     tabs.querySelector('[aria-selected="true"]')?.scrollIntoView({block:'nearest',inline:'nearest'});
   }
-  function openSheetSettings(){
-    const i=state.sheets.findIndex(s=>s.id===state.activeSheetId);$('sheetName').value=state.sheets[i].name;$('sheetLeft').disabled=i===0;$('sheetRight').disabled=i===state.sheets.length-1;$('sheetDelete').disabled=state.sheets.length===1;
-    $('sheetDialog').showModal();$('sheetName').focus();$('sheetName').select();
+  function openSheetSettings(focusDeadline=false){
+    const i=state.sheets.findIndex(s=>s.id===state.activeSheetId);$('sheetName').value=state.sheets[i].name;$('sheetDeadline').value=state.sheets[i].goal?.deadline||'';$('sheetLeft').disabled=i===0;$('sheetRight').disabled=i===state.sheets.length-1;$('sheetDelete').disabled=state.sheets.length===1;
+    $('sheetDialog').showModal();if(focusDeadline===true){$('sheetDeadline').focus();try{$('sheetDeadline').showPicker()}catch{}}else{$('sheetName').focus();$('sheetName').select()}
   }
   $('addSheet').onclick=()=>{if(state.sheets.length>=100){notify('シートは100枚までです');return}closeAI();change(()=>{const used=new Set(state.sheets.map(s=>s.name));let n=1;while(used.has('シート'+n))n++;const sheet={id:uid('sheet'),name:'シート'+n,stages:[]};state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;selectedCard=null;rememberSheet();});};
-  $('sheetOptions').onclick=openSheetSettings;$('sheetCancel').onclick=()=>$('sheetDialog').close();
-  $('sheetForm').onsubmit=e=>{e.preventDefault();const name=$('sheetName').value.trim();if(!name){$('sheetName').setCustomValidity('シート名を入力してください');$('sheetName').reportValidity();return}$('sheetDialog').close();change(()=>state.sheets.find(s=>s.id===state.activeSheetId).name=name)};
+  $('sheetOptions').onclick=()=>openSheetSettings();$('sheetCancel').onclick=()=>$('sheetDialog').close();
+  $('sheetForm').onsubmit=e=>{e.preventDefault();const name=$('sheetName').value.trim();if(!name){$('sheetName').setCustomValidity('シート名を入力してください');$('sheetName').reportValidity();return}$('sheetDialog').close();const dl=validDate($('sheetDeadline').value);change(()=>{const sh=curSheet();sh.name=name;if((sh.goal.deadline||null)!==dl){sh.revisions.unshift({at:new Date().toISOString(),request:'締切の変更',lines:[`締切：${sh.goal.deadline||'なし'} → ${dl||'なし'}`]});sh.goal.deadline=dl}})};
   $('sheetName').oninput=()=>$('sheetName').setCustomValidity('');
   const moveSheet=direction=>{const i=state.sheets.findIndex(s=>s.id===state.activeSheetId),to=i+direction;if(to<0||to>=state.sheets.length)return;$('sheetDialog').close();change(()=>{const [sheet]=state.sheets.splice(i,1);state.sheets.splice(to,0,sheet)});};
   $('sheetLeft').onclick=()=>moveSheet(-1);$('sheetRight').onclick=()=>moveSheet(1);
@@ -624,8 +680,7 @@
       const actions=el('div','stage-actions');
       actions.append(moreButton('stage',stage.id));
       head.append(actions);
-      if(stage.tasks.length){const prog=progressOf([stage]);const row=el('div','stage-progress');row.append(el('span','count',prog.done+'/'+prog.total));const bar=el('span','bar');const fill=el('i');fill.style.width=prog.pct+'%';bar.append(fill);row.append(bar);if(stage.due)row.append(dueChip('stage',stage.id,stage.due,effectiveMainDone(stage)));if(stage.note)row.append(noteChip('stage',stage.id));head.append(row);head.classList.add('has-progress');}
-      else if(stage.due||stage.note){const row=el('div','stage-progress');if(stage.due)row.append(dueChip('stage',stage.id,stage.due,effectiveMainDone(stage)));if(stage.note)row.append(noteChip('stage',stage.id));head.append(row);head.classList.add('has-progress');}
+      {const chips=cardChips('stage',stage,effectiveMainDone(stage));if(stage.tasks.length||chips.length){const row=el('div','stage-progress');if(stage.tasks.length){const prog=progressOf([stage]);row.append(el('span','count',prog.done+'/'+prog.total));const bar=el('span','bar');const fill=el('i');fill.style.width=prog.pct+'%';bar.append(fill);row.append(bar)}row.append(...chips);head.append(row);head.classList.add('has-progress')}if(stage.changes?.length)head.classList.add('changed');}
       const hr=btn('stage-resize','工程の幅を左右にドラッグして変更','',()=>{});hr.title='工程の幅を調整';hr.addEventListener('pointerdown',e=>beginResize(e,stage.id,head,'stage'));head.append(hr);
       head.tabIndex=0;head.addEventListener('keydown',e=>{if(e.target!==head)return;if(cardKeys(e,{kind:'stage',id:stage.id},head))return;lowerTaskKey(e,stage.id)});
       head.addEventListener('click',e=>{if(e.target.closest('button,a'))return;document.querySelectorAll('.selected').forEach(n=>n.classList.remove('selected'));selectedCard={kind:'stage',id:stage.id};section.classList.add('selected');if(!e.target.closest('[contenteditable]'))head.focus({preventScroll:true})});
@@ -635,10 +690,11 @@
       list.append(btn('add-task','子タスクを追加','＋ 子タスクを追加',e=>openDraft(e.currentTarget,stage.id,null)));
       section.append(list);map.append(section);
     });
+    renderSecretary();
     map.append(btn('add-stage','メインタスクを追加','＋',()=>{const s={id:uid('s'),title:'',done:false,collapsed:false,width:null,tasks:[]};change(()=>state.stages.push(s));focusStage(s.id)}));
     refreshBranchObserver();
   }
-  function makeTask(text='',due=null){return {id:uid('t'),text,done:false,collapsed:false,due:validDate(due),note:'',width:null,children:[]}}
+  function makeTask(text='',due=null){return {id:uid('t'),text,done:false,doneAt:null,star:false,nice:false,collapsed:false,due:validDate(due),note:'',changes:[],width:null,children:[]}}
   // A new empty input is only a draft. Existing saved empty tasks are never deleted.
   function openDraft(afterButton,stageId,parentId){
     const host=afterButton.parentElement;
@@ -701,7 +757,7 @@
       // Re-evaluate leaf checkboxes and parent completion after edits without re-rendering during typing.
       save();document.querySelectorAll('.task-node').forEach(n=>{const f=findTask(n.dataset.taskNode);if(f){n.querySelector('.task-card').classList.toggle('is-done',effectiveDone(f.task));n.classList.toggle('is-done-node',effectiveDone(f.task))}});document.querySelectorAll('.stage').forEach(n=>n.querySelector('.stage-heading').classList.toggle('is-done',effectiveMainDone(findStage(n.dataset.stageId))));
     });
-    card.append(edit);if(t.due||t.note){const meta=el('span','task-meta');if(t.due)meta.append(dueChip('task',t.id,t.due,effectiveDone(t)));if(t.note)meta.append(noteChip('task',t.id));card.append(meta);}const grip=el('span','mobile-drag','⠿');grip.setAttribute('aria-label','長押しして並べ替え');card.append(grip);
+    card.append(edit);{const chips=cardChips('task',t,effectiveDone(t));if(chips.length){const meta=el('span','task-meta');meta.append(...chips);card.append(meta)}}if(t.changes?.length)card.classList.add('changed');if(t.nice)card.classList.add('is-nice');const grip=el('span','mobile-drag','⠿');grip.setAttribute('aria-label','長押しして並べ替え');card.append(grip);
     const tools=el('div','task-actions');
     tools.append(moreButton('task',t.id));
     card.append(tools);
@@ -892,7 +948,7 @@
   document.addEventListener('pointerdown',e=>{if(!e.target.closest('.menu-wrap')){$('menu').hidden=true;$('palettePanel').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false')} });
   $('menu').onclick=e=>{
     const v=e.target.closest('[data-menu]')?.dataset.menu;if(!v)return;$('menu').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false');
-    if(v==='emphasis'){openEmphasis();}else if(v==='plan'){openPlan();}else if(v==='due'){renderDueList();$('dueDialog').showModal();}else if(v==='hidedone'){setHideDone(!hideDone);}else if(v==='palette'){renderPalette();$('palettePanel').hidden=false;}else if(v==='export')exportJSON();else if(v==='import')$('fileInput').click();else if(v==='prompt')copyPrompt();else if(v==='ai')openAI();else if(v==='reset'){
+    if(v==='emphasis'){openEmphasis();}else if(v==='review'){openReview();}else if(v==='consult'){openConsult('');}else if(v==='inbox'){openCapture();}else if(v==='history'){openHistory();}else if(v==='clearmarks'){clearMarks();}else if(v==='plan'){openPlan();}else if(v==='due'){renderDueList();$('dueDialog').showModal();}else if(v==='hidedone'){setHideDone(!hideDone);}else if(v==='palette'){renderPalette();$('palettePanel').hidden=false;}else if(v==='export')exportJSON();else if(v==='import')$('fileInput').click();else if(v==='prompt')copyPrompt();else if(v==='ai')openAI();else if(v==='reset'){
       if(confirm('表示中のシートをサンプルに戻しますか？ このシートの工程を置き換えます。他のシートは保持します。')){
         try{localStorage.setItem('processmap_sample_backup_'+Date.now(),JSON.stringify(state))}catch{notify('バックアップできないため中止しました');return}
         captureUndo('表示中のシートをサンプルに戻しました');const sample=normalize(defaultData);state.stages=sample.stages.map(st=>({...st,id:uid('s'),tasks:st.tasks.map(t=>({...t,id:uid('t'),children:t.children.map(c=>({...c,id:uid('t')}))}))}));save();render();
@@ -977,13 +1033,13 @@
     closeCardMenu();const items=[];const add=(act,label,key,fn,danger=false)=>items.push({act,label,key,fn,danger});const sep=()=>items.push(null);
     if(kind==='stage'){const st=findStage(id);if(!st)return;const i=state.stages.indexOf(st);
       add('add','子タスクを追加','Tab',()=>addLower(id));if(!st.tasks.length)add('done',st.done?'未完了に戻す':'完了にする','Ctrl+Enter',()=>change(()=>st.done=!st.done));
-      add('detail','期日・メモ…','',()=>openDetail('stage',id));sep();
+      add('detail','期日・メモ…','',()=>openDetail('stage',id));add('nice',st.nice?'必須に戻す':'あったら良い（後回し可）にする','',()=>change(()=>st.nice=!st.nice));sep();
       if(i>0)add('up','左へ移動','Ctrl+Shift+↑',()=>moveItem({kind,id},-1));if(i<state.stages.length-1)add('down','右へ移動','Ctrl+Shift+↓',()=>moveItem({kind,id},1));
       add('emphasis','枠線で強調…','',()=>{selectedCard={kind,id};openEmphasis()});sep();add('delete','削除','Delete',()=>removeStage(id),true);
     }else{const f=findTask(id);if(!f)return;
       if(f.depth===0)add('add','孫タスクを追加','Tab',()=>addLower(f.stage.id,id));else add('outdent','子タスクに上げる','Shift+Tab',()=>outdent(id));
       if(!f.task.children.length)add('done',f.task.done?'未完了に戻す':'完了にする','Ctrl+Enter',()=>change(()=>f.task.done=!f.task.done));
-      add('detail','期日・メモ…','',()=>openDetail('task',id));sep();
+      add('detail','期日・メモ…','',()=>openDetail('task',id));if(!effectiveDone(f.task))add('star',f.task.star?'今週やるから外す':'今週やる ★','',()=>{if(!f.task.star&&forecast().stars.length>=WEEK_MAX)notify(`今週やることは${WEEK_MAX}個までがおすすめです`);change(()=>f.task.star=!f.task.star)});add('nice',f.task.nice?'必須に戻す':'あったら良い（後回し可）にする','',()=>change(()=>f.task.nice=!f.task.nice));sep();
       if(f.index>0)add('up','上へ移動','Ctrl+Shift+↑',()=>moveItem({kind,id},-1));if(f.index<f.list.length-1)add('down','下へ移動','Ctrl+Shift+↓',()=>moveItem({kind,id},1));
       add('emphasis','枠線で強調…','',()=>{selectedCard={kind,id};openEmphasis()});sep();add('delete',f.task.children.length?'孫タスクごと削除':'削除','Delete',()=>removeTask(id),true);
     }
@@ -1036,6 +1092,7 @@
   // ---------- 期日・メモ ----------
   function findAny(kind,id){for(const sheet of state.sheets)for(const st of sheet.stages){if(kind==='stage'){if(st.id===id)return {sheet,item:st};continue}for(const t of st.tasks){if(t.id===id)return {sheet,item:t,stage:st};for(const c of t.children)if(c.id===id)return {sheet,item:c,stage:st,parent:t}}}return null}
   function dueChip(kind,id,due,done){const b=btn('due-chip '+dueClass(due,done),'期日 '+due+'（クリックで変更）',dueLabel(due),()=>openDetail(kind,id));return b}
+  function cardChips(kind,x,done){const id=x.id,out=[];if(x.star&&!done)out.push(btn('star-chip','今週やる（クリックで外す）','★今週',()=>change(()=>x.star=false)));const ch=x.changes||[];if(x.nice)out.push(btn('nice-chip'+(ch.some(c=>c.t==='nice')?' just-changed':''),'あったら良い＝後回し可（クリックで必須に戻す）',ch.some(c=>c.t==='nice')?'あったら良いへ変更':'あったら良い',()=>change(()=>{x.nice=false;x.changes=ch.filter(c=>c.t!=='nice')})));out.push(...changeChips(kind,x).filter(b=>!b.classList.contains('nice')));if(x.due&&!ch.some(c=>c.t==='due'))out.push(dueChip(kind,id,x.due,done));if(x.note)out.push(noteChip(kind,id));return out}
   function noteChip(kind,id){return btn('note-chip','メモを開く','メモ',()=>openDetail(kind,id))}
   let detailEditing=null;
   function openDetail(kind,id){const f=findAny(kind,id);if(!f)return;detailEditing={kind,id};$('detailTarget').textContent=(kind==='stage'?f.item.title:f.item.text)||'（空欄のタスク）';$('detailDue').value=f.item.due||'';$('detailNote').value=f.item.note||'';linkText($('detailLinks'),$('detailNote').value.match(/https?:\/\/\S+/g)?.join('\n')||'');$('detailDialog').showModal()}
@@ -1066,7 +1123,27 @@
   $('hideDoneToggle').setAttribute('aria-pressed',String(hideDone));
 
   // ---------- AIでスケジュールを作る ----------
-  function planPrompt(theme){return `あなたは制作スケジュールを組むアシスタントです。\nテーマ：「${theme||'（ここに作りたいもの・期間を書いてください）'}」\n今日は${todayStr()}です。\n\n次の形式の箇条書き「だけ」を日本語で返してください。前置き・説明・コードブロックは不要です。\n\n- 大きな工程（メインタスク） @YYYY-MM-DD\n  - 小さな工程（子タスク） @YYYY-MM-DD\n    - さらに細かい作業（孫タスク。必要なときだけ）\n\nルール：\n・字下げは半角スペース2つ。階層は最大3段\n・期日は現実的な日付を行末に @YYYY-MM-DD で（不明なら省略可）\n・1行に1つ。短く具体的に、完了したか判断できる作業にする\n・大きな工程は時系列順に5〜8個程度`}
+  const PLAN_FORMAT=`次の形式の箇条書き「だけ」を日本語で返してください。前置き・説明・コードブロックは不要です。
+
+- 大きな工程（メインタスク＝区切りになる成果） @YYYY-MM-DD
+  - 作業（子タスク）
+    - 細かい手順（孫タスク。必要なときだけ）
+
+ルール：
+・字下げは半角スペース2つ。階層は最大3段
+・期日はメインタスクにだけ付ける（先の細かい作業には付けない。予定は必ず変わるため）
+・完成に必須でない作業は行末に（あったら良い）を付ける
+・すでに終わった作業は行頭に [x] を付ける
+・最初の1週間でやる作業（3〜5個）は行頭に ★ を付ける
+・1行に1つ。短く具体的に、終わったか判断できる作業にする（目安：1つ半日以内）
+・メインタスクは時系列順に4〜8個程度`;
+  function planPrompt(theme,mode='theme',deadline=''){const dl=deadline?`\n締切：${deadline}（この日までに必須の作業が終わるように）`:'';
+    if(mode==='chat')return `このチャットでこれまで話した内容（作りたいもの・決めたこと・期限・すでに終わったこと）をもとに、進捗管理ツール「ProcessMap」に登録する工程表を作ってください。${theme?`\nプロジェクト名：${theme}`:''}${dl}\n今日は${todayStr()}です。\n会話に出ていない作業を勝手に増やしすぎないでください（足りない工程は補ってよい）。\n\n${PLAN_FORMAT}`;
+    return `あなたは制作スケジュールを組むアシスタントです。\nテーマ：「${theme||'（ここに作りたいもの・期間を書いてください）'}」${dl}\n今日は${todayStr()}です。\n\n${PLAN_FORMAT}`}
+  const PLAN_STEPS={chat:['いつも使っているAIチャット（作りたいものを相談してきたチャット）を開いておく','締切を入れて「AIへの指示文をコピー」→ そのチャットに貼り付けて送信','AIの返答をそのまま下の欄に貼り付け → 確認して登録'],theme:['プロジェクト名と締切を入れて「AIへの指示文をコピー」','ChatGPT・Claudeなどの新しいチャットに貼り付けて送信','AIの返答をそのまま下の欄に貼り付け → 確認して登録']};
+  function planMode(){return $('planForm').elements.planMode.value}
+  function renderPlanSteps(){const m=planMode();$('planSteps').replaceChildren(...PLAN_STEPS[m].map(t=>el('li','',t)));$('planTheme').placeholder=m==='chat'?'プロジェクト名（任意・例：新作ゲーム）':'作りたいもの（例：新作ゲームを来年3月までに公開する）'}
+  for(const r of document.querySelectorAll('input[name=planMode]'))r.onchange=renderPlanSteps;
   function parsePlan(input,knownIds=null){
     let text=String(input||'').replace(/\r/g,'').trim();if(!text)return {stages:[],errors:[]};
     if(/^[\[{]/.test(text)){
@@ -1089,24 +1166,26 @@
         while(indents.length&&indents.at(-1)>ind)indents.pop();if(!indents.length||indents.at(-1)<ind)indents.push(ind);
         level=(headLevel>=0?headLevel+1:0)+indents.length-1;
       }
-      let done=false;const cm=line.match(/^\[([ xX✓])\]\s*(.*)$/);if(cm){done=cm[1]!==' ';line=cm[2]}
+      let done=false,star=false,nice=false;for(let k=0;k<2;k++){const cm=line.match(/^\[([ xX✓])\]\s*(.*)$/);if(cm){done=cm[1]!==' ';line=cm[2]}const sm=line.match(/^[★☆]\s*(.*)$/);if(sm){star=true;line=sm[1]}}
+      line=line.replace(/\s*[（(]\s*(?:あったら良い|あったらいい|任意|optional)\s*[)）]/i,()=>{nice=true;return ''});
       let id=null;if(knownIds)line=line.replace(/(^|\s)#([\w-]{1,60})(?=\s|$)/g,(m,sp,k)=>{if(!id&&knownIds.has(k)){id=k;return sp}return m}).trim();
       line=line.replace(/\*\*(.+?)\*\*/g,'$1').replace(/__(.+?)__/g,'$1').replace(/`([^`]+)`/g,'$1');
       let due=null;const dm=line.match(/\s*(?:[@＠]\s*|[（(]\s*(?:期日|期限|締切|締め切り|due)?\s*[:：]?\s*)(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?\s*[)）]?\s*$/i);
       if(dm){due=validDate(dm[1]+'-'+dm[2].padStart(2,'0')+'-'+dm[3].padStart(2,'0'));line=line.slice(0,dm.index)}
-      line=line.replace(/[\s:：]+$/,'').trim();if(!line)continue;items.push({level,text:line,due,done,id});
+      line=line.replace(/[\s:：]+$/,'').trim();if(!line)continue;items.push({level,text:line,due,done,id,star,nice});
     }
     const stages=[];
     for(const it of items){
       let level=Math.min(2,it.level);const st=stages.at(-1),t=st?.tasks.at(-1);
       if(level===2&&!t)level=1;if(level>=1&&!st)level=0;
-      if(level===0)stages.push({id:it.id,title:it.text,due:it.due,done:it.done,tasks:[]});
-      else if(level===1)st.tasks.push({id:it.id,text:it.text,due:it.due,done:it.done,children:[]});
-      else t.children.push({id:it.id,text:it.text,due:it.due,done:it.done});
+      const extra={id:it.id,due:it.due,done:it.done,star:it.star,nice:it.nice};
+      if(level===0)stages.push({...extra,title:it.text,tasks:[]});
+      else if(level===1)st.tasks.push({...extra,text:it.text,children:[]});
+      else t.children.push({...extra,text:it.text});
     }
     return {stages,errors:[]};
   }
-  function buildStages(parsed){return parsed.stages.map(s=>({id:uid('s'),title:s.title,done:!!s.done&&!s.tasks?.length,collapsed:false,due:s.due||null,note:'',width:null,emphasis:null,tasks:(s.tasks||[]).map(t=>{const x=makeTask(t.text,t.due);x.done=!!t.done;x.children=(t.children||[]).map(c=>{const y=makeTask(c.text,c.due);y.done=!!c.done;return y});return x})}))}
+  function buildStages(parsed){const mk=(x,text)=>{const y=makeTask(text,x.due);y.done=!!x.done;y.doneAt=x.done?'':null;y.nice=!!x.nice;y.star=!!x.star&&!x.done;return y};return parsed.stages.map(s=>{const st=mk(s,'');delete st.text;delete st.children;Object.assign(st,{id:uid('s'),title:s.title,emphasis:null,tasks:(s.tasks||[]).map(t=>{const x=mk(t,t.text);x.children=(t.children||[]).map(c=>mk(c,c.text));return x})});if(st.tasks.length){st.done=false;st.doneAt=null}return st})}
   let planParsed=null;
   function previewPlan(){
     const box=$('planPreview');box.replaceChildren();planParsed=null;$('planCommit').disabled=true;
@@ -1117,14 +1196,276 @@
     }catch(err){box.append(el('div','err','読み取れません：'+err.message))}
   }
   $('planText').oninput=previewPlan;
-  $('planCopy').onclick=async()=>{const txt=planPrompt($('planTheme').value.trim());try{await navigator.clipboard.writeText(txt);notify('AIへの指示文をコピーしました')}catch{$('planText').value=txt;$('planText').select();previewPlan();notify('コピーできない環境です。欄の文章を選択してコピーしてください')}};
+  $('planCopy').onclick=async()=>{const txt=planPrompt($('planTheme').value.trim(),planMode(),validDate($('planDeadline').value)||'');try{await navigator.clipboard.writeText(txt);notify('AIへの指示文をコピーしました')}catch{$('planText').value=txt;$('planText').select();previewPlan();notify('コピーできない環境です。欄の文章を選択してコピーしてください')}};
   $('planClose').onclick=()=>$('planDialog').close();
   $('planForm').onsubmit=e=>{e.preventDefault();if(!planParsed)return;const stages=buildStages(planParsed);const mode=$('planForm').elements.planTarget.value;
-    if(mode==='new'&&state.sheets.length>=100){notify('シートは100枚までです');return}
+    if(mode==='new'&&state.sheets.length>=100){notify('シートは100枚までです');return}const dl=validDate($('planDeadline').value);
     $('planDialog').close();
-    change(()=>{if(mode==='new'){const used=new Set(state.sheets.map(s=>s.name));let name=($('planTheme').value.trim()||'AIスケジュール').slice(0,40),base=name,i=2;while(used.has(name))name=base+' '+(i++);const sheet={id:uid('sheet'),name,stages};state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;selectedCard=null;rememberSheet();}else state.stages.push(...stages)});
-    canvas.scrollLeft=0;canvas.scrollTop=0;notify('スケジュールを登録しました（Ctrl+Zで取り消し）',true);$('planText').value='';planParsed=null;};
-  function openPlan(){previewPlan();$('planDialog').showModal();$('planTheme').focus()}
+    change(()=>{if(mode==='new'){const used=new Set(state.sheets.map(s=>s.name));let name=($('planTheme').value.trim()||'AIスケジュール').slice(0,40),base=name,i=2;while(used.has(name))name=base+' '+(i++);const sheet={id:uid('sheet'),name,stages,inbox:[],revisions:[{at:new Date().toISOString(),request:'AIで段取りを作成',lines:[`メインタスク${stages.length}件で作成`]}],goal:{deadline:dl,text:''},lastReview:null};state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;selectedCard=null;rememberSheet();}else{state.stages.push(...stages);const sh=curSheet();if(dl&&!sh.goal.deadline)sh.goal.deadline=dl}});
+    canvas.scrollLeft=0;canvas.scrollTop=0;notify('段取りを登録しました。次は秘書バーの指示に従いましょう（Ctrl+Zで取り消し）',true);$('planText').value='';planParsed=null;};
+  function openPlan(){renderPlanSteps();previewPlan();$('menu').hidden=true;$('planDialog').open||$('planDialog').showModal();$('planTheme').focus()}
+
+  // =====================================================================
+  // 秘書: ルール（締切は固定・中身で調整／思いついたらあとで箱／細かく決めるのは今週だけ／週1回の見直し）を
+  // ツール側が守らせる。状況から「今やるべきこと」を1つ指示し、困ったときの対処とAI相談を用意する。
+  // =====================================================================
+  const WEEK_MAX=5;
+  function curSheet(){const s=state.sheets.find(x=>x.id===state.activeSheetId);s.inbox??=[];s.revisions??=[];s.goal??={deadline:null,text:''};s.lastReview??=null;return s}
+  function daysBetween(a,b){const p=s=>{const [y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d)};return Math.round((p(b)-p(a))/86400000)}
+  function shortDate(s){if(!s)return '';const [y,m,d]=s.split('-').map(Number);return (y===+todayStr().slice(0,4)?'':y+'/')+m+'/'+d}
+  function leavesOf(stages){const out=[];for(const st of stages){if(!st.tasks.length){out.push({kind:'stage',item:st,stage:st,title:st.title});continue}for(const t of st.tasks){if(t.children.length)for(const c of t.children)out.push({kind:'task',item:c,stage:st,parent:t,title:c.text});else out.push({kind:'task',item:t,stage:st,title:t.text})}}return out}
+  const niceOf=l=>!!(l.item.nice||l.parent?.nice||l.stage.nice);
+  const dueOf=l=>l.item.due||l.parent?.due||l.stage.due||null;
+  function forecast(sheet=curSheet()){
+    const L=leavesOf(sheet.stages),must=L.filter(l=>!niceOf(l)),remaining=must.filter(l=>!l.item.done).length;
+    const since=todayStr(-14),recent=L.filter(l=>l.item.done&&validDate(l.item.doneAt)&&l.item.doneAt>since).length;
+    const pace=recent/14,eta=remaining===0?todayStr():pace>0?todayStr(Math.ceil(remaining/pace)):null;
+    const dl=sheet.goal?.deadline||null,daysLeft=dl?daysBetween(todayStr(),dl):null;
+    const needPerWeek=dl&&daysLeft>0?remaining/(daysLeft/7):null;
+    let status='unknown';if(!dl)status='nodeadline';else if(remaining===0)status='done';else if(daysLeft<0)status='late';else if(eta)status=eta>dl?'late':'ok';else status=daysLeft<=7?'late':'unknown';
+    const overdue=L.filter(l=>!l.item.done&&dueOf(l)&&dueOf(l)<todayStr());
+    const stars=L.filter(l=>l.item.star&&!l.item.done);
+    return {L,total:L.length,done:L.filter(l=>l.item.done).length,mustTotal:must.length,remaining,recent,pace,eta,deadline:dl,daysLeft,needPerWeek,status,overdue,stars,niceOpen:L.filter(l=>niceOf(l)&&!l.item.done)};
+  }
+  function forecastText(f){
+    const parts=[`必須の残り <b>${f.remaining}</b> 件（全体 ${f.done}/${f.total} 完了）`];
+    if(f.deadline)parts.push(`締切 <b>${shortDate(f.deadline)}</b>（${f.daysLeft>=0?'あと'+f.daysLeft+'日':Math.abs(f.daysLeft)+'日超過'}）`);
+    parts.push(f.recent?`最近2週間のペース：<b>${f.recent}件</b>（週に約${Math.round(f.pace*7*10)/10}件）`:'最近2週間の完了はまだありません');
+    if(f.status==='done')parts.push('<span class="ok">必須タスクはすべて完了しています</span>');
+    else if(f.eta)parts.push(`このペースだと <b class="${f.status==='late'?'late':'ok'}">${shortDate(f.eta)}</b> ごろ完了の見込み${f.status==='late'?'（締切に間に合いません）':f.status==='ok'?'（間に合います）':''}`);
+    else if(f.needPerWeek)parts.push(`締切に間に合わせるには週に約 <b>${Math.ceil(f.needPerWeek)}件</b> 完了が必要`);
+    return parts.join('<br>');
+  }
+  // ---- 今やるべきことを1つだけ決める ----
+  function nextInstruction(){
+    const sh=curSheet(),f=forecast(sh),since=sh.lastReview?daysBetween(sh.lastReview,todayStr()):null;
+    if(!sh.stages.length||(f.total<=1&&!sh.stages.some(s=>s.tasks.length)))return {tone:'info',text:'まずは段取りを作りましょう。AIチャットで話した内容から、ワンタッチで工程表にできます。',label:'AIで段取りを作る',fn:()=>openPlan()};
+    if(!sh.goal.deadline)return {tone:'warn',text:`「${sh.name}」の締切が決まっていません。締切だけは固定して、間に合わないときは中身を削って調整します。`,label:'締切を決める',fn:()=>openSheetSettings(true)};
+    if(f.status==='done')return {tone:'good',text:'必須タスクはすべて完了しました。おつかれさまでした！「あったら良い」に取りかかるか、完成として区切りましょう。',label:'週の見直し',fn:()=>openReview()};
+    if(since==null||since>=7)return {tone:'warn',text:since==null?'最初の「週の見直し」をしましょう（5分）。今週やることが決まり、迷わなくなります。':`前回の見直しから${since}日たちました。週の見直しの時間です（5分）。`,label:'見直しを始める',fn:()=>openReview()};
+    if(f.status==='late')return {tone:'alert',text:`このままだと締切（${shortDate(f.deadline)}）に間に合いません。期日を延ばす前に「あったら良い」を後回しにして調整しましょう。`,label:'調整する',fn:()=>openReview(3)};
+    if(sh.inbox.length>=8)return {tone:'warn',text:`あとで箱に${sh.inbox.length}件たまっています。見直しで仕分けると予定がすっきりします。`,label:'仕分ける',fn:()=>openReview(2)};
+    if(f.overdue.length)return {tone:'warn',text:`期限切れのタスクが${f.overdue.length}件あります。やるか、後回しにするかを決めましょう。`,label:'見直す',fn:()=>openReview(3)};
+    if(!f.stars.length){const done=f.L.some(l=>l.item.star&&l.item.done);return {tone:done?'good':'info',text:done?'今週やることは全部終わりました！次にやることを選びましょう。':'今週やることが決まっていません。3〜5個選ぶと迷わず進められます。',label:'今週やることを選ぶ',fn:()=>openReview(4)}}
+    const next=f.stars[0];return {tone:'info',text:`次はこれ：<b>${escapeHtml(next.title||'（空欄）')}</b><small>今週やること 残り${f.stars.length}件${f.deadline?` ／ 締切まであと${f.daysLeft}日`:''}${sh.inbox.length?` ／ あとで箱 ${sh.inbox.length}件`:''}</small>`,label:'このタスクへ',fn:()=>jumpTo({sheet:sh,kind:next.kind,item:next.item,done:false})};
+  }
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  let secOpen=false;try{secOpen=localStorage.getItem('processmap_sec_open')==='1'}catch{}
+  function renderSecretary(){
+    const sh=curSheet(),n=nextInstruction();$('secretary').dataset.tone=n.tone;$('secText').innerHTML=n.text;
+    $('secAction').textContent=n.label||'';$('secAction').hidden=!n.label;$('secAction').onclick=()=>n.fn?.();
+    $('inboxCount').textContent=sh.inbox.length?String(sh.inbox.length):'';
+    $('secToggle').setAttribute('aria-expanded',String(secOpen));$('secPanel').hidden=!secOpen;if(secOpen)renderSecPanel();
+  }
+  $('secToggle').onclick=()=>{secOpen=!secOpen;try{localStorage.setItem('processmap_sec_open',secOpen?'1':'0')}catch{}renderSecretary()};
+  function starRow(l){const row=el('div','due-row');const c=btn('task-checkbox','完了にする','',()=>{change(()=>l.item.done=true);notify('完了しました',true)});c.setAttribute('role','checkbox');c.setAttribute('aria-checked','false');row.append(c);const tx=el('div','due-text');tx.append(el('div','',l.title||'（空欄）'));tx.append(el('div','due-sheet',l.stage.title+(l.parent?' › '+l.parent.text:'')));tx.onclick=()=>jumpTo({sheet:curSheet(),kind:l.kind,item:l.item,done:false});row.append(tx);const d=dueOf(l);if(d)row.append(el('span','due-chip '+dueClass(d,false),dueLabel(d)));return row}
+  const HELP=[
+    ['やることが増えた・新しい作業が見つかった','作業中は予定をいじらず、まず「あとで箱」へ入れて作業に戻りましょう。週の見直しでまとめて仕分けます。',[['あとで箱に入れる',()=>openCapture()]]],
+    ['遅れている・締切に間に合いそうにない','期日を延ばす前に、完成に必須でない「あったら良い」を後回しにします。見直しのステップ3で選べます。迷ったらAIに相談しましょう。',[['調整する',()=>openReview(3)],['AIに相談',()=>openConsult('遅れていて締切に間に合いそうにない。締切は守りたいので、何を後回し・削除すればいいか提案して組み直してほしい')]]],
+    ['何からやればいいか分からない','「今週やること（★）」の上から順にやります。決まっていなければ、見直しのステップ4で3〜5個選びます。',[['今週やることを選ぶ',()=>openReview(4)]]],
+    ['手が止まった・タスクが大きすぎる','そのタスクを、15〜30分で終わる孫タスクに分けましょう。カードの「⋯」から孫タスクを追加するか、AIに分割を頼めます。',[['AIに分割を相談',()=>openConsult('手が止まっている。今週やることを、15〜30分で終わる具体的な作業に分割してほしい')]]],
+    ['予定が大きく変わった・やり直したい','完了したものは残したまま、AIに今の状況を渡して組み直してもらいます。変わったところはハイライトで確認できます。',[['AIに相談',()=>openConsult('予定が大きく変わった。完了済みは残して、残りを現実的に組み直してほしい')]]],
+    ['しばらくサボってしまった','責める必要はありません。週の見直しを1回やれば立て直せます。終わったものをチェックし、今週やることを選び直しましょう。',[['見直しを始める',()=>openReview()]]],
+  ];
+  function renderSecPanel(){
+    const p=$('secPanel');p.replaceChildren();const sh=curSheet(),f=forecast(sh);
+    const week=el('div','sec-week');week.append(el('h4','','今週やること（★）'));
+    if(f.stars.length)f.stars.forEach(l=>week.append(starRow(l)));else week.append(el('div','due-empty','まだ選ばれていません。'));
+    const pick=el('button','mini','選び直す');pick.type='button';pick.onclick=()=>openReview(4);week.append(pick);p.append(week);
+    const st=el('div','');st.append(el('h4','','状況'));const box=el('div','sec-stats');box.innerHTML=forecastText(f)+(f.overdue.length?`<br><span class="late">期限切れ ${f.overdue.length}件</span>`:'')+`<br>あとで箱 ${sh.inbox.length}件／前回の見直し ${sh.lastReview?shortDate(sh.lastReview):'未実施'}`;st.append(box);
+    const b1=el('button','mini','週の見直し');b1.type='button';b1.onclick=()=>openReview();const b2=el('button','mini','AIに相談');b2.type='button';b2.onclick=()=>openConsult('');st.append(b1,b2);p.append(st);
+    const help=el('div','');help.append(el('h4','','困ったときは'));
+    for(const [q,a,acts] of HELP){const d=el('details','help-item');d.append(el('summary','',q));d.append(el('p','',a));const r=el('div','settings-actions');for(const [label,fn] of acts){const b=el('button','',label);b.type='button';b.onclick=fn;r.append(b)}d.append(r);help.append(d)}
+    p.append(help);
+  }
+
+  // ---- あとで箱 ----
+  function renderInboxList(){const list=$('inboxList');list.replaceChildren();const sh=curSheet();
+    for(const it of [...sh.inbox].reverse()){const row=el('div','inbox-row');row.append(el('span','',it.text));row.append(el('span','date',shortDate(it.at)));const del=el('button','','削除');del.type='button';del.onclick=()=>{change(()=>{sh.inbox=sh.inbox.filter(x=>x.id!==it.id)});renderInboxList()};row.append(del);list.append(row)}
+    if(!sh.inbox.length)list.append(el('div','due-empty','あとで箱は空です。'))}
+  function openCapture(){renderInboxList();$('captureDialog').showModal();$('captureText').focus()}
+  $('captureOpen').onclick=openCapture;$('captureClose').onclick=()=>$('captureDialog').close();
+  $('captureForm').onsubmit=e=>{e.preventDefault();const lines=cleanText($('captureText').value).split('\n').map(s=>s.trim()).filter(Boolean);if(!lines.length){$('captureDialog').close();return}
+    const sh=curSheet();change(()=>{for(const text of lines)sh.inbox.push({id:uid('in'),text:text.slice(0,1000),at:todayStr()})});$('captureText').value='';renderInboxList();notify(lines.length+'件をあとで箱に入れました。作業に戻りましょう');$('captureText').focus()};
+  $('captureText').addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key==='Enter'&&!e.shiftKey&&!e.altKey){e.preventDefault();$('captureForm').requestSubmit()}});
+
+  // ---- 週の見直し（4ステップ） ----
+  let rv=null;
+  const REVIEW_STEPS=[
+    ['1. 終わったものにチェック','今週やることや期日が近いものから、終わったものにチェックを付けましょう。'],
+    ['2. あとで箱の仕分け','思いついたことを、どこに入れるか決めます。迷ったら「あったら良い」に。やらないものは捨ててOK。'],
+    ['3. 締切に間に合うか確認','締切は動かさず、中身で調整するのがコツです。間に合わないときは、必須でないものを「あったら良い」に回しましょう。'],
+    ['4. 今週やることを選ぶ',`今週やることを${WEEK_MAX}個までに絞ります。少なめがうまくいくコツです。`],
+  ];
+  function openReview(step=1){
+    const sh=curSheet();rv={step,inbox:new Map(sh.inbox.map(x=>[x.id,{dest:sh.stages.find(s=>!effectiveMainDone(s))?.id||sh.stages[0]?.id||'new',nice:false}])),nice:new Set(),stars:null,deadline:sh.goal.deadline||''};
+    $('reviewDialog').open||$('reviewDialog').showModal();renderReview();
+  }
+  function candidateLeaves(){const f=forecast();const open=f.L.filter(l=>!l.item.done);const order=new Map(f.L.map((l,i)=>[l.item,i]));
+    return open.sort((a,b)=>{const ad=dueOf(a)||'9999',bd=dueOf(b)||'9999';return (niceOf(a)-niceOf(b))||(ad<todayStr()?0:1)-(bd<todayStr()?0:1)||order.get(a.item)-order.get(b.item)})}
+  function renderReview(){
+    const sh=curSheet(),body=$('reviewBody');body.replaceChildren();const [title,lead]=REVIEW_STEPS[rv.step-1];
+    $('reviewTitle').textContent='週の見直し';$('reviewStep').textContent=title;$('reviewLead').textContent=lead;$('reviewBack').disabled=rv.step===1;$('reviewNext').textContent=rv.step===4?'見直しを完了':'次へ';
+    if(rv.step===1){const f=forecast();const near=todayStr(7);let rows=f.L.filter(l=>!l.item.done&&(l.item.star||(dueOf(l)&&dueOf(l)<=near)));if(!rows.length)rows=f.L.filter(l=>!l.item.done).slice(0,12);
+      if(!rows.length)body.append(el('div','due-empty','未完了のタスクはありません。'));
+      for(const l of rows){const r=el('label','review-row');const cb=el('input');cb.type='checkbox';cb.checked=!!l.item.done;cb.onchange=()=>{change(()=>l.item.done=cb.checked)};r.append(cb);const g=el('span','grow',l.title||'（空欄）');g.append(el('span','sub',l.stage.title+(l.item.star?' ・★今週':'')+(dueOf(l)?' ・期日 '+shortDate(dueOf(l)):'')));r.append(g);body.append(r)}
+      const all=el('button','mini','すべてのタスクを表示');all.type='button';all.onclick=()=>{$('reviewDialog').close();setHideDone(false)};body.append(all);
+    }else if(rv.step===2){
+      if(!sh.inbox.length)body.append(el('div','due-empty','あとで箱は空です。次へ進みましょう。'));
+      for(const it of sh.inbox){const d=rv.inbox.get(it.id)||{dest:'new',nice:false};rv.inbox.set(it.id,d);const r=el('div','review-row');r.append(el('span','grow',it.text));
+        const dest=el('select');dest.setAttribute('aria-label','入れる場所');for(const s of sh.stages){const o=el('option','',s.title||'（無題）');o.value=s.id;dest.append(o)}const o1=el('option','','新しいメインタスクにする');o1.value='new';const o2=el('option','','やらない（捨てる）');o2.value='drop';dest.append(o1,o2);dest.value=d.dest;dest.onchange=()=>{d.dest=dest.value;pr.disabled=d.dest==='drop'};
+        const pr=el('select');pr.setAttribute('aria-label','重要度');for(const [v,t] of [['must','必須'],['nice','あったら良い']]){const o=el('option','',t);o.value=v;pr.append(o)}pr.value=d.nice?'nice':'must';pr.disabled=d.dest==='drop';pr.onchange=()=>d.nice=pr.value==='nice';r.append(dest,pr);body.append(r)}
+    }else if(rv.step===3){
+      const dl=el('label','settings-row','締切');const di=el('input');di.type='date';di.value=rv.deadline;di.onchange=()=>{rv.deadline=validDate(di.value)||'';renderReview()};dl.append(di);body.append(dl);
+      const sim=forecastWith(rv);const fc=el('div','forecast '+(sim.status==='late'?'late':sim.status==='ok'||sim.status==='done'?'ok':''));fc.innerHTML=forecastText(sim)+(sim.overdue.length?`<br><span class="late">期限切れ ${sim.overdue.length}件</span>`:'');body.append(fc);
+      const open=forecast().L.filter(l=>!l.item.done);
+      body.append(el('div','settings-label',sim.status==='late'?'締切に間に合わせるため、後回しにできるものにチェック → 「あったら良い」になります（消えません）。':'後回しにしてもよいものがあればチェック（「あったら良い」になります）。'));
+      for(const l of open){if(niceOf(l)&&!rv.nice.has(l.item))continue;const r=el('label','review-row');const cb=el('input');cb.type='checkbox';cb.checked=rv.nice.has(l.item);cb.onchange=()=>{cb.checked?rv.nice.add(l.item):rv.nice.delete(l.item);renderReview()};r.append(cb);const g=el('span','grow',l.title||'（空欄）');g.append(el('span','sub',l.stage.title+(dueOf(l)?' ・期日 '+shortDate(dueOf(l)):'')+(dueOf(l)&&dueOf(l)<todayStr()?' ・期限切れ':'')));r.append(g);body.append(r)}
+      const ai=el('button','mini','迷ったらAIに相談');ai.type='button';ai.onclick=()=>{$('reviewDialog').close();openConsult('締切に間に合うように、何を後回し・削除すべきか提案して組み直してほしい')};body.append(ai);
+    }else{
+      const cands=candidateLeaves().filter(l=>!rv.nice.has(l.item));if(!rv.stars){rv.stars=new Set(cands.filter(l=>l.item.star).map(l=>l.item));if(!rv.stars.size)cands.filter(l=>!niceOf(l)).slice(0,3).forEach(l=>rv.stars.add(l.item))}
+      const info=el('div','settings-label');const upd=()=>info.textContent=`${rv.stars.size} / ${WEEK_MAX} 個選択中（おすすめは3〜5個）`;upd();body.append(info);
+      for(const l of cands.slice(0,40)){const r=el('label','review-row');const cb=el('input');cb.type='checkbox';cb.checked=rv.stars.has(l.item);cb.onchange=()=>{if(cb.checked&&rv.stars.size>=WEEK_MAX){cb.checked=false;notify(`今週は${WEEK_MAX}個までにしましょう`);return}cb.checked?rv.stars.add(l.item):rv.stars.delete(l.item);upd()};r.append(cb);const g=el('span','grow',l.title||'（空欄）');g.append(el('span','sub',l.stage.title+(niceOf(l)?' ・あったら良い':'')+(dueOf(l)?' ・期日 '+shortDate(dueOf(l)):'')));r.append(g);body.append(r)}
+      if(!cands.length)body.append(el('div','due-empty','未完了のタスクがありません。'));
+    }
+  }
+  function forecastWith(r){const sh=curSheet();const f=forecast({...sh,goal:{...sh.goal,deadline:r.deadline||null}});if(!r.nice.size)return f;const L=f.L;const must=L.filter(l=>!niceOf(l)&&!r.nice.has(l.item));const remaining=must.filter(l=>!l.item.done).length;const eta=remaining===0?todayStr():f.pace>0?todayStr(Math.ceil(remaining/f.pace)):null;let status=f.status;if(f.deadline&&remaining===0)status='done';else if(f.deadline&&eta)status=eta>f.deadline?'late':'ok';return {...f,remaining,eta,status,needPerWeek:f.deadline&&f.daysLeft>0?remaining/(f.daysLeft/7):null}}
+  $('reviewBack').onclick=()=>{if(rv.step>1){rv.step--;renderReview()}};$('reviewCancel').onclick=()=>$('reviewDialog').close();
+  $('reviewForm').onsubmit=e=>{e.preventDefault();if(rv.step<4){rv.step++;renderReview();return}finishReview()};
+  function finishReview(){
+    const sh=curSheet(),lines=[],stars=rv.stars||new Set();$('reviewDialog').close();
+    change(()=>{
+      for(const it of sh.inbox){const d=rv.inbox.get(it.id);if(!d)continue;if(d.dest==='drop'){lines.push('あとで箱から捨てた：'+it.text);continue}
+        const t=makeTask(it.text);t.nice=d.nice;t.changes=[{t:'added'}];
+        if(d.dest==='new'){const s=makeTask('');delete s.text;delete s.children;Object.assign(s,{id:uid('s'),title:it.text,tasks:[],emphasis:null,nice:d.nice,changes:[{t:'added'}]});sh.stages.push(s);lines.push('メインタスクを追加：'+it.text)}
+        else{const s=sh.stages.find(x=>x.id===d.dest);s.tasks.push(t);s.collapsed=false;lines.push(`追加（${s.title}）：${it.text}${d.nice?'（あったら良い）':''}`)}}
+      sh.inbox=sh.inbox.filter(it=>!rv.inbox.has(it.id));
+      for(const item of rv.nice){if(!item.nice){item.nice=true;item.changes=[...(item.changes||[]).filter(c=>c.t!=='nice'),{t:'nice'}];lines.push('あったら良いに回した：'+(item.title??item.text))}}
+      for(const l of forecast().L){const want=stars.has(l.item)&&!l.item.done;if(l.item.star!==want)l.item.star=want}
+      if((sh.goal.deadline||'')!==(rv.deadline||'')){lines.push(`締切：${sh.goal.deadline||'なし'} → ${rv.deadline||'なし'}`);sh.goal.deadline=rv.deadline||null}
+      lines.push('今週やること：'+([...stars].map(i=>i.title??i.text).join('、')||'なし'));
+      sh.lastReview=todayStr();sh.revisions.unshift({at:new Date().toISOString(),request:'週の見直し',lines});sh.revisions=sh.revisions.slice(0,30);
+    });
+    notify('見直し完了！今週は★の上から進めましょう',true);
+  }
+
+  // ---- AIに相談（状況をまとめて渡し、提案を差分で取り込む） ----
+  function outlineOf(stages){const L=[];const d=x=>x.due?' @'+x.due:'';const m=(x,done)=>(done?'[x] ':'')+(x.star&&!done?'★ ':'');const n=x=>x.nice?'（あったら良い）':'';const flat=s=>String(s||'').replace(/\n+/g,' / ');
+    for(const s of stages){L.push(`- ${m(s,effectiveMainDone(s))}${flat(s.title)||'(無題)'}${n(s)}${d(s)} #${s.id}`);for(const t of s.tasks){L.push(`  - ${m(t,effectiveDone(t))}${flat(t.text)||'(空欄)'}${n(t)}${d(t)} #${t.id}`);for(const c of t.children)L.push(`    - ${m(c,c.done)}${flat(c.text)||'(空欄)'}${n(c)}${d(c)} #${c.id}`)}}return L.join('\n')}
+  const OUTLINE_MARK='---工程表---';
+  function consultPrompt(request){
+    const sh=curSheet(),f=forecast(sh);const recent=sh.revisions.slice(0,3).map(r=>`・${r.at.slice(0,10)} ${r.request||''}：${r.lines.slice(0,6).join(' / ')}`).join('\n')||'なし';
+    return `あなたは私の制作スケジュール秘書です。私は計画が途中で崩れやすいので、次のルールで管理しています。
+・締切は固定し、間に合わないときは中身（必須でないもの）を削って調整する
+・作業中に見つかったことは「あとで箱」に入れ、見直しでまとめて仕分ける
+・細かく決めるのは今週やることだけ（★、最大${WEEK_MAX}個）
+
+【相談】${request||'今の状況を整理して、次に何をすべきか提案してください。'}
+
+【プロジェクト】${sh.name}　今日：${todayStr()}　締切：${sh.goal.deadline||'未設定'}
+【状況】必須の残り${f.remaining}件／全体 ${f.done}/${f.total} 完了／最近2週間の完了 ${f.recent}件${f.eta?`／このペースでの完了見込み ${f.eta}`:''}／期限切れ ${f.overdue.length}件
+【あとで箱（未整理）】
+${sh.inbox.map(x=>'・'+x.text).join('\n')||'なし'}
+【最近の変更】
+${recent}
+【工程表】（[x]=完了、★=今週やる、（あったら良い）=後回し可、#以降は管理ID）
+${outlineOf(sh.stages)}
+
+次の2つを、この順番で返してください。
+1. 状況の整理と提案（箇条書きで短く。何を後回し・削除するか、今週やること、その理由）
+2. 「${OUTLINE_MARK}」という1行のあとに、修正後の工程表の全体を上と同じ形式で。ルール：
+・既存の行は末尾の #ID を必ずそのまま残す。新しく追加する行には #ID を付けない
+・[x] の行（完了済み）は文言も期日も変えずにそのまま残す。完了を消さない
+・締切に間に合わない場合は、期日を延ばす前に必須でないものに（あったら良い）を付けるか削除する
+・あとで箱の項目を採用するときは、適切な場所に新しい行として入れる
+・今週やるものには行頭に ★（最大${WEEK_MAX}個）
+・字下げは半角スペース2つ、最大3段。期日は @YYYY-MM-DD`;
+  }
+  const CONSULT_CHIPS=[['遅れている','遅れていて締切に間に合いそうにない。何を後回しにすればいいか提案して組み直してほしい'],['やることが増えた','やることが増えて混乱している。あとで箱も含めて整理して、必須とあったら良いを分けてほしい'],['今週何をやるか','今週やるべきことを3〜5個に絞って提案してほしい'],['タスクが大きすぎる','今週やることを15〜30分で終わる具体的な作業に分割してほしい'],['予定が大きく変わった','予定が大きく変わった。完了済みは残して、残りを現実的に組み直してほしい']];
+  let consultResult=null;
+  function openConsult(request=''){
+    const chips=$('consultChips');chips.replaceChildren();for(const [l,t] of CONSULT_CHIPS){const b=el('button','',l);b.type='button';b.onclick=()=>{$('consultRequest').value=t};chips.append(b)}
+    $('consultRequest').value=request;$('consultReply').value='';$('consultKeepOpen').checked=false;$('consultClearInbox').checked=true;consultResult=null;$('consultPreview').replaceChildren();$('consultCommit').disabled=true;$('consultInboxRow').hidden=!curSheet().inbox.length;
+    document.querySelectorAll('dialog[open]').forEach(d=>d!==$('consultDialog')&&d.close());$('menu').hidden=true;$('consultDialog').open||$('consultDialog').showModal();
+  }
+  $('consultCopy').onclick=async()=>{const txt=consultPrompt($('consultRequest').value.trim());try{await navigator.clipboard.writeText(txt);notify('相談文をコピーしました。AIチャットに貼り付けて送信してください')}catch{$('consultReply').value=txt;$('consultReply').select();notify('コピーできない環境です。下の欄の文章を選択してコピーしてください')}};
+  $('consultClose').onclick=()=>$('consultDialog').close();
+  $('consultReply').oninput=previewConsult;$('consultKeepOpen').onchange=previewConsult;
+  function extractOutline(text,known){const i=text.indexOf(OUTLINE_MARK);if(i>=0)return text.slice(i+OUTLINE_MARK.length);const lines=text.split('\n');const k=lines.findIndex(l=>[...l.matchAll(/#([\w-]{1,60})/g)].some(m=>known.has(m[1])));if(k<0)return null;let s=k;while(s>0&&/^\s*([-*+・]|\d+[.)．]|#{1,6}\s)/.test(lines[s-1])&&!/^\s*$/.test(lines[s-1]))s--;return lines.slice(s).join('\n')}
+  function knownIds(stages){const s=new Set();for(const st of stages){s.add(st.id);for(const t of st.tasks){s.add(t.id);for(const c of t.children)s.add(c.id)}}return s}
+  function previewConsult(){
+    const box=$('consultPreview');box.replaceChildren();consultResult=null;$('consultCommit').disabled=true;const text=$('consultReply').value.trim();if(!text)return;
+    try{const sh=curSheet(),known=knownIds(sh.stages),body=extractOutline(text,known);if(body==null)throw Error(`工程表の部分が見つかりません。AIの返答に「${OUTLINE_MARK}」の行と工程表が含まれているか確認してください。`);
+      const parsed=parsePlan(body,known);if(!parsed.stages.length)throw Error('工程表を読み取れませんでした。');
+      consultResult=mergePlan(sh.stages,parsed,$('consultKeepOpen').checked);const r=consultResult;
+      const cnt=t=>r.log.filter(x=>x.t===t).length;box.append(el('div','',`追加 ${cnt('added')}・期日変更 ${cnt('due')}・名称変更 ${cnt('renamed')}・移動 ${cnt('moved')}・あったら良いへ ${cnt('nice')}・完了 ${cnt('done')}・削除 ${cnt('removed')}・完了済みを保持 ${cnt('kept')}`));
+      const TAG={added:'追加',due:'期日変更',renamed:'名称変更',moved:'移動',removed:'削除',kept:'保持',done:'完了',nice:'あったら良い'};
+      for(const x of r.log){const d=el('div','diff-row');d.append(el('span','tag '+x.t,TAG[x.t]));d.append(document.createTextNode(x.text));box.append(d)}
+      if(!r.log.length)box.append(el('div','','変更はありません（★の付け替えのみの場合もあります）'));
+      $('consultCommit').disabled=false;
+    }catch(err){box.append(el('div','err',err.message))}
+  }
+  $('consultForm').onsubmit=e=>{e.preventDefault();if(!consultResult)return;const sh=curSheet(),r=consultResult,req=$('consultRequest').value.trim()||'AIに相談';
+    $('consultDialog').close();
+    change(()=>{sh.stages.splice(0,sh.stages.length,...r.stages);state.stages=sh.stages;if($('consultClearInbox').checked&&!$('consultInboxRow').hidden)sh.inbox=[];sh.revisions.unshift({at:new Date().toISOString(),request:req,lines:r.log.map(x=>`[${x.t}] ${x.text}`)});sh.revisions=sh.revisions.slice(0,30)});
+    notify('AIの提案を反映しました。変わったところはハイライトされています',true)};
+
+  // 既存の工程表とAIの案を突き合わせる。完了済み（[x]）は名前・期日・完了状態を変えず、案から消えても残す。
+  function mergePlan(oldStages,parsed,keepOpen){
+    const old=new Map(),norm=s=>String(s||'').replace(/\s+/g,'').replace(/[（(]空欄[)）]|[（(]無題[)）]/g,'').toLowerCase(),lab=n=>n.title??n.text??'';
+    oldStages.forEach((st,i)=>{old.set(st.id,{node:st,depth:0,parent:null,index:i,done:effectiveMainDone(st)});st.tasks.forEach(t=>{old.set(t.id,{node:t,depth:1,parent:st,done:effectiveDone(t)});t.children.forEach(c=>old.set(c.id,{node:c,depth:2,parent:t,done:!!c.done}))})});
+    const flat=[],used=new Set(),log=[];
+    parsed.stages.forEach(s=>{const S={src:s,depth:0,kids:[]};flat.push(S);(s.tasks||[]).forEach(t=>{const T={src:t,depth:1,kids:[],up:S};S.kids.push(T);flat.push(T);(t.children||[]).forEach(c=>{const C={src:c,depth:2,kids:[],up:T};T.kids.push(C);flat.push(C)})})});
+    for(const f of flat){const id=f.src.id;if(id&&old.has(id)&&!used.has(id)){f.oid=id;used.add(id)}}
+    for(const sameDepth of [true,false])for(const f of flat){if(f.oid)continue;const key=norm(f.src.title??f.src.text);if(!key)continue;for(const [id,o] of old){if(used.has(id)||(sameDepth&&o.depth!==f.depth))continue;if(norm(lab(o.node).replace(/\n+/g,' / '))===key){f.oid=id;used.add(id);break}}}
+    const info=new Map(),anyStar=flat.some(f=>f.src.star);
+    const shape=(base,depth,text)=>depth===0?{...base,title:text,tasks:[]}:{...base,text,children:[]};
+    function make(f,depth,parentNode){
+      const s=f.src,o=f.oid?old.get(f.oid):null;let text=cleanText(s.title??s.text).trim();const ch=[];let n;
+      if(o){const on=o.node;const base={id:on.id,done:!!on.done,doneAt:on.doneAt??null,star:!!on.star,nice:!!on.nice,collapsed:!!on.collapsed,due:on.due??null,note:on.note||'',width:on.width??null,emphasis:on.emphasis??null,changes:[]};
+        const oldText=lab(on);if(o.done||norm(text)===norm(oldText.replace(/\n+/g,' / '))||!norm(text))text=oldText;
+        n=shape(base,depth,text);
+        if(!o.done){if(text!==oldText){ch.push({t:'renamed',from:oldText});log.push({t:'renamed',text:`${oldText} → ${text}`})}
+          if((s.due||null)!==(on.due||null)){ch.push({t:'due',from:on.due||null,to:s.due||null});n.due=s.due||null;log.push({t:'due',text:`${text}：${on.due?shortDate(on.due):'なし'} → ${s.due?shortDate(s.due):'なし'}`})}
+          if(s.nice&&!on.nice){n.nice=true;ch.push({t:'nice'});log.push({t:'nice',text})}else if(!s.nice&&on.nice&&o.done===false){n.nice=false}
+          if(s.done&&!on.done){n.done=true;ch.push({t:'done'});log.push({t:'done',text})}}
+        const op=o.parent?.id||null,np=parentNode?.id||null;if(op!==np||o.depth!==depth){ch.push({t:'moved',from:o.parent?lab(o.parent):'（一番上）'});log.push({t:'moved',text:`${text}（${o.parent?lab(o.parent):'一番上'} → ${parentNode?lab(parentNode):'一番上'}）`})}
+        n.changes=ch.length?ch:(on.changes||[]);
+      }else{const t=makeTask(text,s.due);t.nice=!!s.nice;t.done=!!s.done;t.doneAt=s.done?'':null;t.changes=[{t:'added'}];t.emphasis=null;
+        if(depth===0){n={...t,id:uid('s'),title:text,tasks:[]};delete n.text;delete n.children}else n=t;log.push({t:'added',text:text+(s.due?' @'+shortDate(s.due):'')})}
+      n.star=anyStar?(!!s.star&&!n.done):(!!o?.node.star&&!n.done);
+      return n;
+    }
+    const final=[];
+    const reg=(n,depth,parentInfo,container)=>{info.set(n.id,{node:n,depth,parent:parentInfo,container})};
+    for(const S of flat.filter(f=>f.depth===0)){const sn=make(S,0,null);final.push(sn);reg(sn,0,null,final);
+      for(const T of S.kids){const tn=make(T,1,sn);sn.tasks.push(tn);reg(tn,1,info.get(sn.id),sn.tasks);
+        const tOld=T.oid?old.get(T.oid):null,frozenLeaf=tOld&&tOld.done&&!tOld.node.children?.length;
+        for(const C of T.kids){if(frozenLeaf){const cn=make(C,1,sn);sn.tasks.push(cn);reg(cn,1,info.get(sn.id),sn.tasks)}else{const cn=make(C,2,tn);tn.children.push(cn);reg(cn,2,info.get(tn.id),tn.children)}}}}
+    // 案から外れた既存項目: 完了を含むもの（または「残す」指定）は元の親の下に保持、それ以外は削除として記録
+    const kids=n=>n.tasks||n.children||[];
+    const subtreeDone=n=>(n.tasks?effectiveMainDone(n):n.children&&n.children.length?effectiveDone(n):!!n.done)||kids(n).some(subtreeDone);
+    function place(on,parentInfo,insertAt=null){
+      let depth=parentInfo?parentInfo.depth+1:0;while(depth>2){parentInfo=parentInfo.parent;depth=parentInfo?parentInfo.depth+1:0}
+      const done=subtreeDone(on);const base={id:on.id,done:!!on.done,doneAt:on.doneAt??null,star:false,nice:!!on.nice,collapsed:!!on.collapsed,due:on.due??null,note:on.note||'',width:on.width??null,emphasis:on.emphasis??null,changes:[{t:'kept'}]};
+      const n=shape(base,depth,lab(on));const container=parentInfo?(parentInfo.depth===0?parentInfo.node.tasks:parentInfo.node.children):final;
+      if(insertAt!=null)container.splice(Math.min(insertAt,container.length),0,n);else container.push(n);reg(n,depth,parentInfo,container);log.push({t:'kept',text:lab(on)+(done?'（完了済みのため残しました）':'（残す指定）')});
+      const me=info.get(n.id);for(const k of kids(on))if(!used.has(k.id)){if(subtreeDone(k)||keepOpen){used.add(k.id);place(k,depth<2?me:parentInfo)}else{used.add(k.id);log.push({t:'removed',text:lab(k)})}}
+      return n;
+    }
+    oldStages.forEach((st,i)=>{if(used.has(st.id))return;used.add(st.id);if(subtreeDone(st)||keepOpen)place(st,null,i);else log.push({t:'removed',text:lab(st)+(st.tasks.length?`（配下${st.tasks.reduce((a,t)=>a+1+t.children.length,0)}件を含む）`:'')})});
+    for(const [id,o] of old){if(!info.has(id))continue;for(const k of kids(o.node)){if(used.has(k.id))continue;used.add(k.id);if(subtreeDone(k)||keepOpen)place(k,info.get(id));else log.push({t:'removed',text:lab(k)})}}
+    for(const n of final){if(n.tasks.length){n.done=false}}
+    return {stages:final,log};
+  }
+
+  // ---- 変更ハイライト・履歴 ----
+  function changeChips(kind,item){const out=[];for(const c of item.changes||[]){const label={added:'新規',due:'期日 '+(c.from?shortDate(c.from):'なし')+' → '+(c.to?shortDate(c.to):'なし'),renamed:'名称変更',moved:'移動',done:'AIが完了に',kept:'AI案から外れたため保持',nice:'あったら良いへ'}[c.t];const b=btn('chg-chip '+c.t,'変更：'+label+(c.from&&c.t==='renamed'?'（旧：'+c.from+'）':'')+(c.from&&c.t==='moved'?'（元：'+c.from+'）':'')+'。クリックで確認済みにする',label,()=>change(()=>{item.changes=[]}));out.push(b)}return out}
+  function clearMarks(){const sh=curSheet();let n=0;change(()=>{for(const st of sh.stages){if(st.changes?.length){st.changes=[];n++}for(const t of st.tasks){if(t.changes?.length){t.changes=[];n++}for(const c of t.children)if(c.changes?.length){c.changes=[];n++}}}});notify(n?n+'件のハイライトを消しました':'ハイライトはありません')}
+  function openHistory(){const list=$('historyList');list.replaceChildren();const sh=curSheet();
+    for(const r of sh.revisions){const d=el('details','help-item');const s=el('summary','',new Date(r.at).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})+'　'+(r.request||'変更').slice(0,60));d.append(s);for(const l of r.lines)d.append(el('p','',l));list.append(d)}
+    if(!sh.revisions.length)list.append(el('div','due-empty','まだ変更履歴はありません。週の見直しやAIへの相談で記録されます。'));$('historyDialog').showModal()}
+  $('historyClose').onclick=()=>$('historyDialog').close();
 
   // ---------- 同期異常の目印（メニューを開かなくても気づけるように） ----------
   new MutationObserver(()=>{const t=$('syncStatus').textContent,bad=/競合|接続できません|オフライン/.test(t);$('menuTrigger').toggleAttribute('data-alert',bad);$('syncStatus').toggleAttribute('data-alert',bad);$('menuTrigger').setAttribute('aria-label',bad?'メニューを開く（同期に問題があります：'+t+'）':'メニューを開く');$('menuTrigger').title=bad?'同期に問題があります：'+t:'メニュー'}).observe($('syncStatus'),{childList:true,characterData:true,subtree:true});

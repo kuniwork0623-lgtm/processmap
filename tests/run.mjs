@@ -263,6 +263,108 @@ await test('[新機能][SP] スマホで削除×は選択したカードだけ�
   const op=n=>page.locator(`[data-task-node="${n}"] > .task-card .task-actions`).evaluate(e=>getComputedStyle(e).opacity);
   assert.equal(await op('t3'),'0');const box=await page.locator('[data-task-node="t3"] .task-card').boundingBox();await page.touchscreen.tap(box.x+box.width/2,box.y+box.height-3);await page.waitForTimeout(250);assert.equal(await op('t3'),'1');assert.equal(await op('t1'),'0')});
 
+// ---------- 秘書（スケジュール管理の仕組み） ----------
+const sec=page=>page.locator('#secText').textContent();
+async function setDeadline(page,d){await page.evaluate(d=>{const s=window.pmApp.get();s.sheets.find(x=>x.id===s.activeSheetId).goal={deadline:d,text:''};window.pmApp.set(s)},d)}
+const plusDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+
+await test('[秘書] 状況に応じて次の指示が変わる（締切→見直し→次のタスク）',async b=>{const {page}=await newPage(b);
+  assert.ok((await sec(page)).includes('締切が決まっていません'));assert.equal(await page.textContent('#secAction'),'締切を決める');
+  await page.click('#secAction');await page.fill('#sheetDeadline',plusDays(60));await page.click('#sheetForm button[type=submit]');
+  assert.ok((await sec(page)).includes('見直し'),'締切設定後に見直しを促しません');
+  await page.click('#secAction');for(let i=0;i<3;i++)await page.click('#reviewNext');await page.click('#reviewNext');
+  const s=await state(page);const sh=s.sheets.find(x=>x.id===s.activeSheetId);assert.ok(sh.lastReview,'見直し日が記録されません');assert.ok(sh.revisions[0].request==='週の見直し');
+  assert.ok((await sec(page)).includes('次はこれ'),'見直し後に次のタスクを指示しません：'+await sec(page));
+  await page.click('#secAction');await page.waitForTimeout(400);assert.ok(await page.evaluate(()=>document.querySelector('.selected')!==null),'このタスクへ で移動しません')});
+
+await test('[秘書] 思いついた→あとで箱→見直しで仕分け（あったら良い・捨てる）',async b=>{const {page}=await newPage(b);await setDeadline(page,plusDays(60));
+  await page.click('#captureOpen');await page.fill('#captureText','BGMを入れる');await page.keyboard.press('Enter');await page.fill('#captureText','やっぱり不要なもの');await page.keyboard.press('Enter');
+  assert.equal(await page.textContent('#inboxCount'),'2');await page.click('#captureClose');
+  await page.click('#menuTrigger');await page.click('[data-menu="review"]');await page.click('#reviewNext');
+  const rows=page.locator('#reviewBody .review-row');await rows.nth(0).locator('select').nth(0).selectOption('s2');await rows.nth(0).locator('select').nth(1).selectOption('nice');await rows.nth(1).locator('select').nth(0).selectOption('drop');
+  await page.click('#reviewNext');await page.click('#reviewNext');await page.click('#reviewNext');
+  const s=await state(page),sh=s.sheets.find(x=>x.id===s.activeSheetId),added=s.stages[1].tasks.find(t=>t.text==='BGMを入れる');
+  assert.ok(added&&added.nice&&added.changes[0].t==='added','あったら良いとして追加されません');assert.equal(sh.inbox.length,0);assert.ok(!JSON.stringify(s.sheets.map(x=>x.stages)).includes('やっぱり不要'),'捨てた項目がタスクになっています');assert.ok(sh.revisions[0].lines.some(l=>l.includes('捨てた：やっぱり不要')));
+  assert.equal(await page.locator('[data-task-node="'+added.id+'"] .chg-chip.added').count(),1,'新規のハイライトが出ません');
+  await page.locator('[data-task-node="'+added.id+'"] .chg-chip').click();assert.equal((await state(page)).stages[1].tasks.find(t=>t.id===added.id).changes.length,0,'ハイライトを確認済みにできません')});
+
+await test('[秘書] 間に合わない見込みを警告し、あったら良いに回すと解消',async b=>{const {page}=await newPage(b);
+  await page.evaluate(d=>{const s=window.pmApp.get();const sh=s.sheets.find(x=>x.id===s.activeSheetId);sh.goal={deadline:d,text:''};sh.lastReview=new Date().toISOString().slice(0,10);
+    const ago=new Date();ago.setDate(ago.getDate()-3);s.stages[0].tasks[0].doneAt=ago.toISOString().slice(0,10); // pace: 1 per 14 days
+    for(let i=0;i<6;i++)s.stages[1].tasks.push({id:'x'+i,text:'作業'+i,children:[]});window.pmApp.set(s)},plusDays(20));
+  assert.ok((await sec(page)).includes('間に合いません'),'遅れ警告が出ません：'+await sec(page));assert.equal(await page.getAttribute('#secretary','data-tone'),'alert');
+  await page.click('#secAction');assert.ok((await page.textContent('#reviewStep')).startsWith('3.'));
+  for(const cb of await page.locator('#reviewBody .review-row input').all())await cb.check();
+  assert.ok((await page.textContent('#reviewBody .forecast')).includes('必須タスクはすべて完了')||(await page.textContent('#reviewBody .forecast')).includes('間に合います'),'調整後の見込みが更新されません');
+  await page.click('#reviewNext');await page.click('#reviewNext');const s=await state(page);assert.ok(s.stages[1].tasks.every(t=>t.nice),'あったら良いに回りません')});
+
+await test('[秘書] 完了日を記録（過去の完了は不明扱い）・今週は5個まで',async b=>{const {page}=await newPage(b);
+  let s=await state(page);assert.equal(s.stages[0].tasks[0].doneAt,'','既存の完了は不明扱いのはず');
+  await page.locator('[data-task-node="t3"] .task-checkbox').click();s=await state(page);assert.equal(s.stages[0].tasks[2].doneAt,new Date().toLocaleDateString('sv-SE'));
+  await page.locator('[data-task-node="t3"] .task-checkbox').click();assert.equal((await state(page)).stages[0].tasks[2].doneAt,null);
+  await page.evaluate(()=>{const s=window.pmApp.get();for(let i=0;i<8;i++)s.stages[2].tasks.push({id:'w'+i,text:'w'+i,children:[]});window.pmApp.set(s)});
+  await page.click('#menuTrigger');await page.click('[data-menu="review"]');for(let i=0;i<3;i++)await page.click('#reviewNext');
+  for(const cb of await page.locator('#reviewBody .review-row input').all())await cb.click();
+  assert.equal(await page.locator('#reviewBody .review-row input:checked').count(),5,'5個を超えて選べます')});
+
+const AI_REPLY=(ids)=>`1. 状況の整理
+- 遅れているので「試して改善する」は後回しにします
+- 新しく「仕様書を書く」を追加
+
+${'---工程表---'}
+- 画面を作る @2027-01-31 #s1
+  - [x] 完了済みの名前をAIが書き換えた @2027-05-05 #t1
+  - AIと相談して方向性を決める #t2
+    - [x] 候補を整理する #tc1
+    - ★ 決定事項を確認する @2026-12-24 #tc2
+- 内容を詰める #s2
+  - ★ 必要な機能を整理する（名前を変更） #t4
+  - 試して改善する（あったら良い） #t5
+  - ★ 仕様書を書く @2026-12-20
+- デザインを整える #s3
+`;
+await test('[秘書] AIに相談：相談文にIDと完了印、返答を差分で反映（完了は不変・保持）',async b=>{const {page,ctx}=await newPage(b);await setDeadline(page,plusDays(60));
+  await ctx.grantPermissions(['clipboard-read','clipboard-write']);
+  await page.click('#menuTrigger');await page.click('[data-menu="consult"]');await page.locator('#consultChips button').first().click();await page.click('#consultCopy');
+  const prompt=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(prompt.includes('#t1')&&prompt.includes('[x] 参考になるデザインを集める')&&prompt.includes('---工程表---')&&prompt.includes('締切：'),'相談文に必要な情報がありません');
+  await page.fill('#consultReply',AI_REPLY());await page.waitForSelector('#consultPreview .diff-row');
+  const pv=await page.textContent('#consultPreview');assert.ok(pv.includes('追加 1')&&pv.includes('削除 1')&&pv.includes('名称変更 1'),'プレビュー：'+pv);
+  await page.click('#consultCommit');const s=await state(page);const st0=s.stages[0];
+  const t1=st0.tasks.find(t=>t.id==='t1');assert.equal(t1.text,'参考になるデザインを集める','完了済みの名前が変わりました');assert.equal(t1.done,true);
+  assert.ok(st0.tasks.some(t=>t.id==='t3')===false,'未完了で外れたt3が残っています');
+  assert.equal(st0.due,'2027-01-31');assert.ok(st0.changes.some(c=>c.t==='due'));
+  const t4=s.stages[1].tasks.find(t=>t.id==='t4');assert.equal(t4.text,'必要な機能を整理する（名前を変更）');assert.ok(t4.star&&t4.changes.some(c=>c.t==='renamed'));
+  assert.ok(s.stages[1].tasks.find(t=>t.id==='t5').nice);const nw=s.stages[1].tasks.find(t=>t.text==='仕様書を書く');assert.ok(nw&&nw.star&&nw.due==='2026-12-20'&&nw.changes[0].t==='added');
+  const sh=s.sheets.find(x=>x.id===s.activeSheetId);assert.ok(sh.revisions[0].lines.some(l=>l.includes('[removed]')),'履歴に削除が残りません');
+  assert.ok(await page.locator('.task-card.changed').count()>=3,'ハイライトされません');
+  await page.click('#menuTrigger');await page.click('[data-menu="history"]');assert.ok((await page.textContent('#historyList')).includes('遅れていて'));await page.click('#historyClose');
+  await page.click('#menuTrigger');await page.click('[data-menu="clearmarks"]');assert.equal(await page.locator('.task-card.changed').count(),0)});
+
+await test('[秘書] AIの案から完了済みが消えても残す・「未完了も残す」指定',async b=>{const {page}=await newPage(b);
+  await page.click('#menuTrigger');await page.click('[data-menu="consult"]');
+  await page.fill('#consultReply','---工程表---\n- 内容を詰める #s2\n  - 必要な機能を整理する #t4\n');await page.waitForSelector('#consultPreview .diff-row');
+  await page.check('#consultKeepOpen');await page.waitForTimeout(100);await page.click('#consultCommit');let s=await state(page);
+  assert.ok(s.stages.some(x=>x.id==='s1')&&s.stages.find(x=>x.id==='s1').tasks.some(t=>t.id==='t3'),'未完了も残す指定が効きません');
+  await page.keyboard.press('Control+z');await page.click('#menuTrigger');await page.click('[data-menu="consult"]');
+  await page.fill('#consultReply','---工程表---\n- 内容を詰める #s2\n');await page.waitForSelector('#consultPreview .diff-row');await page.click('#consultCommit');s=await state(page);
+  const s1=s.stages.find(x=>x.id==='s1');assert.ok(s1,'完了を含むメインが消えました');assert.ok(s1.tasks.some(t=>t.id==='t1'&&t.done),'完了済みタスクが消えました');
+  assert.ok(s1.tasks.find(t=>t.id==='t2').children.some(c=>c.id==='tc1'&&c.done),'完了済みの孫が消えました');assert.ok(!s1.tasks.some(t=>t.id==='t3'),'未完了が残っています');
+  assert.ok(!s.stages.some(x=>x.id==='s3'),'空の未完了メインが残っています')});
+
+await test('[秘書] このチャットから段取りを作る指示文・締切つき登録',async b=>{const {page,ctx}=await newPage(b);await ctx.grantPermissions(['clipboard-read','clipboard-write']);
+  await page.click('#menuTrigger');await page.click('[data-menu="plan"]');assert.ok((await page.textContent('#planSteps')).includes('いつも使っているAIチャット'));
+  await page.fill('#planTheme','ゲーム');await page.fill('#planDeadline','2027-03-31');await page.click('#planCopy');const p=await page.evaluate(()=>navigator.clipboard.readText());
+  assert.ok(p.includes('このチャットでこれまで話した内容')&&p.includes('締切：2027-03-31')&&p.includes('（あったら良い）')&&p.includes('★'));
+  await page.fill('#planText','- 企画 @2027-01-10\n  - ★ 企画書（あったら良い）\n  - [x] アイデア出し\n  - 仕様を決める');await page.click('#planCommit');
+  const s=await state(page),sh=s.sheets.find(x=>x.id===s.activeSheetId);assert.equal(sh.goal.deadline,'2027-03-31');const t=s.stages[0].tasks;
+  assert.ok(t[0].star&&t[0].nice&&t[0].text==='企画書');assert.ok(t[1].done&&t[1].doneAt==='');assert.ok((await sec(page)).includes('見直し'),'登録後の指示：'+await sec(page))});
+
+await test('[秘書][SP] スマホで秘書バー・困ったとき・思いついたボタンが使える',async b=>{const {page}=await newPage(b,{mobile:true});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'横にはみ出しています');
+  await page.locator('#secToggle').tap();await page.locator('.help-item summary').first().tap();await page.locator('.help-item[open] button').first().tap();
+  assert.ok(await page.locator('#captureDialog[open]').count()===1,'困ったとき→あとで箱が開きません');await page.fill('#captureText','スマホで思いついた');await page.locator('#captureForm button[type=submit]').tap();
+  assert.equal(await page.textContent('#inboxCount'),'1')});
+
 // ---------- 認証・同期（モック） ----------
 await test('[同期] ログイン済みでサーバーの工程表を読み込み、編集をrevision付きで保存',async b=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:5});const {page}=await newPage(b,{mock,user:USER});
@@ -303,6 +405,14 @@ await test('[同期] 期日・メモがサーバーに保存され別端末で�
   const t=(await state(B.page)).stages[0].tasks[0];assert.equal(t.due,'2027-01-05');assert.equal(t.note,'メモ');
   mock.setOnline(false);await typeEnd(B.page,B.page.locator('.stage-title').first(),'z');await waitStatus(B.page,'接続できません',10000);
   assert.equal(await B.page.locator('#menuTrigger[data-alert]').count(),1,'同期異常の目印が出ません');mock.setOnline(true);await waitStatus(B.page,'保存済み',10000);assert.equal(await B.page.locator('#menuTrigger[data-alert]').count(),0)});
+
+await test('[同期] あとで箱・締切・今週★が別端末に同期される',async b=>{
+  const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});const A=await newPage(b,{mock,user:USER});await waitStatus(A.page,'保存済み');
+  await A.page.click('#captureOpen');await A.page.fill('#captureText','同期テスト');await A.page.keyboard.press('Enter');await A.page.click('#captureClose');
+  await A.page.click('#sheetOptions');await A.page.fill('#sheetDeadline','2027-02-01');await A.page.click('#sheetForm button[type=submit]');
+  await menu(A.page,'t1','star');await waitStatus(A.page,'保存済み');await A.page.waitForTimeout(1500);
+  const B=await newPage(b,{mock,user:USER});await waitStatus(B.page,'保存済み');const s=await state(B.page),sh=s.sheets.find(x=>x.id===s.activeSheetId);
+  assert.equal(sh.inbox[0].text,'同期テスト');assert.equal(sh.goal.deadline,'2027-02-01');assert.equal(s.stages[0].tasks[0].star,true)});
 
 await test('[同期] 再読み込みを繰り返しても端末保存(localStorage)が増え続けない',async b=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});const {page}=await newPage(b,{mock,user:USER});await waitStatus(page,'保存済み');

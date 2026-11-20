@@ -23,6 +23,7 @@
 - Vercel は既存プロジェクト `prj_mgGN1KTY8uDhNAUm2P3MhVxHEovM` だけを使う。新規プロジェクトを作らない。`vercel link` で空フォルダを紐付けて本番デプロイしない
 - 常夜本体（GitHub `tokoyo`、Supabase `yyipsxwjeqjqttgvfote`）には一切触れない
 - デザインは現状維持が原則。大規模リファクタリングをしない
+- 秘書機能（`index.html` の「秘書」ブロック: `nextInstruction` / `forecast` / 週の見直し `openReview` / AI相談 `consultPrompt`・`mergePlan`）の方針は README「管理のしくみ」。完了済みタスクをAIの提案や見直しで変更・削除しない
 - 用語: メインタスク（一番上の大きいカード）→ 子タスク → 孫タスク。4階層目は作らない
 
 ## 環境メモ（Claude Code クラウド）
