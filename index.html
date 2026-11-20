@@ -24,6 +24,7 @@
     .menu button {display:block;width:100%;text-align:left;background:none;border:0;color:#dbe5f1;padding:11px 12px;border-radius:7px;font-size:13px}
     .menu button:hover{background:#ffffff0d}
     .menu hr {border:0;border-top:1px solid #ffffff14;margin:6px 4px}
+    .menu-help{padding:8px 12px 10px;font-size:12px;line-height:1.75;color:#a9b7c9}.menu-help b{color:#dbe5f1;font-weight:600}
     .palette-panel{position:absolute;right:0;top:44px;width:min(324px,calc(100vw - 28px));z-index:9;background:#1b2533;border:1px solid #344355;border-radius:14px;box-shadow:0 22px 70px #0009;padding:17px;color:#edf0f4;}
     .palette-section+.palette-section{margin-top:17px;padding-top:15px;border-top:1px solid #ffffff15;}
     .palette-heading{font-size:12px;font-weight:600;color:#d4e0ed;margin:0 0 10px;}
@@ -50,7 +51,7 @@
     .stage-title {position:relative;color:var(--card-fg);font-weight:650;font-size:21px;line-height:1.4;letter-spacing:-.015em;min-height:28px;min-width:0;flex:1;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;overflow:visible;text-overflow:clip;outline:none;cursor:text;max-width:none}
     .stage-title:focus{overflow:visible;text-overflow:clip}
     .task-link{color:inherit;text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px;cursor:pointer;overflow-wrap:anywhere}
-    .editable:empty::before{content:attr(data-placeholder);color:#697b94;pointer-events:none}
+    .editable:empty::before{content:attr(data-placeholder);color:#8494aa;pointer-events:none}
     .stage-actions{position:absolute;right:7px;top:6px;opacity:0;pointer-events:none;display:flex;gap:3px;transition:opacity .16s}
     .stage:hover .stage-actions,.stage:focus-within .stage-actions,.stage.selected .stage-actions {opacity:1;pointer-events:auto}
     .node-action {color:#95a5b9;background:transparent;border:0;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;font-size:15px;line-height:1;flex:0 0 34px;}
@@ -86,10 +87,10 @@
     .task-card.is-done .task-text {color:var(--node-muted);text-decoration:line-through;text-decoration-color:#607085aa}
     /* 背景番号は工程カードだけ。タスクと子タスクには付けない。 */
     .task-card>* {position:relative;z-index:1}
-    .task-text{font-weight:430;color:var(--card-fg);font-size:14px;line-height:1.48;word-break:break-word;white-space:pre-wrap;flex:1;min-height:21px;outline:none;cursor:text;}
+    .task-text{font-weight:430;color:var(--card-fg);font-size:15px;line-height:1.5;word-break:break-word;white-space:pre-wrap;flex:1;min-height:21px;outline:none;cursor:text;}
     .task-checkbox{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--node-muted);background:#0000;flex:0 0 17px;padding:0;display:grid;place-items:center;color:#111c27;font-size:13px;}
     .task-checkbox[aria-checked="true"]{background:#94b5e6;border-color:#94b5e6}
-    .task-checkbox[aria-checked="true"]::after{content:"✓";font-size:12px;font-weight:800}
+    .task-checkbox[aria-checked="true"]::after{content:"✓";font-size:12px;font-weight:800;line-height:1;color:#0f1b29}
     .task-actions{position:absolute!important;right:3px;top:-1px;display:flex;gap:0;align-items:center;opacity:0;pointer-events:none;transition:opacity .14s;}
     .task-card:hover .task-actions,.task-card:focus-within .task-actions,.task-node.selected>.task-card .task-actions{opacity:1;pointer-events:auto}
     .task-actions .node-action{width:33px;height:34px;flex-basis:33px;font-size:13px}
@@ -102,9 +103,9 @@
     .task-children .task-node::before{content:"";display:block;position:absolute;left:-13px;top:19px;width:10px;height:1px;background:var(--rail);pointer-events:none;}
     .task-children .task-node{margin-bottom:2px}
 
-    .task-children .task-card{min-height:40px;padding:7px 33px 7px 13px;background:color-mix(in srgb,var(--card-bg) 38%,var(--bg));border-radius:7px;}
+    .task-children .task-card{min-height:42px;padding:8px 33px 8px 13px;background:color-mix(in srgb,var(--card-bg) 38%,var(--bg));border-radius:7px;}
     .task-children .task-card:hover,.task-children .task-node.selected>.task-card{background:color-mix(in srgb,var(--card-bg) 48%,var(--bg));}
-    .task-children .task-text{font-size:13px;color:var(--grand-card-fg);font-weight:390}
+    .task-children .task-text{font-size:14px;color:var(--grand-card-fg);font-weight:400}
     .task-children .task-card.is-done .task-text{color:var(--node-muted)}
     /* Grandchild (+) is a floating control on the LEFT of a child row. It never consumes vertical space. */
     .task-children-add{position:absolute;left:-32px;top:11px;z-index:4;width:26px;height:30px;display:grid;place-items:center;padding:0;margin:0;border:0;border-radius:7px;background:transparent;color:var(--canvas-fg);font-size:19px;font-weight:350;line-height:1;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s ease,background .12s ease;}
@@ -115,13 +116,13 @@
     .add-task,.task-children-add{white-space:nowrap;}
     .draft-row{display:flex;align-items:center;margin:3px 0 8px 0;padding:2px 4px;min-height:36px;max-width:340px;border-bottom:1px solid #647e9c50;}
     .draft-row.grand-draft{margin-left:30px}
-    .draft-input{width:100%;color:var(--canvas-fg);background:transparent;outline:0;border:0;padding:7px 4px;font-size:13px;line-height:1.5;font-family:inherit;resize:none;overflow:hidden;white-space:pre-wrap;min-height:33px;}
-    .draft-input::placeholder{color:#7890ac}
+    .draft-input{width:100%;color:var(--txt);background:transparent;outline:0;border:0;padding:7px 4px;font-size:14px;line-height:1.5;font-family:inherit;resize:none;overflow:hidden;white-space:pre-wrap;min-height:33px;}
+    .draft-input::placeholder{color:#93a6bf}
     .task-parent-toggle{padding:0;border:0;background:transparent;color:var(--node-muted);width:17px;min-width:17px;height:20px;font-size:13px;line-height:1;display:grid;place-items:center;}
     .task-parent-toggle:hover{color:#e1ecfd}
     .task-node.collapsed>.task-children{display:none}
     .child-count{font-size:10px;color:var(--canvas-fg);opacity:.75;margin-left:3px}
-    .add-task{margin:14px 0 0 0;color:var(--canvas-fg);background:transparent;border:0;border-radius:8px;min-height:35px;padding:3px 12px;font-size:12px;opacity:.48;transition:opacity .15s,background .15s}
+    .add-task{margin:14px 0 0 0;color:var(--canvas-fg);background:transparent;border:0;border-radius:8px;min-height:35px;padding:3px 12px;font-size:13px;opacity:.72;transition:opacity .15s,background .15s}
     .stage:hover .add-task,.stage:focus-within .add-task,.add-task:hover,.add-task:focus-visible{opacity:1}
     .add-task:hover{background:#ffffff0b}
     .add-stage{width:53px;height:53px;margin-top:22px;align-self:flex-start;flex:0 0 53px;display:grid;place-items:center;color:#849ab8;font-size:25px;background:#192332;border:1px dashed #52627969;border-radius:14px;cursor:pointer}
@@ -174,19 +175,22 @@
     }
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   
-    #syncBar{font-size:12px}#syncBar button{min-height:44px}.account-details,.sync-details{padding:9px 12px;line-height:1.6;overflow-wrap:anywhere}.menu-label{display:block;color:var(--soft);font-size:11px;margin-bottom:3px}#accountInfo,#syncStatus{display:block;color:var(--txt)}dialog{color:#e5edf5;background:#202c3a;border:1px solid #607085;border-radius:12px;max-width:min(90vw,520px)}dialog input{display:block;margin:12px 0;width:100%;padding:10px;box-sizing:border-box}dialog button{min-height:40px;margin:4px}dialog::backdrop{background:#0009}.task-checkbox,.task-parent-toggle{position:relative}.task-checkbox::after,.task-parent-toggle::after{content:'';position:absolute;inset:-10px}.node-action{min-width:28px;min-height:28px}@media(pointer:coarse){.task-node.selected>.task-card .task-resize,.task-card:focus-within .task-resize,.stage.selected .stage-resize{opacity:.8}.topbar{height:auto;min-height:62px;flex-wrap:wrap}}
-  .mobile-drag{display:none}@media(pointer:coarse){.mobile-drag{display:grid;place-items:center;position:absolute;right:2px;bottom:-7px;width:30px;height:30px;touch-action:none;user-select:none;color:#8f9fb5;z-index:5}}
+    #syncBar{font-size:12px}#syncBar button{min-height:44px}.account-details,.sync-details{padding:9px 12px;line-height:1.6;overflow-wrap:anywhere}.menu-label{display:block;color:var(--soft);font-size:11px;margin-bottom:3px}#accountInfo,#syncStatus{display:block;color:var(--txt)}dialog{color:#e5edf5;background:#202c3a;border:1px solid #607085;border-radius:12px;max-width:min(90vw,520px)}dialog input{display:block;margin:12px 0;width:100%;padding:10px;box-sizing:border-box}dialog button{min-height:40px;margin:4px;padding:8px 15px;border-radius:8px;border:1px solid #41526a;background:#273850;color:#e3efff;font-size:14px}dialog button:hover{background:#30445f}dialog button:disabled{opacity:.45;cursor:not-allowed}dialog button[type=submit]{background:#749dd7;border-color:#749dd7;color:#0b1728;font-weight:700}dialog button[type=submit]:hover{background:#86acdf}dialog input:not([type=radio]):not([type=color]),dialog textarea{background:#101824;color:#e4edf5;border:1px solid #425067;border-radius:8px;font-size:15px}dialog input:focus-visible,dialog textarea:focus-visible{outline:2px solid #8baadd;outline-offset:1px}dialog{padding:22px}dialog h3{margin:0 0 10px;font-size:18px}dialog p{font-size:13px;line-height:1.6;color:#bccadb}dialog input[type=date]{color-scheme:dark}dialog::backdrop{background:#0009}.task-checkbox,.task-parent-toggle{position:relative}.task-checkbox::before,.task-parent-toggle::before{content:'';position:absolute;inset:-10px}.node-action{min-width:28px;min-height:28px}@media(pointer:coarse){.task-node.selected>.task-card .task-resize,.task-card:focus-within .task-resize,.stage.selected .stage-resize{opacity:.8}.topbar{height:auto;min-height:62px;flex-wrap:wrap}}
+  .mobile-drag{display:none}
+  @media(hover:hover) and (pointer:fine){.mobile-drag{display:grid;place-items:center;position:absolute;right:3px;bottom:-4px;width:24px;height:24px;color:#8f9fb5;z-index:5;opacity:0;cursor:grab;user-select:none;transition:opacity .12s}.task-card:hover>.mobile-drag,.stage-heading:hover>.mobile-drag{opacity:.75}
+    .stage:hover .task-node>.task-children-add{opacity:.4;visibility:visible;pointer-events:auto}.stage:hover .task-node:hover>.task-children-add{opacity:1}}
+  .task-card:has(.editable:focus),.stage-heading:has(.editable:focus){outline:1.5px solid color-mix(in srgb,var(--accent) 75%,transparent);outline-offset:1px}@media(pointer:coarse){.mobile-drag{display:grid;place-items:center;position:absolute;right:2px;bottom:-7px;width:30px;height:30px;touch-action:none;user-select:none;color:#8f9fb5;z-index:5}}
 
     .sheet-bar{display:flex;align-items:center;gap:4px;flex:0 0 46px;min-width:0;padding:0 12px;border-top:1px solid #ffffff12;background:var(--bg);z-index:7}.sheet-tabs{display:flex;gap:3px;overflow-x:auto;min-width:0;flex:1;scrollbar-width:thin}.sheet-tab,.sheet-tool{border:0;background:transparent;color:var(--soft);min-height:40px;padding:8px 15px;border-radius:6px 6px 0 0;flex:0 0 auto}.sheet-tab{max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-bottom:2px solid transparent}.sheet-tab[aria-selected="true"]{color:var(--txt);background:#ffffff08;border-bottom-color:var(--accent)}.sheet-tab:hover,.sheet-tool:hover{background:#ffffff0b}.sheet-tool{min-width:40px;padding:8px;font-size:20px}.zoom-controls{bottom:66px}.menu button:disabled{opacity:.4;cursor:default}#emphasisDialog,#sheetDialog{width:min(90vw,420px)}.settings-row{display:flex;align-items:center;gap:10px;margin:12px 0}.settings-row input{margin:0;min-width:0}.settings-row input[type=color]{width:54px;height:42px;padding:3px;flex:0 0 54px}.settings-row input[type=number]{width:100px}#emphasisTarget{overflow-wrap:anywhere;max-height:100px;overflow:auto}.settings-label{font-size:13px;color:var(--soft)}.settings-actions{display:flex;flex-wrap:wrap;gap:4px}#emphasisPreview{padding:20px;border-radius:10px;margin:20px 6px;background:var(--card-bg)}
     /* progress, due dates, notes */
     .stage-heading.has-progress{padding-bottom:34px}
-    .stage-progress{position:absolute;left:48px;right:40px;bottom:11px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--node-muted);font-variant-numeric:tabular-nums;pointer-events:none}
+    .stage-progress{position:absolute;left:48px;right:40px;bottom:11px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--node-muted);font-variant-numeric:tabular-nums;pointer-events:none}
     .stage-progress .bar{flex:1;height:4px;border-radius:4px;background:color-mix(in srgb,var(--card-fg) 12%,transparent);overflow:hidden}
     .stage-progress .bar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
     .stage-progress .due-chip{pointer-events:auto}
     .stage-due{position:absolute;left:48px;bottom:9px}
     .task-meta{display:flex;gap:5px;align-items:center;flex:0 0 auto;margin-left:auto}
-    .due-chip,.note-chip{border:0;font:inherit;font-size:11px;line-height:1;padding:4px 6px;border-radius:6px;background:color-mix(in srgb,var(--card-fg) 9%,transparent);color:var(--node-muted);white-space:nowrap;cursor:pointer;font-variant-numeric:tabular-nums}
+    .due-chip,.note-chip{border:0;font:inherit;font-size:12px;line-height:1;padding:4px 6px;border-radius:6px;background:color-mix(in srgb,var(--card-fg) 9%,transparent);color:var(--node-muted);white-space:nowrap;cursor:pointer;font-variant-numeric:tabular-nums}
     .due-chip.soon{background:#e2b54a2e;color:#e9c36b}
     .due-chip.overdue{background:#e8836f30;color:#f0a291}
     .is-done .due-chip{background:transparent;color:var(--node-muted);opacity:.7}
@@ -241,6 +245,8 @@
           <button data-menu="import">バックアップを読み込む</button>
           <hr>
           <button data-menu="reset">サンプルに戻す</button>
+          <hr>
+          <div class="menu-help"><b>操作のヒント</b><br>Enter：次のタスク／Tab：一段下に追加<br>Alt+Enter：改行／Ctrl+Z：取り消し<br>Ctrl（⌘）+ホイール・ピンチ：ズーム<br>URLはクリックで別タブ、Alt+クリックで編集</div>
         </div>
         <div id="palettePanel" class="palette-panel" role="dialog" aria-label="配色を変更" hidden>
           <div class="palette-section">
@@ -329,20 +335,20 @@
   function activeChildren(items){return items}
   function effectiveDone(t){const children=activeChildren(t.children);return children.length?children.every(c=>c.done):!!t.done;}
   function effectiveMainDone(stage){const children=activeChildren(stage.tasks);return children.length?children.every(effectiveDone):!!stage.done;}
-  function taskWidth(t){if(Number.isFinite(t.width)&&t.width>=210)return t.width;const context=document.createElement('canvas').getContext('2d');context.font='430 14px system-ui, sans-serif';const longest=Math.max(0,...String(t.text||'').split('\n').map(line=>context.measureText(line).width));return Math.max(245,Math.min(560,Math.ceil(longest)+92+(t.due?100:0)+(t.note?46:0)));}
+  function taskWidth(t){if(Number.isFinite(t.width)&&t.width>=210)return t.width;const context=document.createElement('canvas').getContext('2d');context.font='430 15px system-ui, sans-serif';const longest=Math.max(0,...String(t.text||'').split('\n').map(line=>context.measureText(line).width));return Math.max(245,Math.min(560,Math.ceil(longest)+92+(t.due?100:0)+(t.note?46:0)));}
   function headingWidth(st){return Number.isFinite(st.width)&&st.width>=210?st.width:(matchMedia('(max-width:700px)').matches?269:296);}
   function stageWidth(st){let m=0;for(const t of st.tasks){m=Math.max(m,taskWidth(t));for(const c of t.children)m=Math.max(m,taskWidth(c)+30);}return Math.max(269,headingWidth(st),m+32);}
 
   function applyZoom(value,anchor=null){const old=zoom;zoom=Math.max(.3,Math.min(1.8,Math.round(value*10)/10));const rect=canvas.getBoundingClientRect();const ax=anchor?anchor.clientX-rect.left:canvas.clientWidth/2,ay=anchor?anchor.clientY-rect.top:canvas.clientHeight/2;const x=(canvas.scrollLeft+ax)/old,y=(canvas.scrollTop+ay)/old;map.style.zoom=zoom;canvas.scrollLeft=x*zoom-ax;canvas.scrollTop=y*zoom-ay;$('zoomIn').disabled=zoom>=1.8;$('zoomOut').disabled=zoom<=.3;$('zoomReset').disabled=zoom===1;$('zoomLevel').textContent=Math.round(zoom*100)+'%';try{localStorage.setItem(ZOOM_KEY,String(zoom))}catch(e){}}
-  $('zoomLevel').title='ホイール：ズーム / Alt＋ホイール：スクロール';
+  $('zoomLevel').title='Ctrl（⌘）＋ホイール、またはピンチでズーム';
   $('zoomIn').onclick=()=>applyZoom(zoom+.1);$('zoomOut').onclick=()=>applyZoom(zoom-.1);$('zoomReset').onclick=()=>applyZoom(1);
-  // Wheel zoom (without modifier); Shift+wheel remains horizontal scroll.
+  // Plain wheel / two-finger swipe scrolls the map. Ctrl/⌘+wheel and trackpad pinch (reported as ctrl+wheel) zoom.
   let wheelBuffer=0;
   canvas.addEventListener('wheel',e=>{
-    if(e.shiftKey||e.altKey)return;
+    if(!(e.ctrlKey||e.metaKey))return;
     e.preventDefault();
     wheelBuffer+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?120:1);
-    const step=60;
+    const step=e.deltaMode===0&&Math.abs(e.deltaY)<10?12:100; // pinch gestures send small deltas
     if(Math.abs(wheelBuffer)>=step){
       const n=Math.min(3,Math.floor(Math.abs(wheelBuffer)/step)),dir=Math.sign(wheelBuffer);
       wheelBuffer-=dir*n*step;applyZoom(zoom-dir*.1*n,e);

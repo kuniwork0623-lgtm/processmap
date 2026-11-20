@@ -133,6 +133,16 @@ await test('[PC] 子タスクにホバーしても下のタスクが動かない
   await page.locator('[data-task-node="t2"] > .task-card').hover();await page.waitForTimeout(250);
   assert.equal((await below.boundingBox()).y,y0);await page.locator('[data-task-node="tc1"] .task-card').hover();await page.waitForTimeout(250);assert.equal((await below.boundingBox()).y,y0)});
 
+await test('[PC] ホイールはスクロール、Ctrl+ホイールでズーム',async b=>{const {page}=await newPage(b);
+  await page.evaluate(()=>{const s=window.pmApp.get();for(let i=0;i<12;i++)s.stages[0].tasks.push({id:'w'+i,text:'行'+i,children:[]});window.pmApp.set(s)});
+  await page.mouse.move(700,500);await page.mouse.wheel(0,400);await page.waitForTimeout(300);
+  assert.equal(await page.textContent('#zoomLevel'),'100%','ホイールでズームしてしまいます');assert.ok(await page.evaluate(()=>document.getElementById('canvas').scrollTop)>0,'スクロールしません');
+  await page.keyboard.down('Control');await page.mouse.wheel(0,-120);await page.keyboard.up('Control');await page.waitForTimeout(200);assert.equal(await page.textContent('#zoomLevel'),'110%')});
+
+await test('[PC] 完了チェックの✓が箱の中央に描かれる',async b=>{const {page}=await newPage(b);
+  const r=await page.locator('[data-task-node="t1"] .task-checkbox').evaluate(e=>{const a=getComputedStyle(e,'::after');return [a.position,a.content]});
+  assert.deepEqual(r,['static','"✓"'])});
+
 await test('[PC] ズーム: ＋／−／100%復帰',async b=>{const {page}=await newPage(b);
   await page.click('#zoomIn');assert.equal(await page.textContent('#zoomLevel'),'110%');await page.click('#zoomOut');await page.click('#zoomOut');assert.equal(await page.textContent('#zoomLevel'),'90%');
   await page.click('#zoomReset');assert.equal(await page.textContent('#zoomLevel'),'100%')});
