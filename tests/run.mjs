@@ -656,8 +656,9 @@ await test('[マインドマップ][SP] タッチで枝をドラッグし、全�
   await addMindSheet(page);await mindRoot(page).fill('中心');
   await page.locator('#mindAdd').tap();await activeMindTitle(page).fill('動かす枝');
   await page.locator('#mindAdd').tap();await activeMindTitle(page).fill('子の枝');
-  await page.locator('#mindFit').tap();
   const branch=mindCardFor(page,'動かす枝'),child=mindCardFor(page,'子の枝');
+  await branch.tap({position:{x:35,y:3}});
+  await page.locator('#mindFit').tap();
   const start=await pointOf(branch.locator('.mind-grip')),before=await pointOf(child);
   const cdp=await ctx.newCDPSession(page);
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});
@@ -683,6 +684,37 @@ await test('[マインドマップ][SP] タッチで枝をドラッグし、全�
   await activeMindTitle(page).fill('移動後も編集できる');
   assert.ok(readMindMaps(await state(page))[0].root.children[0].position);
   assert.deepEqual(page.errors,[]);
+});
+
+await test('[マインドマップ] つまみはPCでホバー時、スマホで選択中だけ表示',async browser=>{
+  const gripState=grip=>grip.evaluate(button=>{
+    const style=getComputedStyle(button);
+    return [style.opacity,style.pointerEvents];
+  });
+  for(const mobile of [false,true]){
+    const {page}=await newPage(browser,{mobile});
+    await addMindSheet(page);await mindRoot(page).fill('中心');
+    await page.locator('#mindAdd').click();await activeMindTitle(page).fill('枝A');
+    await page.locator('#mindSibling').click();await activeMindTitle(page).fill('枝B');
+    await page.locator('#mindFit').click();
+    const a=mindCardFor(page,'枝A'),b=mindCardFor(page,'枝B');
+    const aGrip=a.locator('.mind-grip'),bGrip=b.locator('.mind-grip');
+    assert.deepEqual(await gripState(aGrip),['0','none']);
+    if(mobile){
+      assert.deepEqual(await gripState(bGrip),['1','auto']);
+      await a.tap({position:{x:36,y:3}});
+      assert.deepEqual(await gripState(aGrip),['1','auto']);
+      assert.deepEqual(await gripState(bGrip),['0','none']);
+    }else{
+      assert.deepEqual(await gripState(bGrip),['0','none']);
+      await a.hover();
+      assert.deepEqual(await gripState(aGrip),['1','auto']);
+      assert.deepEqual(await gripState(bGrip),['0','none']);
+      await page.locator('.brand').hover();
+      assert.deepEqual(await gripState(aGrip),['0','none']);
+    }
+    assert.deepEqual(page.errors,[]);
+  }
 });
 
 await test('[マインドマップ][同期] ドラッグ中に届いた更新は描画を中断せず、確定後に競合を知らせる',async browser=>{

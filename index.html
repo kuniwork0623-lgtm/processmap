@@ -279,7 +279,10 @@
     .mind-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
     .mind-node{--branch-color:var(--accent);position:relative;z-index:1;width:184px;min-height:56px;padding:9px 10px;background:var(--card-bg);color:var(--card-fg);border:1px solid color-mix(in srgb,var(--branch-color) 52%,var(--card-bg));border-radius:11px;display:flex;flex-direction:column;justify-content:center}
     .mind-node:not(.root){padding-inline-start:34px}
-    .mind-grip{position:absolute;left:0;top:50%;transform:translateY(-50%);width:32px;height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--card-fg);font-size:18px;cursor:grab;touch-action:none;user-select:none}
+    .mind-grip{position:absolute;left:0;top:50%;transform:translateY(-50%);width:32px;height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--card-fg);font-size:18px;cursor:grab;touch-action:none;user-select:none;opacity:0;pointer-events:none}
+    .mind-grip:focus-visible,.canvas[data-mind-dragging] .mind-node[data-selected]>.mind-grip{opacity:1;pointer-events:auto}
+    @media(hover:hover) and (pointer:fine){.mind-node:hover>.mind-grip{opacity:1;pointer-events:auto}}
+    @media(hover:none),(pointer:coarse){.mind-node[data-selected]>.mind-grip{opacity:1;pointer-events:auto}}
     .mind-grip:hover,.mind-grip:focus-visible{background:color-mix(in srgb,var(--card-fg) 13%,var(--card-bg))}
     .mind-node.root{width:208px;min-height:74px;border:2px solid var(--accent);border-radius:15px}
     .mind-node[data-selected]{outline:2px solid var(--branch-color);outline-offset:3px}
