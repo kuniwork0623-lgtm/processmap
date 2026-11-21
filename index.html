@@ -69,6 +69,8 @@
     .task-card .task-text{white-space:pre-wrap;overflow-wrap:anywhere;overflow:visible;text-overflow:clip;word-break:normal;min-width:0;}
     .task-card .task-text:focus{overflow:visible;text-overflow:clip;}
     .task-card .task-text:focus::-webkit-scrollbar{display:none;}
+    .stage-title[data-no-wrap],.task-card .task-text[data-no-wrap],.mind-title[data-no-wrap]{white-space:pre;overflow-wrap:normal;word-break:normal;overflow-x:hidden;text-overflow:ellipsis}
+    .stage-title[data-no-wrap]:focus,.task-card .task-text[data-no-wrap]:focus,.mind-title[data-no-wrap]:focus{overflow-x:auto;text-overflow:clip;scrollbar-width:thin}
     /* Width adjustment uses a slim side handle, never a bottom-right corner/L glyph. */
     /* Width handle lives just OUTSIDE the card; never overlaps the delete X. */
     .task-resize,.stage-resize{position:absolute!important;right:-24px;top:50%;transform:translateY(-50%);width:24px;height:36px;padding:0;border:0;background:transparent;opacity:0;cursor:ew-resize;touch-action:none;z-index:6!important;display:grid;place-items:center;transition:opacity .15s;}
@@ -306,6 +308,12 @@
     #mindNoteLink a{color:#a9ccfe}
     #mindNoteInput{width:100%;min-height:150px;resize:vertical}
     #mindNoteTitle,#mindTopicTitle{overflow-wrap:anywhere;white-space:pre-wrap}
+    .sheet-tool.sheet-wrap{min-height:38px;padding:6px 9px;border-radius:7px;font-size:12px;white-space:nowrap}
+    .sheet-wrap[aria-pressed="true"]{background:#293e57;color:#e6effc}
+    #cardDisplayDialog{width:min(90vw,395px)}
+    #cardDisplayTitle{max-height:90px;overflow:auto;overflow-wrap:anywhere;white-space:pre-wrap}
+    .display-check{display:flex;align-items:center;gap:8px;margin:12px 0}
+    #cardDisplayNoWrap{width:18px;height:18px;margin:0;flex:0 0 auto;accent-color:var(--accent)}
     #mindMoveTo{width:100%;padding:10px;margin:6px 0;font:inherit;color:inherit;background:#111a25;border:1px solid #465c77;border-radius:8px}
     .mind-review-list{display:grid;gap:4px;max-height:min(50dvh,440px);overflow:auto}
     .mind-review-list button{text-align:left;margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
@@ -380,7 +388,7 @@
     <span class="mind-shortcuts">Tabで枝 · Enterで同列 · つまみをドラッグして移動</span>
   </div>
   <main id="canvas" class="canvas" aria-label="工程マップ"><div id="map" class="map"></div></main>
-  <nav class="sheet-bar" aria-label="シートの切り替え"><div id="sheetTabs" class="sheet-tabs" role="tablist" aria-label="シート"></div><button id="addSheet" class="sheet-tool" aria-label="シートを追加" title="シートを追加">＋</button><button id="sheetOptions" class="sheet-tool" aria-label="シートの設定" title="シートの名前・並び順・削除">···</button></nav>
+  <nav class="sheet-bar" aria-label="シートの切り替え"><div id="sheetTabs" class="sheet-tabs" role="tablist" aria-label="シート"></div><button id="addSheet" class="sheet-tool" aria-label="シートを追加" title="シートを追加">＋</button><button id="sheetNoWrap" type="button" class="sheet-tool sheet-wrap" aria-pressed="false" title="このシートの自動折り返しを切り替えます">折り返しなし</button><button id="sheetOptions" class="sheet-tool" aria-label="シートの設定" title="シートの名前・並び順・削除">···</button></nav>
   <div class="zoom-controls" role="group" aria-label="表示倍率">
     <div class="zoom-level" id="zoomLevel" aria-label="現在の表示倍率">100%</div>
     <button id="zoomIn" aria-label="拡大" title="拡大">＋</button>
@@ -469,8 +477,19 @@
 <dialog id="mindTopicDialog" aria-labelledby="mindTopicHeading">
   <h3 id="mindTopicHeading">トピックの操作</h3>
   <p id="mindTopicTitle" class="settings-label"></p>
+  <button type="button" id="mindDisplay">幅・折り返し…</button>
   <div id="mindMoveGroup"><label>つなぎ先<select id="mindMoveTo"></select></label><button type="button" id="mindMove">つなぎ直す</button></div>
   <div class="settings-actions"><button type="button" id="mindDelete">この枝を削除</button><button type="button" id="mindTopicClose">閉じる</button></div>
+</dialog>
+<dialog id="cardDisplayDialog" aria-labelledby="cardDisplayHeading">
+  <form id="cardDisplayForm">
+    <h3 id="cardDisplayHeading">幅・折り返し</h3>
+    <p id="cardDisplayTitle" class="settings-label"></p>
+    <label class="settings-row">幅（px）<input id="cardDisplayWidth" type="number" step="any" placeholder="自動"></label>
+    <label class="display-check"><input type="checkbox" id="cardDisplayNoWrap">このカードの自動折り返しを止める</label>
+    <p id="cardDisplaySheetHint" class="settings-label" hidden>シート全体の「折り返しなし」が有効です。</p>
+    <div class="settings-actions"><button type="submit">保存</button><button type="button" id="cardDisplayCancel">キャンセル</button></div>
+  </form>
 </dialog>
 <script>
 (()=>{'use strict';
@@ -498,10 +517,14 @@
   const WORKBOOK_KEY='__processmap_workbook_v1__:';
   const MIND_MAPS_KEY='__processmap_mindmaps_v1__:';
   const MIND_IMPORT_KEY='__processmap_mind_import_v1__:';
+  const CARD_DISPLAY_KEY='__processmap_card_display_v1__:';
   const MIND_EMPTY_SHEET='sheet_mindmap_placeholder';
   const MIND_TOPIC_LIMIT=500;
   const MIND_DEPTH_LIMIT=32;
   const MIND_POSITION_LIMIT=50000;
+  const PROCESS_WIDTH_MIN=210,MIND_WIDTH_MIN=100,CARD_WIDTH_MAX=1200;
+  const narrowCanvas=matchMedia('(max-width:700px)');
+  const textMeasure=document.createElement('canvas').getContext('2d');
   let state=load();
   let drag=null, dragTimer=null,pan=null,ghost=null;
   let selection=null, selectedCard=null, emphasisEditing=null, toastTimer=null;
@@ -513,8 +536,31 @@
   function activeChildren(items){return items}
   function effectiveDone(t){const children=activeChildren(t.children);return children.length?children.every(c=>c.done):!!t.done;}
   function effectiveMainDone(stage){const children=activeChildren(stage.tasks);return children.length?children.every(effectiveDone):!!stage.done;}
-  function taskWidth(t){if(Number.isFinite(t.width)&&t.width>=210)return t.width;const context=document.createElement('canvas').getContext('2d');context.font='430 15px system-ui, sans-serif';const longest=Math.max(0,...String(t.text||'').split('\n').map(line=>context.measureText(line).width));return Math.max(245,Math.min(560,Math.ceil(longest)+92+(t.due?100:0)+(t.note?46:0)+(t.star?52:0)+(t.nice?84:0)+(t.changes?.length?96:0)));}
-  function headingWidth(st){return Number.isFinite(st.width)&&st.width>=210?st.width:(matchMedia('(max-width:700px)').matches?269:296);}
+  function validCardWidth(width,min){
+    const value=Number(width);
+    return Number.isFinite(value)&&value>=min&&value<=CARD_WIDTH_MAX?value:null;
+  }
+  function titleWidth(text,font){
+    textMeasure.font=font+' system-ui, sans-serif';
+    let widest=0;
+    for(const line of (text||'').split('\n'))widest=Math.max(widest,textMeasure.measureText(line).width);
+    return Math.ceil(widest);
+  }
+  function sheetNoWrap(){return state.sheets.find(sheet=>sheet.id===state.activeSheetId)?.noWrap===true}
+  function cardNoWrap(item){return item.noWrap===true||sheetNoWrap()}
+  function taskWidth(task){
+    if(task.width)return task.width;
+    const extras=92+(task.due?100:0)+(task.note?46:0)+(task.star?52:0)+(task.nice?84:0)+(task.changes?.length?96:0);
+    const limit=cardNoWrap(task)?CARD_WIDTH_MAX:560;
+    return Math.max(245,Math.min(limit,titleWidth(task.text,'430 15px')+extras));
+  }
+  function headingWidth(stage){
+    if(stage.width)return stage.width;
+    const standard=narrowCanvas.matches?269:296;
+    if(!cardNoWrap(stage))return standard;
+    const font=narrowCanvas.matches?'650 19px':'650 21px';
+    return Math.min(CARD_WIDTH_MAX,Math.max(standard,titleWidth(stage.title,font)+96));
+  }
   function stageWidth(st){let m=0;for(const t of st.tasks){m=Math.max(m,taskWidth(t));for(const c of t.children)m=Math.max(m,taskWidth(c)+30);}return Math.max(269,headingWidth(st),m+32);}
 
   function applyZoom(value,anchor=null,precise=false){
@@ -587,18 +633,19 @@
       const task=(t,depth=0)=>{
         if(!t||typeof t!=='object')throw Error('手順の内容が不正です');const children=Array.isArray(t.children)?t.children:[];
         if(depth>0&&children.length)throw Error('子タスクの階層が深すぎます');
-        return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,doneAt:t.done?(validDate(t.doneAt)??''):null,star:!!t.star,nice:!!t.nice,collapsed:!!t.collapsed,due:validDate(t.due),note:cleanText(t.note).slice(0,5000),changes:normChanges(t.changes),width:t.width!=null&&Number.isFinite(+t.width)&&+t.width>=210&&+t.width<=1200?+t.width:null,emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
+        return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,doneAt:t.done?(validDate(t.doneAt)??''):null,star:!!t.star,nice:!!t.nice,collapsed:!!t.collapsed,due:validDate(t.due),note:cleanText(t.note).slice(0,5000),changes:normChanges(t.changes),width:validCardWidth(t.width,PROCESS_WIDTH_MIN),emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
       };
       const inputStages=sheet.id===activeId?raw.stages:sheet.stages;if(inputStages.length>300)throw Error('工程が多すぎます');
       return {id:sheet.id,name:cleanText(sheet.name||'シート'+(index+1)),revisions:normRevisions(sheet.revisions),inbox:normInbox(sheet.inbox),goal:{deadline:validDate(sheet.goal?.deadline),text:cleanText(sheet.goal?.text).slice(0,300)},lastReview:validDate(sheet.lastReview),stages:inputStages.map(st=>{
         if(!st||!Array.isArray(st.tasks))throw Error('工程の内容が不正です');
-        return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,doneAt:st.done?(validDate(st.doneAt)??''):null,star:!!st.star,nice:!!st.nice,collapsed:!!st.collapsed,due:validDate(st.due),note:cleanText(st.note).slice(0,5000),changes:normChanges(st.changes),width:st.width!=null&&Number.isFinite(+st.width)&&+st.width>=210&&+st.width<=1200?+st.width:null,emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
+        return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,doneAt:st.done?(validDate(st.doneAt)??''):null,star:!!st.star,nice:!!st.nice,collapsed:!!st.collapsed,due:validDate(st.due),note:cleanText(st.note).slice(0,5000),changes:normChanges(st.changes),width:validCardWidth(st.width,PROCESS_WIDTH_MIN),emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
       })};
     });
     const isColor=v=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);
     const appearance={canvas:isColor(raw.appearance?.canvas)?raw.appearance.canvas.toLowerCase():'#0e131b',task:isColor(raw.appearance?.task)?raw.appearance.task.toLowerCase():'#202c3a'};
     const workbook=restoreMindSheets(sheets,activeId,keys);
-    const result={schemaVersion:7,appearance,processedKeys:keys.filter(k=>![WORKBOOK_KEY,MIND_MAPS_KEY,MIND_IMPORT_KEY].some(prefix=>k.startsWith(prefix))),...workbook};
+    restoreCardDisplay(workbook.sheets,keys);
+    const result={schemaVersion:7,appearance,processedKeys:keys.filter(k=>![WORKBOOK_KEY,MIND_MAPS_KEY,MIND_IMPORT_KEY,CARD_DISPLAY_KEY].some(prefix=>k.startsWith(prefix))),...workbook};
     syncParents(result);return result;
   }
   function syncWorkbook(data){
@@ -634,7 +681,59 @@
       // Keep import details when an older mind-map client rewrites the node tree.
       if(imported.length)processedKeys.push(MIND_IMPORT_KEY+JSON.stringify(imported));
     }
+    const display=cardDisplayForStorage(state.sheets);
+    if(display.length)processedKeys.push(CARD_DISPLAY_KEY+JSON.stringify(display));
     return {...state,processedKeys,sheets,activeSheetId:processSheet.id,stages:processSheet.stages};
+  }
+  function* sheetCards(sheet){
+    if(sheet.mindMap){
+      for(const {node} of mindTopics(sheet.mindMap))yield node;
+      return;
+    }
+    for(const stage of sheet.stages){
+      yield stage;
+      for(const task of stage.tasks){
+        yield task;
+        yield* task.children;
+      }
+    }
+  }
+  function cardDisplayForStorage(sheets){
+    const display=[];
+    for(const sheet of sheets){
+      const cards=[];
+      for(const card of sheetCards(sheet)){
+        const width=sheet.mindMap?card.width:undefined;
+        if(card.noWrap||width)cards.push({id:card.id,noWrap:card.noWrap,width});
+      }
+      if(sheet.noWrap||cards.length)display.push({id:sheet.id,noWrap:sheet.noWrap,cards});
+    }
+    return display;
+  }
+  function restoreCardDisplay(sheets,keys){
+    // Older clients retain unknown processedKeys when rewriting a workbook.
+    const entry=keys.findLast(key=>key.startsWith(CARD_DISPLAY_KEY));
+    if(!entry)return;
+    let saved;
+    try{saved=JSON.parse(entry.slice(CARD_DISPLAY_KEY.length))}catch{return}
+    if(!Array.isArray(saved))return;
+    const bySheet=new Map(saved.filter(item=>typeof item?.id==='string').map(item=>[item.id,item]));
+    for(const sheet of sheets){
+      const settings=bySheet.get(sheet.id);
+      if(!settings)continue;
+      if(settings.noWrap===true)sheet.noWrap=true;
+      if(!Array.isArray(settings.cards))continue;
+      const byCard=new Map(settings.cards.filter(card=>typeof card?.id==='string').map(card=>[card.id,card]));
+      for(const card of sheetCards(sheet)){
+        const layout=byCard.get(card.id);
+        if(!layout)continue;
+        if(layout.noWrap===true)card.noWrap=true;
+        if(sheet.mindMap){
+          const width=validCardWidth(layout.width,MIND_WIDTH_MIN);
+          if(width)card.width=width;
+        }
+      }
+    }
   }
   function load(){
     try{const raw=localStorage.getItem(window.pmStorageKey||KEY);if(raw)return restoreSheetView(normalize(JSON.parse(raw)));}catch(e){console.warn(e)}
@@ -708,6 +807,10 @@
     });
   }
   $('sheetOptions').onclick=()=>openSheetSettings();$('sheetCancel').onclick=()=>$('sheetDialog').close();
+  $('sheetNoWrap').onclick=()=>{
+    const sheet=state.sheets.find(item=>item.id===state.activeSheetId);
+    change(()=>{if(sheet.noWrap)delete sheet.noWrap;else sheet.noWrap=true});
+  };
   $('sheetForm').onsubmit=e=>{e.preventDefault();const name=$('sheetName').value.trim();if(!name){$('sheetName').setCustomValidity('シート名を入力してください');$('sheetName').reportValidity();return}$('sheetDialog').close();const dl=validDate($('sheetDeadline').value);change(()=>{const sh=curSheet();sh.name=name;if(!sh.mindMap&&(sh.goal.deadline||null)!==dl){sh.revisions.unshift({at:new Date().toISOString(),request:'締切の変更',lines:[`締切：${sh.goal.deadline||'なし'} → ${dl||'なし'}`]});sh.goal.deadline=dl}})};
   $('sheetName').oninput=()=>$('sheetName').setCustomValidity('');
   const moveSheet=direction=>{const i=state.sheets.findIndex(s=>s.id===state.activeSheetId),to=i+direction;if(to<0||to>=state.sheets.length)return;$('sheetDialog').close();change(()=>{const [sheet]=state.sheets.splice(i,1);state.sheets.splice(to,0,sheet)});};
@@ -733,6 +836,36 @@
     }
     return null;
   }
+  let displayTarget=null;
+  function openCardDisplay(card,label,minWidth){
+    displayTarget={card,minWidth};
+    const width=$('cardDisplayWidth');
+    width.min=String(minWidth);
+    width.max=String(CARD_WIDTH_MAX);
+    width.value=card.width??'';
+    $('cardDisplayTitle').textContent=label;
+    $('cardDisplayNoWrap').checked=card.noWrap===true;
+    $('cardDisplaySheetHint').hidden=!sheetNoWrap();
+    $('cardDisplayDialog').showModal();
+  }
+  $('cardDisplayCancel').onclick=()=>$('cardDisplayDialog').close();
+  $('cardDisplayForm').onsubmit=event=>{
+    event.preventDefault();
+    if(!displayTarget||!$('cardDisplayDialog').open)return;
+    const {card,minWidth}=displayTarget;
+    const width=validCardWidth($('cardDisplayWidth').value,minWidth);
+    const noWrap=$('cardDisplayNoWrap').checked;
+    $('cardDisplayDialog').close();
+    change(()=>{
+      if(width)card.width=width;else delete card.width;
+      if(noWrap)card.noWrap=true;else delete card.noWrap;
+    });
+  };
+  function setNameWrap(element,card,title){
+    const noWrap=cardNoWrap(card);
+    element.toggleAttribute('data-no-wrap',noWrap);
+    if(noWrap)element.title=title;
+  }
   const el=(tag,cl,txt)=>{const x=document.createElement(tag);if(cl)x.className=cl;if(txt!==undefined)x.textContent=txt;return x};
   function btn(cl,label,txt,handler){const b=el('button',cl,txt);b.type='button';b.setAttribute('aria-label',label);b.title=label;b.addEventListener('click',e=>{e.stopPropagation();handler(e)});return b}
   // Build links from text nodes only. Stored documents always remain plain text.
@@ -757,7 +890,7 @@
     const clearHold=()=>{clearTimeout(holdTimer);holdTimer=null;};
     x.addEventListener('focus',()=>{editing=true;x.querySelectorAll('a.task-link').forEach(a=>{a.removeAttribute('href');a.removeAttribute('contenteditable');a.removeAttribute('target');a.classList.remove('task-link');});if(x.textContent.endsWith('\n')&&x.lastChild?.nodeName!=='BR')x.append(document.createElement('br'));});
     x.addEventListener('input',()=>{if(!savedInitial){recordUndo();savedInitial=true;}onInput(x.textContent);save()});
-    x.addEventListener('blur',()=>{savedInitial=false;editing=false;clearHold();linkText(x,x.textContent);save();});
+    x.addEventListener('blur',()=>{savedInitial=false;editing=false;clearHold();linkText(x,x.textContent);x.scrollLeft=0;save();});
     x.addEventListener('pointerdown',e=>{
       if(editing||!e.target.closest('a.task-link'))return;
       e.stopPropagation();if(e.button!==0)return;
@@ -848,6 +981,7 @@
     if(!$('palettePanel').hidden)renderPalette();
     map.classList.toggle('hide-done',hideDone);
     const sheet=state.sheets.find(sheet=>sheet.id===state.activeSheetId);
+    $('sheetNoWrap').setAttribute('aria-pressed',String(sheet.noWrap===true));
     const mind=!!sheet.mindMap,changedMode=mind!==map.classList.contains('mind-map-view');
     map.classList.toggle('mind-map-view',mind);
     $('app').classList.toggle('is-mindmap',mind);
@@ -868,13 +1002,21 @@
         check.setAttribute('role','checkbox');check.setAttribute('aria-checked',String(!!stage.done));leading.append(check);
       }
       head.append(leading);const grip=el('span','mobile-drag','⠿');grip.setAttribute('aria-label','長押しして並べ替え');head.append(grip);
-      const title=editable('stage-title',stage.title,'工程名を入力',v=>stage.title=cleanText(v),e=>{
+      const title=editable('stage-title',stage.title,'工程名を入力',v=>{
+        stage.title=cleanText(v);
+        setNameWrap(title,stage,stage.title);
+        if(!stage.width&&cardNoWrap(stage)){
+          section.style.setProperty('--heading-width',headingWidth(stage)+'px');
+          section.style.setProperty('--stage-content-width',stageWidth(stage)+'px');
+        }
+      },e=>{
         if(e.isComposing||e.keyCode===229)return;
         if(editKeys(e,{kind:'stage',id:stage.id}))return;
         if(lowerTaskKey(e,stage.id))return;
         if(e.key==='Enter'&&(e.altKey||e.shiftKey)){e.preventDefault();insertLineBreak(e.currentTarget)}
         else if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}
-      });head.append(title);
+      });
+      setNameWrap(title,stage,stage.title);head.append(title);
       const actions=el('div','stage-actions');
       actions.append(moreButton('stage',stage.id));
       head.append(actions);
@@ -940,7 +1082,15 @@
     if(activeChildren(t.children).length){const fold=btn('task-parent-toggle','子タスクを'+(t.collapsed?'展開':'折りたたむ'),t.collapsed?'▸':'▾',()=>change(()=>t.collapsed=!t.collapsed));card.append(fold);}else{
       const check=btn('task-checkbox','タスクを'+(t.done?'未完了':'完了')+'にする','',()=>change(()=>t.done=!t.done));
       check.setAttribute('role','checkbox');check.setAttribute('aria-checked',String(t.done));card.append(check);}
-    const edit=editable('task-text',t.text,'タスクを入力',v=>{t.text=cleanText(v);if(!t.width){card.style.width=taskWidth(t)+'px';const section=card.closest('.stage');if(section)section.style.setProperty('--stage-content-width',stageWidth(stage)+'px');}},e=>{
+    const edit=editable('task-text',t.text,'タスクを入力',v=>{
+      t.text=cleanText(v);
+      setNameWrap(edit,t,t.text);
+      if(!t.width){
+        card.style.width=taskWidth(t)+'px';
+        const section=card.closest('.stage');
+        if(section)section.style.setProperty('--stage-content-width',stageWidth(stage)+'px');
+      }
+    },e=>{
       if(e.isComposing||e.keyCode===229)return;
       if(editKeys(e,{kind:'task',id:t.id}))return;
       if(e.key==='Tab'&&e.shiftKey&&depth===1&&!e.altKey&&!e.ctrlKey&&!e.metaKey){e.preventDefault();outdent(t.id);return}
@@ -949,6 +1099,7 @@
       else if(e.key==='Enter'){e.preventDefault();insertAfter(t.id)}
       else if(depth===0)lowerTaskKey(e,stage.id,t.id);
     });
+    setNameWrap(edit,t,t.text);
     const hadGrandchildren=activeChildren(t.children).length>0;
     const hadMainChildren=activeChildren(stage.tasks).length>0;
     edit.addEventListener('blur',()=>{
@@ -1006,7 +1157,7 @@
   }
   document.addEventListener('pointermove',e=>{if(!resizeSession)return;e.preventDefault();const s=resizeSession;
     const stage=findStage(s.stageId);if(!stage)return;
-    const w=Math.max(210,Math.min(1200,Math.round(s.startWidth+(e.clientX-s.startX)/zoom)));
+    const w=Math.max(PROCESS_WIDTH_MIN,Math.min(CARD_WIDTH_MAX,Math.round(s.startWidth+(e.clientX-s.startX)/zoom)));
     if(s.kind==='stage'){
       stage.width=w;s.card.style.width=w+'px';
     }else{
@@ -1233,12 +1384,14 @@
       add('add','子タスクを追加','Tab',()=>addLower(id));if(!st.tasks.length)add('done',st.done?'未完了に戻す':'完了にする','Ctrl+Enter',()=>change(()=>st.done=!st.done));
       add('detail','期日・メモ…','',()=>openDetail('stage',id));add('nice',st.nice?'必須に戻す':'あったら良い（後回し可）にする','',()=>change(()=>st.nice=!st.nice));sep();
       if(i>0)add('up','左へ移動','Ctrl+Shift+↑',()=>moveItem({kind,id},-1));if(i<state.stages.length-1)add('down','右へ移動','Ctrl+Shift+↓',()=>moveItem({kind,id},1));
+      add('display','幅・折り返し…','',()=>openCardDisplay(st,st.title,PROCESS_WIDTH_MIN));
       add('emphasis','枠線で強調…','',()=>{selectedCard={kind,id};openEmphasis()});sep();add('delete','削除','Delete',()=>removeStage(id),true);
     }else{const f=findTask(id);if(!f)return;
       if(f.depth===0)add('add','孫タスクを追加','Tab',()=>addLower(f.stage.id,id));else add('outdent','子タスクに上げる','Shift+Tab',()=>outdent(id));
       if(!f.task.children.length)add('done',f.task.done?'未完了に戻す':'完了にする','Ctrl+Enter',()=>change(()=>f.task.done=!f.task.done));
       add('detail','期日・メモ…','',()=>openDetail('task',id));if(!effectiveDone(f.task))add('star',f.task.star?'今週やるから外す':'今週やる ★','',()=>{if(!f.task.star&&forecast().stars.length>=WEEK_MAX)notify(`今週やることは${WEEK_MAX}個までがおすすめです`);change(()=>f.task.star=!f.task.star)});add('nice',f.task.nice?'必須に戻す':'あったら良い（後回し可）にする','',()=>change(()=>f.task.nice=!f.task.nice));sep();
       if(f.index>0)add('up','上へ移動','Ctrl+Shift+↑',()=>moveItem({kind,id},-1));if(f.index<f.list.length-1)add('down','下へ移動','Ctrl+Shift+↓',()=>moveItem({kind,id},1));
+      add('display','幅・折り返し…','',()=>openCardDisplay(f.task,f.task.text,PROCESS_WIDTH_MIN));
       add('emphasis','枠線で強調…','',()=>{selectedCard={kind,id};openEmphasis()});sep();add('delete',f.task.children.length?'孫タスクごと削除':'削除','Delete',()=>removeTask(id),true);
     }
     cardMenu.replaceChildren();
@@ -1906,8 +2059,7 @@ ${outlineOf(sh.stages)}
     for(const [id,card] of mindLayout?.nodes||[]){
       card.toggleAttribute('data-selected',id===node.id);
     }
-    const root=node===currentMindSheet()?.mindMap;
-    $('mindMore').disabled=root;$('mindSibling').disabled=root;
+    $('mindSibling').disabled=node===currentMindSheet()?.mindMap;
   }
   function centerMindRect(box){
     const viewport=canvas.getBoundingClientRect(),center=rectCenter(box);
@@ -1927,7 +2079,8 @@ ${outlineOf(sh.stages)}
   }
   function resizeMindTitle(input){
     input.style.height='auto';
-    input.style.height=input.scrollHeight+'px';
+    const scrollbar=input.offsetHeight-input.clientHeight;
+    input.style.height=(input.scrollHeight+Math.max(0,scrollbar))+'px';
   }
   function rectCenter(rect){return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}}
   function elementBounds(elements){
@@ -2145,7 +2298,16 @@ ${outlineOf(sh.stages)}
     change(()=>{for(const {node} of mindTopics(sheet.mindMap))delete node.position});
     notify('自動配置に戻しました',true);
   };
-  function mindCard(node,root,color){
+  function sizeMindCard(card,node,root,autoSize){
+    let width=node.width;
+    if(!width&&autoSize&&cardNoWrap(node)){
+      const font=root?'650 17px':narrowCanvas.matches?'400 16px':'400 15px';
+      const standard=root?(narrowCanvas.matches?154:208):(narrowCanvas.matches?150:184);
+      width=Math.min(CARD_WIDTH_MAX,Math.max(standard,titleWidth(node.text,font)+(root?36:56)));
+    }
+    card.style.width=width?width+'px':'';
+  }
+  function mindCard(node,root,color,autoSize){
     const card=el('div','mind-node'+(root?' root':''));
     card.dataset.mindId=node.id;
     if(node.shape)card.dataset.shape=node.shape;
@@ -2160,19 +2322,32 @@ ${outlineOf(sh.stages)}
     input.setAttribute('aria-label',root?'中心テーマ':'トピック名');
     input.spellcheck=false;
     input.value=node.text;
+    if(cardNoWrap(node))input.wrap='off';
+    setNameWrap(input,node,node.text);
+    sizeMindCard(card,node,root,autoSize);
     let recorded=false;
-    input.onfocus=()=>{recorded=false;chooseMindTopic(node)};
+    input.onfocus=()=>{recorded=false;chooseMindTopic(node);resizeMindTitle(input);drawMindLines()};
+    input.onblur=()=>{input.scrollLeft=0;resizeMindTitle(input);drawMindLines()};
     input.oninput=()=>{
       if(!recorded){recordUndo();recorded=true}
       node.text=cleanText(input.value);
       card.setAttribute('aria-label',mindLabel(node));
+      setNameWrap(input,node,node.text);
+      sizeMindCard(card,node,root,autoSize);
       resizeMindTitle(input);
       drawMindLines();
       save();
     };
     card.onkeydown=e=>{
       if(e.target!==card&&e.target!==input)return;
-      if(e.isComposing||e.keyCode===229||e.ctrlKey||e.metaKey||e.altKey||e.shiftKey)return;
+      if(e.isComposing||e.keyCode===229||e.ctrlKey||e.metaKey)return;
+      if(e.key==='Enter'&&e.target===input&&(e.altKey||e.shiftKey)){
+        e.preventDefault();
+        input.setRangeText('\n',input.selectionStart,input.selectionEnd,'end');
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+        return;
+      }
+      if(e.altKey||e.shiftKey)return;
       if(e.key==='Escape'&&e.target===input){card.focus({preventScroll:true});return}
       if(e.key!=='Tab'&&e.key!=='Enter')return;
       e.preventDefault();
@@ -2220,15 +2395,16 @@ ${outlineOf(sh.stages)}
     const previousRoot=previous?.root.getBoundingClientRect();
     const keepCardFocus=previous?.nodes.get(mindSelected)===document.activeElement;
     const root=sheet.mindMap;
+    const topics=mindTopics(root),positioned=topics.some(({node})=>node.position);
     const board=el('div','mind-board');
     const lines=document.createElementNS(svgNS,'svg');
     lines.classList.add('mind-lines');lines.setAttribute('aria-hidden','true');
     const nodes=new Map(),links=[];
-    const rootCard=mindCard(root,true,'var(--accent)');
+    const rootCard=mindCard(root,true,'var(--accent)',!positioned);
     nodes.set(root.id,rootCard);
     function branch(node,parent,side,color){
       const row=el('div','mind-branch '+side);
-      const card=mindCard(node,false,color);
+      const card=mindCard(node,false,color,!positioned);
       card.toggleAttribute('data-left',side==='left');
       nodes.set(node.id,card);links.push({parent,card,color});row.append(card);
       if(!node.folded&&node.children.length){
@@ -2251,8 +2427,7 @@ ${outlineOf(sh.stages)}
     map.replaceChildren(board);
     mindLayout={sheet:sheet.id,board,lines,nodes,links,root:rootCard,points:null,origin:null};
     for(const input of board.querySelectorAll('.mind-title'))resizeMindTitle(input);
-    const topics=mindTopics(root);
-    if(topics.some(({node})=>node.position))positionMindBoard(layoutMindPoints(topics));
+    if(positioned)positionMindBoard(layoutMindPoints(topics));
     const changedSheet=mindRenderedSheet!==sheet.id;
     mindRenderedSheet=sheet.id;
     const selected=nodes.has(mindSelected)&&!changedSheet?mindSelected:root.id;
@@ -2388,9 +2563,10 @@ ${outlineOf(sh.stages)}
   }
   $('mindMore').onclick=()=>{
     const selected=selectedMindRow();
-    if(!selected?.parent)return;
+    if(!selected)return;
     $('mindTopicTitle').textContent=mindLabel(selected.node);
-    const choices=mindMoveChoices(selected);
+    const choices=selected.parent?mindMoveChoices(selected):[];
+    $('mindDelete').hidden=!selected.parent;
     $('mindMoveGroup').hidden=!choices.length;
     const options=choices.map(row=>{
       const option=el('option','',[...row.ancestors,row.node].map(mindLabel).join(' › '));
@@ -2398,6 +2574,12 @@ ${outlineOf(sh.stages)}
     });
     $('mindMoveTo').replaceChildren(...options);
     $('mindTopicDialog').showModal();
+  };
+  $('mindDisplay').onclick=()=>{
+    const selected=selectedMindRow();
+    if(!selected)return;
+    $('mindTopicDialog').close();
+    openCardDisplay(selected.node,mindLabel(selected.node),MIND_WIDTH_MIN);
   };
   $('mindTopicClose').onclick=()=>$('mindTopicDialog').close();
   $('mindSibling').onclick=()=>addMindTopic(true);
@@ -2436,7 +2618,7 @@ ${outlineOf(sh.stages)}
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='y'&&!e.target.closest('textarea,input')){e.preventDefault();redo();return;}
     if(e.key==='Escape'){closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('stageContext')?.remove()}
   });
-  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','mindImportDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog'])$(id).close();emphasisEditing=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
+  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','cardDisplayDialog','mindImportDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog'])$(id).close();emphasisEditing=null;displayTarget=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
   try{processZoom=Number(localStorage.getItem(ZOOM_KEY))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v054'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v053'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v052'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v051'))||1}catch{}
   renderPalette();render();if(!currentMindSheet())applyZoom(processZoom);
 })();

@@ -114,6 +114,52 @@ await test('[PC] URL: Alt+クリックでURL部分を編集でき、保存はテ
   await page.locator('.task-link').first().click({modifiers:['Alt']});await page.keyboard.type('/x');await page.locator('.brand').click();
   const s=await state(page);assert.equal(s.stages[0].tasks[0].text,'https://example.com/x')});
 
+await test('[幅・折り返し][工程表] 指定幅とAlt+Enterの改行を保持し、シート全体を切り替える',async browser=>{
+  const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});
+  const {page}=await newPage(browser,{mock,user:USER});
+  await waitStatus(page,'保存済み');
+  const firstLine='横長のタスク名を入力して、カードの幅を超えたときの表示を確認する';
+  const title=page.locator('[data-task-node="t1"] > .task-card .task-text');
+  const card=page.locator('[data-task-card="t1"]');
+  const toggle=page.locator('#sheetNoWrap');
+  await title.fill(firstLine);
+  await title.press('Control+End');
+  await title.press('Alt+Enter');
+  await page.keyboard.insertText('手動改行の次の行');
+  await page.locator('.brand').click();
+  const expected=firstLine+'\n手動改行の次の行';
+  assert.equal((await state(page)).stages[0].tasks[0].text,expected);
+  await menu(page,'t1','display');
+  await page.locator('#cardDisplayWidth').fill('240');
+  await page.locator('#cardDisplayForm button[type=submit]').click();
+  const wrapped=await title.evaluate(el=>el.clientHeight/parseFloat(getComputedStyle(el).lineHeight));
+  assert.ok(wrapped>2,'指定幅に入りきらない名前が折り返されません');
+  assert.equal(await card.evaluate(el=>el.offsetWidth),240);
+  await toggle.click();
+  assert.equal(await toggle.getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('.stage-title[data-no-wrap],.task-text[data-no-wrap]').count(),3);
+  assert.equal(await title.textContent(),expected);
+  const manualOnly=await title.evaluate(el=>el.clientHeight/parseFloat(getComputedStyle(el).lineHeight));
+  assert.ok(Math.abs(manualOnly-2)<.12,'手動改行と自動折り返しを区別できていません');
+  assert.equal(await card.evaluate(el=>el.offsetWidth),240);
+  assert.ok(await title.evaluate(el=>el.scrollWidth>el.clientWidth),'幅を超える名前を入力欄でスクロールできません');
+  await waitStatus(page,'保存済み');
+  const {page:phone}=await newPage(browser,{mobile:true,mock,user:USER});
+  await waitStatus(phone,'保存済み');
+  assert.equal(await phone.locator('#sheetNoWrap').getAttribute('aria-pressed'),'true');
+  assert.equal((await state(phone)).stages[0].tasks[0].text,expected);
+  assert.equal(await phone.locator('[data-task-card="t1"]').evaluate(el=>el.offsetWidth),240);
+  await toggle.click();
+  assert.equal(await toggle.getAttribute('aria-pressed'),'false');
+  assert.equal(await title.getAttribute('data-no-wrap'),null);
+  await menu(page,'t1','display');
+  await page.locator('#cardDisplayNoWrap').check();
+  await page.locator('#cardDisplayForm button[type=submit]').click();
+  assert.equal(await title.getAttribute('data-no-wrap'),'');
+  assert.equal(await page.locator('.stage-title[data-no-wrap],.task-text[data-no-wrap]').count(),1);
+  assert.deepEqual([...page.errors,...phone.errors],[]);
+});
+
 await test('[PC] 完了の集約: 孫を全部完了→子が完了、子が全部完了→メインが完了',async b=>{const {page}=await newPage(b);
   // stage 1: t1 (leaf done), t2 (tc1 done, tc2 not), t3 leaf
   await page.locator('[data-task-node="tc2"] .task-checkbox').click();let s=await state(page);
@@ -453,6 +499,55 @@ const readMindMaps=doc=>{
   const entry=doc.processedKeys.find(key=>key.startsWith(mindStoragePrefix));
   return entry?JSON.parse(entry.slice(mindStoragePrefix.length)).maps:[];
 };
+
+await test('[幅・折り返し][マインドマップ][SP] トピック別の幅と改行を保存し、シートごとに切り替える',async browser=>{
+  const {page}=await newPage(browser,{mobile:true});
+  await addMindSheet(page);
+  await mindRoot(page).fill('作業のアイデア');
+  await page.locator('#mindMore').tap();
+  assert.equal(await page.locator('#mindDelete').isVisible(),false);
+  await page.locator('#mindDisplay').tap();
+  await page.locator('#cardDisplayWidth').fill('170');
+  await page.locator('#cardDisplayForm button[type=submit]').tap();
+  assert.equal(await page.locator('.mind-node.root').evaluate(el=>el.offsetWidth),170);
+
+  await page.locator('#mindAdd').tap();
+  const firstLine='取り込んだ長い名前を小さなトピックに表示して折り返しを確認する';
+  const topic=page.locator('.mind-node:not(.root) .mind-title');
+  await topic.fill(firstLine);
+  await topic.press('Control+End');
+  await topic.press('Alt+Enter');
+  await page.keyboard.insertText('手動改行');
+  const expected=firstLine+'\n手動改行';
+  assert.equal(await topic.inputValue(),expected);
+  await page.locator('#mindMore').tap();
+  await page.locator('#mindDisplay').tap();
+  await page.locator('#cardDisplayWidth').fill('140');
+  await page.locator('#cardDisplayNoWrap').check();
+  await page.locator('#cardDisplayForm button[type=submit]').tap();
+  const toggle=page.locator('#sheetNoWrap');
+  assert.equal(await topic.getAttribute('wrap'),'off');
+  assert.equal(await mindRoot(page).getAttribute('wrap'),null);
+  await toggle.tap();
+  assert.equal(await mindRoot(page).getAttribute('wrap'),'off');
+  assert.equal(await topic.inputValue(),expected);
+  await page.getByRole('tab',{name:/シート1/}).tap();
+  assert.equal(await toggle.getAttribute('aria-pressed'),'false');
+  await page.getByRole('tab',{name:/マインドマップ/}).tap();
+  assert.equal(await toggle.getAttribute('aria-pressed'),'true');
+  await page.reload();
+  assert.equal(await toggle.getAttribute('aria-pressed'),'true');
+  const [{root}]=readMindMaps(await state(page));
+  assert.equal(root.width,170);
+  assert.equal(root.children[0].width,140);
+  assert.equal(root.children[0].text,expected);
+  assert.equal(root.children[0].noWrap,true);
+  await toggle.tap();
+  assert.equal(await mindRoot(page).getAttribute('wrap'),null);
+  assert.equal(await topic.getAttribute('wrap'),'off');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  assert.deepEqual(page.errors,[]);
+});
 
 const sampleMindXml=`<?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0.1">
