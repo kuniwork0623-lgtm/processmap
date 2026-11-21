@@ -260,7 +260,56 @@
     .due-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #ffffff10;font-size:13px}
     .due-row .task-checkbox{flex:0 0 17px;min-height:0;height:17px;margin:0 4px}.due-row .due-text{flex:1;min-width:0;overflow-wrap:anywhere;cursor:pointer}.due-row .due-sheet{font-size:11px;color:var(--soft)}
     .due-empty{color:var(--soft);font-size:13px;padding:14px 0}
-</style>
+    .mind-tools{display:flex;align-items:center;gap:4px;padding:4px 16px;flex:0 0 auto;border-bottom:1px solid #8497b22e}
+    .mind-tools button{min-height:44px;flex:0 0 auto;padding:0 11px;border:0;border-radius:8px;background:transparent;color:var(--canvas-fg);font-size:13px}
+    .mind-tools button:disabled{opacity:.45;cursor:default}
+    .mind-tools button:hover:enabled{background:color-mix(in srgb,var(--canvas-fg) 12%,transparent)}
+    .mind-tools .mind-add{background:#293e57;color:#e6effc;font-weight:650}
+    .mind-shortcuts{margin-inline-start:auto;color:var(--canvas-fg);font-size:12px}
+    .is-mindmap [data-process-only]{display:none!important}
+    .map.mind-map-view{display:grid;place-items:center;padding:48px 60px 76px}
+    .mind-board{position:relative;display:flex;align-items:center;gap:54px;min-width:max-content}
+    .mind-board.mind-positioned{display:block;min-width:0}
+    .mind-positioned>.mind-node{position:absolute;transform:translate(-50%,-50%)}
+    .mind-positioned>.mind-node[data-moving]{z-index:2}
+    .canvas[data-mind-dragging],.canvas[data-mind-dragging] *{cursor:grabbing;user-select:none}
+    .mind-branch{display:flex;align-items:center;gap:54px}
+    .mind-branch.left{flex-direction:row-reverse}
+    .mind-children{display:grid;align-items:center;gap:20px}
+    .mind-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+    .mind-node{--branch-color:var(--accent);position:relative;z-index:1;width:184px;min-height:56px;padding:9px 10px;background:var(--card-bg);color:var(--card-fg);border:1px solid color-mix(in srgb,var(--branch-color) 52%,var(--card-bg));border-radius:11px;display:flex;flex-direction:column;justify-content:center}
+    .mind-node:not(.root){padding-inline-start:34px}
+    .mind-grip{position:absolute;left:0;top:50%;transform:translateY(-50%);width:32px;height:44px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--card-fg);font-size:18px;cursor:grab;touch-action:none;user-select:none;opacity:0;pointer-events:none}
+    .mind-grip:focus-visible,.canvas[data-mind-dragging] .mind-node[data-selected]>.mind-grip{opacity:1;pointer-events:auto}
+    @media(hover:hover) and (pointer:fine){.mind-node:hover>.mind-grip{opacity:1;pointer-events:auto}}
+    @media(hover:none),(pointer:coarse){.mind-node[data-selected]>.mind-grip{opacity:1;pointer-events:auto}}
+    .mind-grip:hover,.mind-grip:focus-visible{background:color-mix(in srgb,var(--card-fg) 13%,var(--card-bg))}
+    .mind-node.root{width:208px;min-height:74px;border:2px solid var(--accent);border-radius:15px}
+    .mind-node[data-selected]{outline:2px solid var(--branch-color);outline-offset:3px}
+    .mind-title{display:block;width:100%;min-height:32px;max-height:150px;resize:none;padding:5px 3px;margin:0;border:0;background:none;color:inherit;font:inherit;font-size:15px;line-height:22px;overflow-wrap:anywhere;outline:0;cursor:text}
+    .mind-node.root .mind-title{font-size:17px;font-weight:650;text-align:center}
+    .mind-title::placeholder{color:var(--card-fg);opacity:.7}
+    .mind-node .mind-note-chip{align-self:flex-start;min-height:32px;border:0;background:transparent;color:var(--card-fg);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+    .mind-fold{position:absolute;top:50%;transform:translateY(-50%);left:calc(100% + 5px);z-index:1;min-width:40px;min-height:40px;padding:0 3px;border-radius:8px;border:1px solid var(--branch-color);background:var(--card-bg);color:var(--card-fg);font-size:14px}
+    .mind-node[data-left] .mind-fold{left:auto;right:calc(100% + 5px)}
+    #sheetTypeDialog .sheet-types{display:grid;gap:8px}
+    #sheetTypeDialog .sheet-types button{text-align:left;padding:12px 14px;margin:0}
+    .sheet-types button strong,.sheet-types button span{display:block}
+    .sheet-types button span{margin-top:3px;color:#a9b7c9;font-size:12px}
+    #mindNoteInput{width:100%;min-height:150px;resize:vertical}
+    #mindNoteTitle,#mindTopicTitle{overflow-wrap:anywhere;white-space:pre-wrap}
+    #mindMoveTo{width:100%;padding:10px;margin:6px 0;font:inherit;color:inherit;background:#111a25;border:1px solid #465c77;border-radius:8px}
+    .mind-review-list{display:grid;gap:4px;max-height:min(50dvh,440px);overflow:auto}
+    .mind-review-list button{text-align:left;margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+    .mind-review-list button small{display:block;margin-top:3px;color:#adbed3}
+    .mind-tab-indicator{margin-right:6px;font-size:12px;color:var(--accent)}
+    @media(max-width:700px){
+      .mind-tools{padding-inline:8px;gap:2px;flex-wrap:wrap}.mind-tools button{padding:0 8px}.mind-shortcuts{display:none}
+      .map.mind-map-view{padding:36px 27px 68px}.mind-node{width:150px}.mind-node.root{width:154px}
+      .mind-title{font-size:16px}
+      .mind-board,.mind-branch{gap:36px}.mind-fold{left:calc(100% + 3px);min-width:30px;min-height:36px}
+    }
+  </style>
 </head>
 <body>
 <div id="app">
@@ -277,26 +326,26 @@
             <div class="sync-details"><span class="menu-label">保存・同期</span><span id="syncStatus" role="status" aria-live="polite">端末内に保存</span></div>
           </section>
           <hr>
-          <button data-menu="review">週の見直し（5分）</button>
-          <button data-menu="consult">AIに相談する</button>
-          <button data-menu="plan">AIで段取りを作る</button>
-          <button data-menu="inbox">あとで箱</button>
-          <button data-menu="history">変更履歴</button>
+          <button data-process-only data-menu="review">週の見直し（5分）</button>
+          <button data-process-only data-menu="consult">AIに相談する</button>
+          <button data-process-only data-menu="plan">AIで段取りを作る</button>
+          <button data-process-only data-menu="inbox">あとで箱</button>
+          <button data-process-only data-menu="history">変更履歴</button>
           <hr>
-          <button data-menu="due">期日が近いタスク</button>
-          <button data-menu="hidedone" id="hideDoneToggle" aria-pressed="false">完了したタスクを隠す</button>
-          <button data-menu="clearmarks">変更のハイライトを消す</button>
+          <button data-process-only data-menu="due">期日が近いタスク</button>
+          <button data-process-only data-menu="hidedone" id="hideDoneToggle" aria-pressed="false">完了したタスクを隠す</button>
+          <button data-process-only data-menu="clearmarks">変更のハイライトを消す</button>
           <button data-menu="palette">配色を変更</button>
-          <button data-menu="emphasis" id="emphasisOpen" disabled title="先にカードをクリックして選択してください">選択したタスクの枠線…</button>
+          <button data-process-only data-menu="emphasis" id="emphasisOpen" disabled title="先にカードをクリックして選択してください">選択したタスクの枠線…</button>
           <hr>
           <button data-menu="export">バックアップを書き出す</button>
           <button data-menu="import">バックアップを読み込む</button>
           <hr>
-          <button data-menu="prompt">上級：AI用の現状をコピー（JSON更新用）</button>
-          <button data-menu="ai">上級：AI更新を取り込む（JSON）</button>
-          <button data-menu="reset">サンプルに戻す</button>
+          <button data-process-only data-menu="prompt">上級：AI用の現状をコピー（JSON更新用）</button>
+          <button data-process-only data-menu="ai">上級：AI更新を取り込む（JSON）</button>
+          <button data-process-only data-menu="reset">サンプルに戻す</button>
           <hr>
-          <div class="menu-help"><b>操作のヒント</b><br>Enter：次のタスク／Tab：一段下に追加<br>Shift+Tab：孫を子に上げる／Ctrl+Enter：完了<br>↑↓：移動／Ctrl+Shift+↑↓：並べ替え<br>Esc：編集終了／Alt+Enter：改行／Ctrl+Z：取り消し<br>右クリック・⋯：カードのメニュー<br>Ctrl（⌘）+ホイール・ピンチ：ズーム<br>URLはクリックで別タブ、Alt+クリックで編集</div>
+          <div class="menu-help" data-process-only><b>操作のヒント</b><br>Enter：次のタスク／Tab：一段下に追加<br>Shift+Tab：孫を子に上げる／Ctrl+Enter：完了<br>↑↓：移動／Ctrl+Shift+↑↓：並べ替え<br>Esc：編集終了／Alt+Enter：改行／Ctrl+Z：取り消し<br>右クリック・⋯：カードのメニュー<br>Ctrl（⌘）+ホイール・ピンチ：ズーム<br>URLはクリックで別タブ、Alt+クリックで編集</div>
         </div>
         <div id="palettePanel" class="palette-panel" role="dialog" aria-label="配色を変更" hidden>
           <div class="palette-section">
@@ -313,8 +362,17 @@
     </div>
   </header>
   <section id="secretary" class="secretary" aria-label="秘書"><div class="sec-bar"><span class="sec-icon" aria-hidden="true">●</span><div id="secText" class="sec-text" role="status" aria-live="polite"></div><button id="secAction" class="sec-action" type="button"></button><button id="secToggle" class="sec-toggle" type="button" aria-expanded="false" aria-controls="secPanel">今週・困ったとき ▾</button></div><div id="secPanel" class="sec-panel" hidden></div></section>
+  <div id="mindTools" class="mind-tools" role="group" aria-label="マインドマップの操作" hidden>
+    <button type="button" id="mindAdd" class="mind-add">＋ 枝</button>
+    <button type="button" id="mindSibling">＋ 同列</button>
+    <button type="button" id="mindNoteOpen">メモ</button>
+    <button type="button" id="mindReviewOpen">一覧・検索</button>
+    <button type="button" id="mindFit" title="表示中の枝を画面に収める">全体表示</button>
+    <button type="button" id="mindMore" aria-label="トピックの操作">⋯</button>
+    <span class="mind-shortcuts">Tabで枝 · Enterで同列 · つまみをドラッグして移動</span>
+  </div>
   <main id="canvas" class="canvas" aria-label="工程マップ"><div id="map" class="map"></div></main>
-  <nav class="sheet-bar" aria-label="工程表のシート"><div id="sheetTabs" class="sheet-tabs" role="tablist" aria-label="シート"></div><button id="addSheet" class="sheet-tool" aria-label="シートを追加" title="シートを追加">＋</button><button id="sheetOptions" class="sheet-tool" aria-label="シートの設定" title="シートの名前・並び順・削除">···</button></nav>
+  <nav class="sheet-bar" aria-label="シートの切り替え"><div id="sheetTabs" class="sheet-tabs" role="tablist" aria-label="シート"></div><button id="addSheet" class="sheet-tool" aria-label="シートを追加" title="シートを追加">＋</button><button id="sheetOptions" class="sheet-tool" aria-label="シートの設定" title="シートの名前・並び順・削除">···</button></nav>
   <div class="zoom-controls" role="group" aria-label="表示倍率">
     <div class="zoom-level" id="zoomLevel" aria-label="現在の表示倍率">100%</div>
     <button id="zoomIn" aria-label="拡大" title="拡大">＋</button>
@@ -361,7 +419,35 @@
 <label class="check-row"><input type="checkbox" id="consultKeepOpen"> AIの案から外れた未完了タスクも消さずに残す</label><label class="check-row" id="consultInboxRow"><input type="checkbox" id="consultClearInbox" checked> あとで箱を空にする（AIの案に取り込まれたため）</label>
 <div class="settings-actions"><button type="submit" id="consultCommit" disabled>この内容で反映</button><button type="button" id="consultClose">閉じる</button></div></form></dialog>
 <dialog id="historyDialog"><h3>変更履歴</h3><p class="settings-label">見直しやAIの提案でスケジュールを変えた記録です（新しい順）。</p><div id="historyList" class="due-list"></div><div class="settings-actions"><button type="button" id="historyClose">閉じる</button></div></dialog>
-<dialog id="sheetDialog"><form id="sheetForm"><h3>シートの設定</h3><label>シート名（プロジェクト名）<input id="sheetName" type="text" maxlength="100" required></label><label class="settings-row">締切<input id="sheetDeadline" type="date"></label><div class="settings-actions"><button type="submit">保存</button><button id="sheetLeft" type="button">左へ移動</button><button id="sheetRight" type="button">右へ移動</button><button id="sheetDelete" type="button">シートを削除</button><button id="sheetCancel" type="button">閉じる</button></div></form></dialog>
+<dialog id="sheetDialog"><form id="sheetForm"><h3>シートの設定</h3><label>シート名（プロジェクト名）<input id="sheetName" type="text" maxlength="100" required></label><label class="settings-row" id="sheetDeadlineRow">締切<input id="sheetDeadline" type="date"></label><div class="settings-actions"><button type="submit">保存</button><button id="sheetLeft" type="button">左へ移動</button><button id="sheetRight" type="button">右へ移動</button><button id="mindResetLayout" type="button" hidden>自動配置に戻す</button><button id="sheetDelete" type="button">シートを削除</button><button id="sheetCancel" type="button">閉じる</button></div></form></dialog>
+<dialog id="sheetTypeDialog" aria-labelledby="sheetTypeTitle">
+  <h3 id="sheetTypeTitle">シートを追加</h3>
+  <div class="sheet-types">
+    <button type="button" id="addProcessSheet"><strong>工程表</strong><span>タスク・期日・進捗を管理する</span></button>
+    <button type="button" id="addMindSheet"><strong>マインドマップ</strong><span>思いついたことを枝とメモに書く</span></button>
+  </div>
+  <button type="button" id="sheetTypeCancel">キャンセル</button>
+</dialog>
+<dialog id="mindNoteDialog" aria-labelledby="mindNoteHeading">
+  <form id="mindNoteForm">
+    <h3 id="mindNoteHeading">トピックのメモ</h3>
+    <p id="mindNoteTitle" class="settings-label"></p>
+    <textarea id="mindNoteInput" aria-label="メモの内容" placeholder="調べたいこと、理由、参考リンクなど"></textarea>
+    <div class="settings-actions"><button type="submit">保存</button><button type="button" id="mindNoteCancel">キャンセル</button></div>
+  </form>
+</dialog>
+<dialog id="mindReviewDialog" aria-labelledby="mindReviewTitle">
+  <h3 id="mindReviewTitle">トピック一覧</h3>
+  <input id="mindSearch" type="search" aria-label="トピックやメモを検索" placeholder="トピックやメモを検索">
+  <div id="mindReviewList" class="mind-review-list"></div>
+  <button type="button" id="mindReviewClose">閉じる</button>
+</dialog>
+<dialog id="mindTopicDialog" aria-labelledby="mindTopicHeading">
+  <h3 id="mindTopicHeading">トピックの操作</h3>
+  <p id="mindTopicTitle" class="settings-label"></p>
+  <div id="mindMoveGroup"><label>つなぎ先<select id="mindMoveTo"></select></label><button type="button" id="mindMove">つなぎ直す</button></div>
+  <div class="settings-actions"><button type="button" id="mindDelete">この枝を削除</button><button type="button" id="mindTopicClose">閉じる</button></div>
+</dialog>
 <script>
 (()=>{'use strict';
   const KEY='processmap_guest_v1';
@@ -386,14 +472,19 @@
   const $=id=>document.getElementById(id);
   const map=$('map'),canvas=$('canvas');
   const WORKBOOK_KEY='__processmap_workbook_v1__:';
+  const MIND_MAPS_KEY='__processmap_mindmaps_v1__:';
+  const MIND_EMPTY_SHEET='sheet_mindmap_placeholder';
+  const MIND_TOPIC_LIMIT=500;
+  const MIND_DEPTH_LIMIT=32;
+  const MIND_POSITION_LIMIT=50000;
   let state=load();
   let drag=null, dragTimer=null,pan=null,ghost=null;
   let selection=null, selectedCard=null, emphasisEditing=null, toastTimer=null;
   const undoHistory=[],redoHistory=[];
-  let zoom=1,resizeSession=null;
-  function recordUndo(){const shot=JSON.stringify(state);if(undoHistory.at(-1)!==shot)undoHistory.push(shot);if(undoHistory.length>80)undoHistory.shift();redoHistory.length=0;}
-  function undo(){if(!undoHistory.length)return;redoHistory.push(JSON.stringify(state));state=normalize(JSON.parse(undoHistory.pop()));rememberSheet();save();render();notify('元に戻しました');}
-  function redo(){if(!redoHistory.length)return;undoHistory.push(JSON.stringify(state));state=normalize(JSON.parse(redoHistory.pop()));rememberSheet();save();render();notify('やり直しました');}
+  let zoom=1,processZoom=1,mindZoom=1,resizeSession=null;
+  function recordUndo(){const shot=JSON.stringify(documentForStorage());if(undoHistory.at(-1)!==shot)undoHistory.push(shot);if(undoHistory.length>80)undoHistory.shift();redoHistory.length=0;}
+  function undo(){if(!undoHistory.length)return;redoHistory.push(JSON.stringify(documentForStorage()));state=normalize(JSON.parse(undoHistory.pop()));rememberSheet();save();render();notify('元に戻しました');}
+  function redo(){if(!redoHistory.length)return;undoHistory.push(JSON.stringify(documentForStorage()));state=normalize(JSON.parse(redoHistory.pop()));rememberSheet();save();render();notify('やり直しました');}
   function activeChildren(items){return items}
   function effectiveDone(t){const children=activeChildren(t.children);return children.length?children.every(c=>c.done):!!t.done;}
   function effectiveMainDone(stage){const children=activeChildren(stage.tasks);return children.length?children.every(effectiveDone):!!stage.done;}
@@ -401,7 +492,21 @@
   function headingWidth(st){return Number.isFinite(st.width)&&st.width>=210?st.width:(matchMedia('(max-width:700px)').matches?269:296);}
   function stageWidth(st){let m=0;for(const t of st.tasks){m=Math.max(m,taskWidth(t));for(const c of t.children)m=Math.max(m,taskWidth(c)+30);}return Math.max(269,headingWidth(st),m+32);}
 
-  function applyZoom(value,anchor=null){const old=zoom;zoom=Math.max(.3,Math.min(1.8,Math.round(value*10)/10));const rect=canvas.getBoundingClientRect();const ax=anchor?anchor.clientX-rect.left:canvas.clientWidth/2,ay=anchor?anchor.clientY-rect.top:canvas.clientHeight/2;const x=(canvas.scrollLeft+ax)/old,y=(canvas.scrollTop+ay)/old;map.style.zoom=zoom;canvas.scrollLeft=x*zoom-ax;canvas.scrollTop=y*zoom-ay;$('zoomIn').disabled=zoom>=1.8;$('zoomOut').disabled=zoom<=.3;$('zoomReset').disabled=zoom===1;$('zoomLevel').textContent=Math.round(zoom*100)+'%';try{localStorage.setItem(ZOOM_KEY,String(zoom))}catch(e){}}
+  function applyZoom(value,anchor=null,precise=false){
+    if(mindDrag?.base)return;
+    const mind=map.classList.contains('mind-map-view');
+    const old=zoom,min=mind ? .05 : .3;
+    zoom=Math.max(min,Math.min(1.8,precise?Math.round(value*100)/100:Math.round(value*10)/10));
+    const rect=canvas.getBoundingClientRect();
+    const ax=anchor?anchor.clientX-rect.left:canvas.clientWidth/2;
+    const ay=anchor?anchor.clientY-rect.top:canvas.clientHeight/2;
+    const x=(canvas.scrollLeft+ax)/old,y=(canvas.scrollTop+ay)/old;
+    map.style.zoom=zoom;canvas.scrollLeft=x*zoom-ax;canvas.scrollTop=y*zoom-ay;
+    $('zoomIn').disabled=zoom>=1.8;$('zoomOut').disabled=zoom<=min;$('zoomReset').disabled=zoom===1;
+    $('zoomLevel').textContent=Math.round(zoom*100)+'%';
+    if(mind){mindZoom=zoom;return}
+    processZoom=zoom;try{localStorage.setItem(ZOOM_KEY,String(zoom))}catch{}
+  }
   $('zoomLevel').title='Ctrl（⌘）＋ホイール、またはピンチでズーム';
   $('zoomIn').onclick=()=>applyZoom(zoom+.1);$('zoomOut').onclick=()=>applyZoom(zoom-.1);$('zoomReset').onclick=()=>applyZoom(1);
   // Plain wheel / two-finger swipe scrolls the map. Ctrl/⌘+wheel and trackpad pinch (reported as ctrl+wheel) zoom.
@@ -467,17 +572,34 @@
     });
     const isColor=v=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);
     const appearance={canvas:isColor(raw.appearance?.canvas)?raw.appearance.canvas.toLowerCase():'#0e131b',task:isColor(raw.appearance?.task)?raw.appearance.task.toLowerCase():'#202c3a'};
-    const result={schemaVersion:7,appearance,processedKeys:keys.filter(k=>!k.startsWith(WORKBOOK_KEY)),sheets,activeSheetId:activeId,stages:sheets.find(s=>s.id===activeId).stages};
+    const workbook=restoreMindSheets(sheets,activeId,keys);
+    const result={schemaVersion:7,appearance,processedKeys:keys.filter(k=>!k.startsWith(WORKBOOK_KEY)&&!k.startsWith(MIND_MAPS_KEY)),...workbook};
     syncParents(result);return result;
   }
   function syncWorkbook(data){
     if(!data.sheets)return;
     const active=data.sheets.find(s=>s.id===data.activeSheetId);if(active)active.stages=data.stages;
-    data.processedKeys=data.processedKeys.filter(k=>!k.startsWith(WORKBOOK_KEY));
-    // Previous production clients preserve processedKeys. This recovery envelope
-    // prevents them from discarding inactive sheets or border styles on save.
-    const styled=data.sheets.some(s=>s.stages.some(st=>st.emphasis||st.tasks.some(t=>t.emphasis||t.children.some(c=>c.emphasis))));
-    if(data.sheets.length>1||data.sheets[0].name!=='シート1'||styled)data.processedKeys.push(WORKBOOK_KEY+JSON.stringify({version:1,activeSheetId:data.activeSheetId,sheets:data.sheets}));
+  }
+  function documentForStorage(){
+    syncWorkbook(state);
+    const sheets=[],maps=[];
+    for(const [position,sheet] of state.sheets.entries()){
+      if(sheet.mindMap)maps.push({id:sheet.id,name:sheet.name,position,root:sheet.mindMap});
+      else sheets.push(sheet);
+    }
+    // The old app must still see a valid workbook when the user keeps only mind maps.
+    if(!sheets.length)sheets.push({id:MIND_EMPTY_SHEET,name:'シート1',stages:[]});
+    const processSheet=sheets.find(sheet=>sheet.id===state.activeSheetId)||sheets[0];
+    const processedKeys=state.processedKeys.filter(key=>!key.startsWith(WORKBOOK_KEY));
+    const styled=sheets.some(sheet=>sheet.stages.some(st=>st.emphasis||st.tasks.some(t=>t.emphasis||t.children.some(c=>c.emphasis))));
+    if(sheets.length>1||sheets[0].name!=='シート1'||styled){
+      processedKeys.push(WORKBOOK_KEY+JSON.stringify({version:1,activeSheetId:processSheet.id,sheets}));
+    }
+    if(maps.length){
+      // Old clients preserve processedKeys when they edit or normalize the workbook.
+      processedKeys.push(MIND_MAPS_KEY+JSON.stringify({activeId:state.activeSheetId,maps}));
+    }
+    return {...state,processedKeys,sheets,activeSheetId:processSheet.id,stages:processSheet.stages};
   }
   function load(){
     try{const raw=localStorage.getItem(window.pmStorageKey||KEY);if(raw)return restoreSheetView(normalize(JSON.parse(raw)));}catch(e){console.warn(e)}
@@ -492,7 +614,7 @@
     syncWorkbook(data);
   }
   function stampDone(data){for(const sh of data.sheets||[{stages:data.stages}])for(const st of sh.stages){const leaf=x=>{if(x.done&&x.doneAt==null)x.doneAt=todayStr();else if(!x.done&&x.doneAt!=null)x.doneAt=null};if(!st.tasks.length)leaf(st);for(const t of st.tasks){if(!t.children.length)leaf(t);for(const c of t.children)leaf(c)}}}
-  function save(){syncParents();stampDone(state);try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(state));}catch(e){notify(window.pmStorageKey?'端末への保存に失敗しました（サーバー同期は継続します）':'保存に失敗しました。バックアップを書き出してください。');}window.pmChanged?.();}
+  function save(){syncParents();stampDone(state);try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(documentForStorage()));}catch(e){notify(window.pmStorageKey?'端末への保存に失敗しました（サーバー同期は継続します）':'保存に失敗しました。バックアップを書き出してください。');}window.pmChanged?.();}
   function change(fn){recordUndo();fn();save();render();}
   function sheetViewKey(){return 'processmap_sheet_view_'+(window.pmStorageKey?.match(/^processmap_user_([^_]+)/)?.[1]||'guest')}
   function restoreSheetView(data){
@@ -503,31 +625,57 @@
   function selectSheet(id,focus=false){
     const sheet=state.sheets.find(s=>s.id===id);if(!sheet)return;
     syncWorkbook(state);closeAI();selectedCard=null;selection=null;state.activeSheetId=id;state.stages=sheet.stages;rememberSheet();syncWorkbook(state);
-    try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(state))}catch{notify('端末への保存に失敗しました。バックアップを書き出してください。')}
-    render();canvas.scrollLeft=0;canvas.scrollTop=0;
+    try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(documentForStorage()))}catch{notify('端末への保存に失敗しました。バックアップを書き出してください。')}
+    canvas.scrollLeft=0;canvas.scrollTop=0;render();
     if(focus)$('sheetTabs').querySelector('[aria-selected="true"]')?.focus({preventScroll:true});
   }
   function renderSheets(){
     const tabs=$('sheetTabs');tabs.replaceChildren();
     for(const sheet of state.sheets){
-      const prog=progressOf(sheet.stages);const tab=btn('sheet-tab',sheet.name+(prog.total?'（進捗 '+prog.pct+'%）':''),sheet.name,()=>selectSheet(sheet.id,true));if(prog.total){const pc=el('span','pct',prog.pct+'%');tab.append(pc)}tab.dataset.sheetId=sheet.id;tab.setAttribute('role','tab');tab.setAttribute('aria-selected',String(sheet.id===state.activeSheetId));tab.tabIndex=sheet.id===state.activeSheetId?0:-1;
+      const prog=progressOf(sheet.stages);
+      const description=sheet.mindMap?'（マインドマップ）':prog.total?'（進捗 '+prog.pct+'%）':'';
+      const tab=btn('sheet-tab',sheet.name+description,sheet.name,()=>selectSheet(sheet.id,true));
+      if(sheet.mindMap){const mark=el('span','mind-tab-indicator','◇');mark.setAttribute('aria-hidden','true');tab.prepend(mark)}
+      if(prog.total)tab.append(el('span','pct',prog.pct+'%'));
+      tab.dataset.sheetId=sheet.id;tab.setAttribute('role','tab');tab.setAttribute('aria-selected',String(sheet.id===state.activeSheetId));tab.tabIndex=sheet.id===state.activeSheetId?0:-1;
       tab.addEventListener('dblclick',openSheetSettings);tab.addEventListener('contextmenu',e=>{e.preventDefault();selectSheet(sheet.id);openSheetSettings()});
       tab.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const i=state.sheets.findIndex(s=>s.id===sheet.id),next=state.sheets[(i+(e.key==='ArrowRight'?1:-1)+state.sheets.length)%state.sheets.length];selectSheet(next.id,true)});tabs.append(tab);
     }
     tabs.querySelector('[aria-selected="true"]')?.scrollIntoView({block:'nearest',inline:'nearest'});
   }
   function openSheetSettings(focusDeadline=false){
-    const i=state.sheets.findIndex(s=>s.id===state.activeSheetId);$('sheetName').value=state.sheets[i].name;$('sheetDeadline').value=state.sheets[i].goal?.deadline||'';$('sheetLeft').disabled=i===0;$('sheetRight').disabled=i===state.sheets.length-1;$('sheetDelete').disabled=state.sheets.length===1;
-    $('sheetDialog').showModal();if(focusDeadline===true){$('sheetDeadline').focus();try{$('sheetDeadline').showPicker()}catch{}}else{$('sheetName').focus();$('sheetName').select()}
+    const i=state.sheets.findIndex(s=>s.id===state.activeSheetId);$('sheetDeadlineRow').hidden=!!state.sheets[i].mindMap;$('sheetName').value=state.sheets[i].name;$('sheetDeadline').value=state.sheets[i].goal?.deadline||'';$('sheetLeft').disabled=i===0;$('sheetRight').disabled=i===state.sheets.length-1;$('sheetDelete').disabled=state.sheets.length===1;
+    $('mindResetLayout').hidden=!mindTopics(state.sheets[i].mindMap).some(({node})=>node.position);
+    $('sheetDialog').showModal();if(focusDeadline===true&&!state.sheets[i].mindMap){$('sheetDeadline').focus();try{$('sheetDeadline').showPicker()}catch{}}else{$('sheetName').focus();$('sheetName').select()}
   }
-  $('addSheet').onclick=()=>{if(state.sheets.length>=100){notify('シートは100枚までです');return}closeAI();change(()=>{const used=new Set(state.sheets.map(s=>s.name));let n=1;while(used.has('シート'+n))n++;const sheet={id:uid('sheet'),name:'シート'+n,stages:[]};state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;selectedCard=null;rememberSheet();});};
+  $('addSheet').onclick=()=>{
+    if(state.sheets.length>=100){notify('シートは100枚までです');return}
+    $('sheetTypeDialog').showModal();
+  };
+  $('sheetTypeCancel').onclick=()=>$('sheetTypeDialog').close();
+  $('addProcessSheet').onclick=()=>addSheet(false);
+  $('addMindSheet').onclick=()=>addSheet(true);
+  function addSheet(mind){
+    $('sheetTypeDialog').close();closeAI();
+    const base=mind?'マインドマップ':'シート';
+    const used=new Set(state.sheets.map(sheet=>sheet.name));
+    let n=1,name=mind?base:base+n;
+    while(used.has(name))name=base+(++n);
+    const sheet={id:uid('sheet'),name,stages:[]};
+    if(mind)sheet.mindMap=newMindTopic();
+    change(()=>{
+      state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;
+      selectedCard=null;rememberSheet();canvas.scrollLeft=0;canvas.scrollTop=0;
+    });
+    if(mind)focusMindTopic(sheet.mindMap.id);
+  }
   $('sheetOptions').onclick=()=>openSheetSettings();$('sheetCancel').onclick=()=>$('sheetDialog').close();
-  $('sheetForm').onsubmit=e=>{e.preventDefault();const name=$('sheetName').value.trim();if(!name){$('sheetName').setCustomValidity('シート名を入力してください');$('sheetName').reportValidity();return}$('sheetDialog').close();const dl=validDate($('sheetDeadline').value);change(()=>{const sh=curSheet();sh.name=name;if((sh.goal.deadline||null)!==dl){sh.revisions.unshift({at:new Date().toISOString(),request:'締切の変更',lines:[`締切：${sh.goal.deadline||'なし'} → ${dl||'なし'}`]});sh.goal.deadline=dl}})};
+  $('sheetForm').onsubmit=e=>{e.preventDefault();const name=$('sheetName').value.trim();if(!name){$('sheetName').setCustomValidity('シート名を入力してください');$('sheetName').reportValidity();return}$('sheetDialog').close();const dl=validDate($('sheetDeadline').value);change(()=>{const sh=curSheet();sh.name=name;if(!sh.mindMap&&(sh.goal.deadline||null)!==dl){sh.revisions.unshift({at:new Date().toISOString(),request:'締切の変更',lines:[`締切：${sh.goal.deadline||'なし'} → ${dl||'なし'}`]});sh.goal.deadline=dl}})};
   $('sheetName').oninput=()=>$('sheetName').setCustomValidity('');
   const moveSheet=direction=>{const i=state.sheets.findIndex(s=>s.id===state.activeSheetId),to=i+direction;if(to<0||to>=state.sheets.length)return;$('sheetDialog').close();change(()=>{const [sheet]=state.sheets.splice(i,1);state.sheets.splice(to,0,sheet)});};
   $('sheetLeft').onclick=()=>moveSheet(-1);$('sheetRight').onclick=()=>moveSheet(1);
-  $('sheetDelete').onclick=()=>{if(state.sheets.length<2)return;const i=state.sheets.findIndex(s=>s.id===state.activeSheetId);if(!confirm('「'+state.sheets[i].name+'」と配下の工程を削除しますか？削除前のバックアップを端末に保存します。Ctrl+Zで戻せます。'))return;
-    try{localStorage.setItem('processmap_sheet_backup_'+Date.now(),JSON.stringify(state))}catch{notify('バックアップできないため削除を中止しました');return}
+  $('sheetDelete').onclick=()=>{if(state.sheets.length<2)return;const i=state.sheets.findIndex(s=>s.id===state.activeSheetId);if(!confirm('「'+state.sheets[i].name+'」とシートの内容を削除しますか？削除前のバックアップを端末に保存します。Ctrl+Zで戻せます。'))return;
+    try{localStorage.setItem('processmap_sheet_backup_'+Date.now(),JSON.stringify(documentForStorage()))}catch{notify('バックアップできないため削除を中止しました');return}
     $('sheetDialog').close();change(()=>{state.sheets.splice(i,1);const next=state.sheets[Math.min(i,state.sheets.length-1)];state.activeSheetId=next.id;state.stages=next.stages;selectedCard=null;rememberSheet();});notify('シートを削除しました',true);
   };
   function selectedEmphasisTarget(){if(!selectedCard)return null;return selectedCard.kind==='stage'?findStage(selectedCard.id):findTask(selectedCard.id)?.task;}
@@ -660,7 +808,17 @@
     branchObserver?.disconnect();
     applyAppearance();renderSheets();
     if(!$('palettePanel').hidden)renderPalette();
-    map.replaceChildren();map.classList.toggle('hide-done',hideDone);
+    map.classList.toggle('hide-done',hideDone);
+    const sheet=state.sheets.find(sheet=>sheet.id===state.activeSheetId);
+    const mind=!!sheet.mindMap,changedMode=mind!==map.classList.contains('mind-map-view');
+    map.classList.toggle('mind-map-view',mind);
+    $('app').classList.toggle('is-mindmap',mind);
+    $('secretary').hidden=mind;$('captureOpen').hidden=mind;$('mindTools').hidden=!mind;
+    canvas.setAttribute('aria-label',mind?'マインドマップ':'工程マップ');
+    if(changedMode)applyZoom(mind?mindZoom:processZoom,null,true);
+    if(mind){renderMindMap(sheet);return}
+    clearMindDrag();mindResize.disconnect();mindLayout=null;mindRenderedSheet=null;
+    map.replaceChildren();
     state.stages.forEach((stage,si)=>{
       const section=el('section','stage'+(stage.collapsed?' stage-collapsed':'')+(effectiveMainDone(stage)?' is-done-stage':''));section.dataset.stageId=stage.id;section.style.setProperty('--stage-content-width',stageWidth(stage)+'px');section.style.setProperty('--heading-width',headingWidth(stage)+'px');
       const head=el('div','stage-heading'+(effectiveMainDone(stage)?' is-done':''));head.dataset.number=String(si+1).padStart(2,'0');head.dataset.stageHandle=stage.id;drawEmphasis(head,stage.emphasis);
@@ -914,7 +1072,7 @@
     if(node){
       dragPending={...node,startX:e.clientX,startY:e.clientY,pointerId:e.pointerId,pointerType:e.pointerType};
       if(e.pointerType==='touch'){clearTimeout(dragTimer);dragTimer=setTimeout(()=>{if(dragPending)startDrag(dragPending)},380)}
-    }else if(e.pointerType==='mouse'&&(e.target===canvas||e.target===map)){
+    }else if(e.pointerType==='mouse'&&(e.target===canvas||e.target===map||e.target.closest('.mind-board')&&!e.target.closest('.mind-node'))){
       pan={x:e.clientX,y:e.clientY,sx:canvas.scrollLeft,sy:canvas.scrollTop};canvas.classList.add('panning');
     }
   });
@@ -938,7 +1096,7 @@
     if(drag){
       const source=drag,drop=drag.drop;
       drag.elem.classList.remove('drag-source');ghost?.remove();ghost=null;drag=null;document.body.style.userSelect='';
-      if(drop){const prev=JSON.stringify(state);if(applyMove(source,drop)){undoHistory.push(prev);if(undoHistory.length>80)undoHistory.shift();redoHistory.length=0;save();render()}}
+      if(drop){const prev=JSON.stringify(documentForStorage());if(applyMove(source,drop)){undoHistory.push(prev);if(undoHistory.length>80)undoHistory.shift();redoHistory.length=0;save();render()}}
       document.querySelectorAll('.drag-over-before,.drag-over-after,.drag-over-inside').forEach(x=>x.classList.remove('drag-over-before','drag-over-after','drag-over-inside'));
     }
     pan=null;canvas.classList.remove('panning');
@@ -949,19 +1107,19 @@
   $('menuTrigger').onclick=()=>{$('emphasisOpen').disabled=!selectedEmphasisTarget();const b=$('menu').hidden;$('palettePanel').hidden=true;$('menu').hidden=!b;$('menuTrigger').setAttribute('aria-expanded',String(b))};
   document.addEventListener('pointerdown',e=>{if(!e.target.closest('.menu-wrap')){$('menu').hidden=true;$('palettePanel').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false')} });
   $('menu').onclick=e=>{
-    const v=e.target.closest('[data-menu]')?.dataset.menu;if(!v)return;$('menu').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false');
+    const action=e.target.closest('[data-menu]');if(!action||action.hasAttribute('data-process-only')&&currentMindSheet())return;const v=action.dataset.menu;$('menu').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false');
     if(v==='emphasis'){openEmphasis();}else if(v==='review'){openReview();}else if(v==='consult'){openConsult('');}else if(v==='inbox'){openCapture();}else if(v==='history'){openHistory();}else if(v==='clearmarks'){clearMarks();}else if(v==='plan'){openPlan();}else if(v==='due'){renderDueList();$('dueDialog').showModal();}else if(v==='hidedone'){setHideDone(!hideDone);}else if(v==='palette'){renderPalette();$('palettePanel').hidden=false;}else if(v==='export')exportJSON();else if(v==='import')$('fileInput').click();else if(v==='prompt')copyPrompt();else if(v==='ai')openAI();else if(v==='reset'){
       if(confirm('表示中のシートをサンプルに戻しますか？ このシートの工程を置き換えます。他のシートは保持します。')){
-        try{localStorage.setItem('processmap_sample_backup_'+Date.now(),JSON.stringify(state))}catch{notify('バックアップできないため中止しました');return}
+        try{localStorage.setItem('processmap_sample_backup_'+Date.now(),JSON.stringify(documentForStorage()))}catch{notify('バックアップできないため中止しました');return}
         captureUndo('表示中のシートをサンプルに戻しました');const sample=normalize(defaultData);state.stages=sample.stages.map(st=>({...st,id:uid('s'),tasks:st.tasks.map(t=>({...t,id:uid('t'),children:t.children.map(c=>({...c,id:uid('t')}))}))}));save();render();
       }
     }
   };
-  function exportJSON(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=el('a');a.href=url;a.download='processmap-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+  function exportJSON(){const blob=new Blob([JSON.stringify(documentForStorage(),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=el('a');a.href=url;a.download='processmap-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
   $('fileInput').onchange=async e=>{
     const file=e.target.files?.[0];e.target.value='';if(!file)return;
-    try{const raw=JSON.parse(await file.text());const parsed=normalize(raw);if(!confirm('読み込みプレビュー：'+parsed.sheets.length+'シート / '+parsed.stages.length+'工程（表示中）\n'+parsed.stages.map(s=>s.title).join(' / ').slice(0,400)+'\n現在の全シートをバックアップして、読み込んだ内容で置き換えますか？'))return;localStorage.setItem('processmap_import_backup_'+Date.now(),JSON.stringify(state));exportJSON();
-      captureUndo('バックアップを読み込みました');state=parsed;save();render();
+    try{const raw=JSON.parse(await file.text());const parsed=normalize(raw);const sheets=parsed.sheets.map(sheet=>sheet.name).join(' / ');if(!confirm('読み込みプレビュー：'+parsed.sheets.length+'シート\n'+sheets.slice(0,400)+'\n現在の全シートをバックアップして、読み込んだ内容で置き換えますか？'))return;localStorage.setItem('processmap_import_backup_'+Date.now(),JSON.stringify(documentForStorage()));exportJSON();
+      captureUndo('バックアップを読み込みました');state=parsed;rememberSheet();save();render();
     }catch(err){notify('読み込み失敗: '+err.message)}
   };
   function currentSummary(){const d=x=>x.due?` （期日 ${x.due}）`:'';return state.stages.map((s,i)=>`${i+1}. [${s.id}] ${effectiveMainDone(s)?'✓':'□'} ${s.title}（メインタスク）${d(s)}\n${s.tasks.map((t,j)=>`  ${j+1}. [${t.id}] ${effectiveDone(t)?'✓':'□'} ${t.text||'(空欄)'}${d(t)}${t.children.map(c=>`\n     - [${c.id}] ${c.done?'✓':'□'} ${c.text||'(空欄)'}${d(c)}`).join('')}`).join('\n')}`).join('\n\n')}
@@ -1469,17 +1627,595 @@ ${outlineOf(sh.stages)}
     if(!sh.revisions.length)list.append(el('div','due-empty','まだ変更履歴はありません。週の見直しやAIへの相談で記録されます。'));$('historyDialog').showModal()}
   $('historyClose').onclick=()=>$('historyDialog').close();
 
+  // ---------- マインドマップ ----------
+  function restoreMindSheets(sheets,activeSheetId,keys){
+    const fallback={sheets,activeSheetId,stages:sheets.find(sheet=>sheet.id===activeSheetId).stages};
+    const encoded=keys.findLast(key=>key.startsWith(MIND_MAPS_KEY));
+    if(!encoded)return fallback;
+    let saved;
+    try{saved=JSON.parse(encoded.slice(MIND_MAPS_KEY.length))}catch{return fallback}
+    if(!Array.isArray(saved?.maps))return fallback;
+    const ids=new Set(sheets.map(sheet=>sheet.id));
+    const maps=[];
+    for(const item of saved.maps){
+      if(typeof item?.id!=='string'||!item.id||ids.has(item.id))continue;
+      const root=normalizeMindTree(item.root);
+      if(!root)continue;
+      ids.add(item.id);
+      maps.push({id:item.id,name:cleanText(item.name||'マインドマップ'),stages:[],mindMap:root,position:item.position});
+    }
+    if(!maps.length)return fallback;
+    const combined=sheets.filter(sheet=>!(sheet.id===MIND_EMPTY_SHEET&&sheet.name==='シート1'&&!sheet.stages.length&&!sheet.goal.deadline&&!sheet.goal.text&&!sheet.lastReview&&!sheet.inbox.length&&!sheet.revisions.length));
+    maps.sort((a,b)=>(a.position||0)-(b.position||0));
+    for(const {position,...sheet} of maps){
+      combined.splice(Number.isInteger(position)?Math.max(0,position):combined.length,0,sheet);
+    }
+    const active=combined.find(sheet=>sheet.id===saved.activeId)||combined.find(sheet=>sheet.id===activeSheetId)||combined[0];
+    return {sheets:combined,activeSheetId:active.id,stages:active.stages};
+  }
+  function normalizeMindTree(raw){
+    const seen=new Set();
+    function visit(value,depth){
+      if(!value||typeof value.id!=='string'||!value.id||seen.has(value.id)||seen.size>=MIND_TOPIC_LIMIT||depth>MIND_DEPTH_LIMIT)return null;
+      seen.add(value.id);
+      const children=[];
+      if(Array.isArray(value.children))for(const child of value.children){
+        const node=visit(child,depth+1);
+        if(node)children.push(node);
+      }
+      const topic={id:value.id,text:cleanText(value.text),note:cleanText(value.note),folded:value.folded===true,children};
+      const point=value.position;
+      if(Number.isFinite(point?.x)&&Number.isFinite(point?.y)&&Math.abs(point.x)<=MIND_POSITION_LIMIT&&Math.abs(point.y)<=MIND_POSITION_LIMIT){
+        topic.position={x:point.x,y:point.y};
+      }
+      return topic;
+    }
+    return visit(raw,0);
+  }
+  function newMindTopic(){return {id:uid('idea'),text:'',note:'',folded:false,children:[]}}
+  function currentMindSheet(){
+    return state.sheets.find(sheet=>sheet.id===state.activeSheetId&&sheet.mindMap);
+  }
+  function mindTopics(root){
+    const rows=[];
+    function visit(node,ancestors){
+      rows.push({node,ancestors,parent:ancestors.at(-1)});
+      for(const child of node.children)visit(child,[...ancestors,node]);
+    }
+    if(root)visit(root,[]);
+    return rows;
+  }
+  let mindSelected=null,mindRenderedSheet=null,mindLayout=null,mindNoteTarget=null,mindDrag=null;
+  const mindNarrow=matchMedia('(max-width:700px)');
+  const mindColors=['#79b7f1','#70d6ad','#f4af75','#c9a4f5','#e993b5','#dfcc74'];
+  const svgNS='http://www.w3.org/2000/svg';
+  const mindResize=new ResizeObserver(drawMindLines);
+  mindNarrow.addEventListener('change',()=>{
+    const sheet=currentMindSheet();
+    if(sheet)renderMindMap(sheet);
+  });
+  function chooseMindTopic(node){
+    mindSelected=node.id;
+    for(const [id,card] of mindLayout?.nodes||[]){
+      card.toggleAttribute('data-selected',id===node.id);
+    }
+    const root=node===currentMindSheet()?.mindMap;
+    $('mindMore').disabled=root;$('mindSibling').disabled=root;
+  }
+  function centerMindRect(box){
+    const viewport=canvas.getBoundingClientRect(),center=rectCenter(box);
+    canvas.scrollLeft+=center.x-(viewport.left+canvas.clientWidth/2);
+    canvas.scrollTop+=center.y-(viewport.top+canvas.clientHeight/2);
+  }
+  function centerMindElement(element){
+    if(element)centerMindRect(element.getBoundingClientRect());
+  }
+  function focusMindTopic(id){
+    const card=mindLayout?.nodes.get(id);
+    if(!card)return;
+    if(zoom<.8)applyZoom(1);
+    const title=card.querySelector('.mind-title');
+    title.focus({preventScroll:true});
+    centerMindElement(card);
+  }
+  function resizeMindTitle(input){
+    input.style.height='auto';
+    input.style.height=input.scrollHeight+'px';
+  }
+  function rectCenter(rect){return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}}
+  function elementBounds(elements){
+    const boxes=elements.map(element=>element.getBoundingClientRect());
+    const left=Math.min(...boxes.map(box=>box.left)),right=Math.max(...boxes.map(box=>box.right));
+    const top=Math.min(...boxes.map(box=>box.top)),bottom=Math.max(...boxes.map(box=>box.bottom));
+    return {left,top,width:right-left,height:bottom-top};
+  }
+  function keepMindCardInView(card,previous){
+    const before=rectCenter(previous),after=rectCenter(card.getBoundingClientRect());
+    canvas.scrollLeft+=after.x-before.x;
+    canvas.scrollTop+=after.y-before.y;
+  }
+  function measureMindPoints(){
+    const root=rectCenter(mindLayout.root.getBoundingClientRect());
+    return new Map([...mindLayout.nodes].map(([id,card])=>{
+      const center=rectCenter(card.getBoundingClientRect());
+      return [id,{x:Math.round((center.x-root.x)/zoom),y:Math.round((center.y-root.y)/zoom)}];
+    }));
+  }
+  function freeMindPoint(ideal,cardSize,points){
+    const {width,height}=cardSize;
+    const x=Math.max(-MIND_POSITION_LIMIT,Math.min(MIND_POSITION_LIMIT,Math.round(ideal.x)));
+    let y=Math.round(ideal.y);
+    const gaps={x:42,y:20};
+    const occupied=[...points].map(([id,point])=>{
+      const card=mindLayout.nodes.get(id);
+      return {point,width:card?.offsetWidth||width,height:card?.offsetHeight||height};
+    }).filter(box=>Math.abs(box.point.x-x)<(box.width+width)/2+gaps.x);
+    occupied.sort((a,b)=>(a.point.y-a.height/2)-(b.point.y-b.height/2));
+    for(const box of occupied){
+      const spacing=(box.height+height)/2+gaps.y;
+      if(Math.abs(y-box.point.y)<spacing)y=Math.ceil(box.point.y+spacing);
+    }
+    return {x,y:Math.max(-MIND_POSITION_LIMIT,Math.min(MIND_POSITION_LIMIT,y))};
+  }
+  function layoutMindPoints(topics){
+    const automatic=measureMindPoints(),points=new Map();
+    for(const {node,parent} of topics){
+      if(automatic.has(node.id)&&(node.position||!parent))points.set(node.id,node.position||automatic.get(node.id));
+    }
+    for(const {node,parent} of topics){
+      const card=mindLayout.nodes.get(node.id);
+      if(!card||points.has(node.id))continue;
+      const p=points.get(parent.id),autoParent=automatic.get(parent.id),autoNode=automatic.get(node.id);
+      const dx=autoNode.x-autoParent.x;
+      const side=Math.sign(p.x)||Math.sign(dx)||1;
+      const ideal={x:p.x+side*Math.abs(dx),y:p.y+autoNode.y-autoParent.y};
+      points.set(node.id,freeMindPoint(ideal,{width:card.offsetWidth,height:card.offsetHeight},points));
+    }
+    return points;
+  }
+  function placeNewMindTopic(selected,parent,sibling){
+    const {nodes,points}=mindLayout;
+    const card=nodes.get(selected.id),parentCard=nodes.get(parent.id);
+    const point=points.get(selected.id),anchor=points.get(parent.id);
+    const width=mindNarrow.matches?150:184,height=56;
+    const direction=Math.sign(anchor.x)||1;
+    const ideal=sibling?{x:point.x,y:point.y+(card.offsetHeight+height)/2+20}
+      :{x:anchor.x+direction*((parentCard.offsetWidth+width)/2+54),y:anchor.y};
+    const occupied=new Map(points);
+    if(parent.folded)for(const {node} of mindTopics(parent)){
+      if(!occupied.has(node.id)&&node.position)occupied.set(node.id,node.position);
+    }
+    return freeMindPoint(ideal,{width,height},occupied);
+  }
+  function paintMindPoints(){
+    const {nodes,links,points,origin}=mindLayout;
+    for(const [id,card] of nodes){
+      const point=points.get(id);
+      card.style.left=point.x+origin.x+'px';
+      card.style.top=point.y+origin.y+'px';
+    }
+    for(const {parent,card} of links){
+      card.toggleAttribute('data-left',points.get(card.dataset.mindId).x<points.get(parent.dataset.mindId).x);
+    }
+    drawMindLines();
+  }
+  function positionMindBoard(points,room=.62){
+    const {board,lines,nodes}=mindLayout;
+    const paddedX=Math.max(100,canvas.clientWidth/zoom*room),paddedY=Math.max(100,canvas.clientHeight/zoom*room);
+    const boxes=[...points].map(([id,point])=>({point,width:nodes.get(id).offsetWidth,height:nodes.get(id).offsetHeight}));
+    const left=Math.min(...boxes.map(box=>box.point.x-box.width/2));
+    const right=Math.max(...boxes.map(box=>box.point.x+box.width/2));
+    const top=Math.min(...boxes.map(box=>box.point.y-box.height/2));
+    const bottom=Math.max(...boxes.map(box=>box.point.y+box.height/2));
+    if(!board.classList.contains('mind-positioned')){
+      board.classList.add('mind-positioned');
+      board.replaceChildren(lines,...nodes.values());
+    }
+    board.style.width=right-left+2*paddedX+'px';
+    board.style.height=bottom-top+2*paddedY+'px';
+    mindLayout.points=points;
+    mindLayout.origin={x:paddedX-left,y:paddedY-top};
+    paintMindPoints();
+  }
+  function startMindDrag(event,node,card,fromTitle){
+    if(event.button!==0||mindDrag||!event.isPrimary)return;
+    event.stopPropagation();
+    mindDrag={id:event.pointerId,node,card,startX:event.clientX,startY:event.clientY,frame:0};
+    if(!fromTitle){
+      event.preventDefault();
+      chooseMindTopic(node);
+      card.focus({preventScroll:true});
+    }
+  }
+  function activateMindDrag(drag){
+    const initial=drag.card.getBoundingClientRect();
+    drag.base=new Map(mindLayout.points||measureMindPoints());
+    drag.branch=mindTopics(drag.node).map(({node})=>node);
+    drag.moving=drag.branch.map(node=>drag.base.get(node.id)||node.position).filter(Boolean);
+    drag.offset={x:0,y:0};
+    canvas.setPointerCapture(drag.id);
+    canvas.setAttribute('data-mind-dragging','');
+    positionMindBoard(new Map(drag.base),1.35);
+    keepMindCardInView(drag.card,initial);
+    drag.scrollLeft=canvas.scrollLeft;
+    drag.scrollTop=canvas.scrollTop;
+    for(const node of drag.branch)mindLayout.nodes.get(node.id)?.setAttribute('data-moving','');
+    chooseMindTopic(drag.node);
+    drag.card.focus({preventScroll:true});
+  }
+  function moveMindBranch(drag){
+    const dx=(drag.x-drag.startX+canvas.scrollLeft-drag.scrollLeft)/zoom;
+    const dy=(drag.y-drag.startY+canvas.scrollTop-drag.scrollTop)/zoom;
+    const bounded=(axis,delta)=>{
+      const values=drag.moving.map(point=>point[axis]);
+      return Math.max(-MIND_POSITION_LIMIT-Math.min(...values),Math.min(MIND_POSITION_LIMIT-Math.max(...values),Math.round(delta)));
+    };
+    const offset={x:bounded('x',dx),y:bounded('y',dy)};
+    if(offset.x===drag.offset.x&&offset.y===drag.offset.y)return;
+    drag.offset=offset;
+    for(const node of drag.branch){
+      const base=drag.base.get(node.id);
+      if(base)mindLayout.points.set(node.id,{x:base.x+offset.x,y:base.y+offset.y});
+    }
+    paintMindPoints();
+  }
+  function dragMindFrame(){
+    const drag=mindDrag;
+    if(!drag?.base)return;
+    drag.frame=0;
+    const {scrollLeft,scrollTop}=canvas;
+    edgeScroll(drag.x,drag.y);
+    moveMindBranch(drag);
+    if(canvas.scrollLeft!==scrollLeft||canvas.scrollTop!==scrollTop)drag.frame=requestAnimationFrame(dragMindFrame);
+  }
+  function clearMindDrag(){
+    const drag=mindDrag;
+    if(!drag)return;
+    mindDrag=null;
+    cancelAnimationFrame(drag.frame);
+    canvas.removeAttribute('data-mind-dragging');
+    if(canvas.hasPointerCapture(drag.id))canvas.releasePointerCapture(drag.id);
+  }
+  function finishMindDrag(cancel=false){
+    const drag=mindDrag;
+    if(!drag)return;
+    clearMindDrag();
+    if(!drag.base)return;
+    if(cancel||(!drag.offset.x&&!drag.offset.y)){
+      const sheet=currentMindSheet();
+      if(sheet){
+        renderMindMap(sheet);
+        const card=mindLayout.nodes.get(drag.node.id);
+        centerMindElement(card);card?.focus({preventScroll:true});
+      }
+      return;
+    }
+    // Freeze the visible layout once, so adding, folding and reopening branches
+    // cannot shift topics that the user placed intentionally.
+    recordUndo();
+    const moving=new Set(drag.branch);
+    for(const {node} of mindTopics(currentMindSheet().mindMap)){
+      const shown=mindLayout.points.get(node.id);
+      if(shown)node.position={...shown};
+      else if(node.position&&moving.has(node)){
+        node.position={x:node.position.x+drag.offset.x,y:node.position.y+drag.offset.y};
+      }
+      mindLayout.nodes.get(node.id)?.removeAttribute('data-moving');
+    }
+    save();
+    drag.card.focus({preventScroll:true});
+    notify('枝を移動しました',true);
+  }
+  document.addEventListener('pointermove',event=>{
+    const drag=mindDrag;
+    if(!drag||event.pointerId!==drag.id)return;
+    if(!drag.base){
+      if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)<5)return;
+      activateMindDrag(drag);
+    }
+    event.preventDefault();
+    drag.x=event.clientX;drag.y=event.clientY;
+    if(!drag.frame)drag.frame=requestAnimationFrame(dragMindFrame);
+  },{passive:false});
+  document.addEventListener('pointerup',event=>{
+    if(event.pointerId!==mindDrag?.id)return;
+    if(mindDrag.base){
+      mindDrag.x=event.clientX;mindDrag.y=event.clientY;moveMindBranch(mindDrag);
+    }
+    finishMindDrag();
+  });
+  document.addEventListener('pointercancel',event=>{
+    if(event.pointerId===mindDrag?.id)finishMindDrag(true);
+  });
+  canvas.addEventListener('lostpointercapture',event=>{
+    if(event.target===canvas&&event.pointerId===mindDrag?.id)finishMindDrag(true);
+  });
+  $('mindResetLayout').onclick=()=>{
+    const sheet=currentMindSheet();
+    if(!sheet)return;
+    $('sheetDialog').close();
+    mindRenderedSheet=null;
+    change(()=>{for(const {node} of mindTopics(sheet.mindMap))delete node.position});
+    notify('自動配置に戻しました',true);
+  };
+  function mindCard(node,root,color){
+    const card=el('div','mind-node'+(root?' root':''));
+    card.dataset.mindId=node.id;
+    card.tabIndex=-1;
+    card.setAttribute('role','group');
+    card.setAttribute('aria-label',mindLabel(node));
+    card.style.setProperty('--branch-color',color);
+    const input=el('textarea','mind-title');
+    input.rows=1;
+    input.enterKeyHint='next';
+    input.placeholder=root?'中心テーマを入力':'思いついたことを入力';
+    input.setAttribute('aria-label',root?'中心テーマ':'トピック名');
+    input.spellcheck=false;
+    input.value=node.text;
+    let recorded=false;
+    input.onfocus=()=>{recorded=false;chooseMindTopic(node)};
+    input.oninput=()=>{
+      if(!recorded){recordUndo();recorded=true}
+      node.text=cleanText(input.value);
+      card.setAttribute('aria-label',mindLabel(node));
+      resizeMindTitle(input);
+      drawMindLines();
+      save();
+    };
+    card.onkeydown=e=>{
+      if(e.target!==card&&e.target!==input)return;
+      if(e.isComposing||e.keyCode===229||e.ctrlKey||e.metaKey||e.altKey||e.shiftKey)return;
+      if(e.key==='Escape'&&e.target===input){card.focus({preventScroll:true});return}
+      if(e.key!=='Tab'&&e.key!=='Enter')return;
+      e.preventDefault();
+      if(e.repeat||mindDrag?.base)return;
+      chooseMindTopic(node);
+      addMindTopic(e.key==='Enter');
+    };
+    if(!root)card.append(btn('mind-grip','ドラッグで枝を移動','⠿',()=>{
+      chooseMindTopic(node);card.focus({preventScroll:true});
+    }));
+    card.append(input);
+    if(!root)card.addEventListener('pointerdown',event=>{
+      if(event.target.closest('button:not(.mind-grip)'))return;
+      if(event.target===input&&(event.pointerType!=='mouse'||document.activeElement===input))return;
+      startMindDrag(event,node,card,event.target===input);
+    });
+    if(node.note.trim()){
+      card.append(btn('mind-note-chip','このトピックのメモを開く','メモを読む',()=>{
+        chooseMindTopic(node);openMindNote();
+      }));
+    }
+    if(node.children.length){
+      const count=mindTopics(node).length-1;
+      const fold=btn('mind-fold',node.folded?'枝を開く（'+count+'件）':'枝を折りたたむ',node.folded?'＋'+count:'−',()=>{
+        chooseMindTopic(node);
+        change(()=>node.folded=!node.folded);
+        const updated=mindLayout?.nodes.get(node.id);
+        updated?.querySelector('.mind-fold')?.focus({preventScroll:true});
+        if(updated)centerMindElement(updated);
+      });
+      fold.setAttribute('aria-expanded',String(!node.folded));
+      card.append(fold);
+    }
+    card.onclick=event=>{
+      chooseMindTopic(node);
+      if(event.target===card)card.focus({preventScroll:true});
+      if(event.target===input&&zoom<.8){applyZoom(1);centerMindElement(card)}
+    };
+    return card;
+  }
+  function renderMindMap(sheet){
+    clearMindDrag();
+    const previous=mindLayout?.sheet===sheet.id&&mindLayout.root.isConnected?mindLayout:null;
+    const previousRoot=previous?.root.getBoundingClientRect();
+    const keepCardFocus=previous?.nodes.get(mindSelected)===document.activeElement;
+    const root=sheet.mindMap;
+    const board=el('div','mind-board');
+    const lines=document.createElementNS(svgNS,'svg');
+    lines.classList.add('mind-lines');lines.setAttribute('aria-hidden','true');
+    const nodes=new Map(),links=[];
+    const rootCard=mindCard(root,true,'var(--accent)');
+    nodes.set(root.id,rootCard);
+    function branch(node,parent,side,color){
+      const row=el('div','mind-branch '+side);
+      const card=mindCard(node,false,color);
+      card.toggleAttribute('data-left',side==='left');
+      nodes.set(node.id,card);links.push({parent,card,color});row.append(card);
+      if(!node.folded&&node.children.length){
+        const children=el('div','mind-children');
+        for(const child of node.children)children.append(branch(child,card,side,color));
+        row.append(children);
+      }
+      return row;
+    }
+    const left=el('div','mind-children'),right=el('div','mind-children');
+    if(!root.folded)root.children.forEach((child,index)=>{
+      const onLeft=!mindNarrow.matches&&index%2===1;
+      (onLeft?left:right).append(branch(child,rootCard,onLeft?'left':'right',mindColors[index%mindColors.length]));
+    });
+    board.append(lines);
+    if(left.childElementCount)board.append(left);
+    board.append(rootCard);
+    if(right.childElementCount)board.append(right);
+    mindResize.disconnect();
+    map.replaceChildren(board);
+    mindLayout={sheet:sheet.id,board,lines,nodes,links,root:rootCard,points:null,origin:null};
+    for(const input of board.querySelectorAll('.mind-title'))resizeMindTitle(input);
+    const topics=mindTopics(root);
+    if(topics.some(({node})=>node.position))positionMindBoard(layoutMindPoints(topics));
+    const changedSheet=mindRenderedSheet!==sheet.id;
+    mindRenderedSheet=sheet.id;
+    const selected=nodes.has(mindSelected)&&!changedSheet?mindSelected:root.id;
+    chooseMindTopic(topics.find(row=>row.node.id===selected).node);
+    drawMindLines();mindResize.observe(board);
+    if(changedSheet)centerMindElement(rootCard);
+    else if(previousRoot)keepMindCardInView(rootCard,previousRoot);
+    if(keepCardFocus)nodes.get(selected)?.focus({preventScroll:true});
+  }
+  function drawMindLines(){
+    if(!mindLayout)return;
+    const {board,lines,links}=mindLayout;
+    const bounds=board.getBoundingClientRect();
+    const fragment=document.createDocumentFragment();
+    for(const {parent,card,color} of links){
+      const a=parent.getBoundingClientRect(),b=card.getBoundingClientRect();
+      const ac=rectCenter(a),bc=rectCenter(b);
+      const dx=bc.x-ac.x,dy=bc.y-ac.y;
+      const vertical=Math.abs(dx)<(a.width+b.width)/2&&Math.abs(dy)>=(a.height+b.height)/2;
+      const x1=((vertical?ac.x:dx<0?a.left:a.right)-bounds.left)/zoom;
+      const x2=((vertical?bc.x:dx<0?b.right:b.left)-bounds.left)/zoom;
+      const y1=((vertical?(dy<0?a.top:a.bottom):ac.y)-bounds.top)/zoom;
+      const y2=((vertical?(dy<0?b.bottom:b.top):bc.y)-bounds.top)/zoom;
+      const midX=(x1+x2)/2,midY=(y1+y2)/2;
+      const line=document.createElementNS(svgNS,'path');
+      const bend=vertical?`${x1} ${midY} ${x2} ${midY}`:`${midX} ${y1} ${midX} ${y2}`;
+      line.setAttribute('d',`M ${x1} ${y1} C ${bend} ${x2} ${y2}`);
+      line.setAttribute('stroke',color);line.setAttribute('stroke-width','2.5');line.setAttribute('fill','none');
+      fragment.append(line);
+    }
+    lines.replaceChildren(fragment);
+  }
+  function addMindTopic(sibling=false){
+    const sheet=currentMindSheet();
+    if(!sheet)return;
+    const rows=mindTopics(sheet.mindMap),selected=rows.find(row=>row.node.id===mindSelected)||rows[0];
+    const beside=sibling&&selected.parent;
+    const depth=selected.ancestors.length+(beside?0:1);
+    if(rows.length>=MIND_TOPIC_LIMIT||depth>MIND_DEPTH_LIMIT){notify('これ以上は別のシートに分けてください');return}
+    const parent=beside||selected.node;
+    const topic=newMindTopic();
+    if(mindLayout?.points)topic.position=placeNewMindTopic(selected.node,parent,!!beside);
+    const index=beside?parent.children.indexOf(selected.node)+1:parent.children.length;
+    change(()=>{parent.folded=false;parent.children.splice(index,0,topic);mindSelected=topic.id});
+    focusMindTopic(topic.id);
+  }
+  function selectedMindRow(){
+    return mindTopics(currentMindSheet()?.mindMap).find(row=>row.node.id===mindSelected);
+  }
+  function mindLabel(node){return node.text.trim()||'（無題）'}
+  function openMindNote(){
+    const row=selectedMindRow();
+    if(!row)return;
+    mindNoteTarget=row.node;
+    $('mindNoteTitle').textContent=mindLabel(row.node);
+    $('mindNoteInput').value=row.node.note;
+    $('mindNoteDialog').showModal();
+  }
+  $('mindNoteOpen').onclick=openMindNote;
+  $('mindNoteCancel').onclick=()=>{
+    $('mindNoteDialog').close();
+    mindLayout?.nodes.get(mindNoteTarget?.id)?.focus({preventScroll:true});
+  };
+  $('mindNoteForm').onsubmit=e=>{
+    e.preventDefault();
+    const node=mindNoteTarget,note=cleanText($('mindNoteInput').value);
+    $('mindNoteDialog').close();
+    if(selectedMindRow()?.node===node&&node.note!==note)change(()=>node.note=note);
+    mindLayout?.nodes.get(node?.id)?.focus({preventScroll:true});
+  };
+  function showMindTopic(row){
+    mindSelected=row.node.id;
+    if(row.ancestors.some(node=>node.folded))change(()=>row.ancestors.forEach(node=>node.folded=false));
+    chooseMindTopic(row.node);
+    const card=mindLayout?.nodes.get(row.node.id);
+    if(card){
+      if(zoom<.8)applyZoom(1);
+      centerMindElement(card);
+      card.focus({preventScroll:true});
+    }
+  }
+  function renderMindReview(){
+    const query=$('mindSearch').value.trim().normalize('NFKC').toLocaleLowerCase();
+    const rows=mindTopics(currentMindSheet()?.mindMap).filter(({node})=>
+      (node.text+'\n'+node.note).normalize('NFKC').toLocaleLowerCase().includes(query));
+    const list=$('mindReviewList');list.replaceChildren();
+    if(!rows.length)list.append(el('p','settings-label','該当するトピックはありません'));
+    for(const row of rows){
+      const result=btn('',mindLabel(row.node)+'を表示',mindLabel(row.node),()=>{
+        $('mindReviewDialog').close();showMindTopic(row);
+      });
+      if(row.ancestors.length)result.append(el('small','',row.ancestors.map(mindLabel).join(' › ')));
+      if(row.node.note.trim()){
+        const note=row.node.note.trim();result.append(el('small','',note.length>140?note.slice(0,140)+'…':note));
+      }
+      list.append(result);
+    }
+  }
+  $('mindReviewOpen').onclick=()=>{
+    $('mindSearch').value='';renderMindReview();$('mindReviewDialog').showModal();
+  };
+  $('mindSearch').oninput=renderMindReview;
+  $('mindReviewClose').onclick=()=>$('mindReviewDialog').close();
+  $('mindAdd').onclick=()=>addMindTopic();
+  $('mindFit').onclick=()=>{
+    if(!mindLayout)return;
+    const boxes=[...mindLayout.board.querySelectorAll('.mind-node,.mind-fold')];
+    const before=elementBounds(boxes);
+    const fitting=Math.min(1,(canvas.clientWidth-48)/(before.width/zoom),(canvas.clientHeight-48)/(before.height/zoom));
+    applyZoom(Math.floor(fitting*100)/100,null,true);
+    drawMindLines();
+    centerMindRect(elementBounds(boxes));
+  };
+  function mindMoveChoices(selected){
+    const subDepth=Math.max(...mindTopics(selected.node).map(row=>row.ancestors.length));
+    return mindTopics(currentMindSheet()?.mindMap).filter(row=>
+      row.node!==selected.node&&row.node!==selected.parent&&!row.ancestors.includes(selected.node)&&
+      row.ancestors.length+1+subDepth<=MIND_DEPTH_LIMIT);
+  }
+  $('mindMore').onclick=()=>{
+    const selected=selectedMindRow();
+    if(!selected?.parent)return;
+    $('mindTopicTitle').textContent=mindLabel(selected.node);
+    const choices=mindMoveChoices(selected);
+    $('mindMoveGroup').hidden=!choices.length;
+    const options=choices.map(row=>{
+      const option=el('option','',[...row.ancestors,row.node].map(mindLabel).join(' › '));
+      option.value=row.node.id;return option;
+    });
+    $('mindMoveTo').replaceChildren(...options);
+    $('mindTopicDialog').showModal();
+  };
+  $('mindTopicClose').onclick=()=>$('mindTopicDialog').close();
+  $('mindSibling').onclick=()=>addMindTopic(true);
+  $('mindMove').onclick=()=>{
+    const from=selectedMindRow();
+    if(!from?.parent)return;
+    const to=mindMoveChoices(from).find(row=>row.node.id===$('mindMoveTo').value);
+    if(!to)return;
+    $('mindTopicDialog').close();
+    change(()=>{
+      from.parent.children.splice(from.parent.children.indexOf(from.node),1);
+      to.node.children.push(from.node);
+      for(const node of [...to.ancestors,to.node])node.folded=false;
+    });
+    const card=mindLayout.nodes.get(from.node.id);
+    centerMindElement(card);card?.focus({preventScroll:true});
+  };
+  $('mindDelete').onclick=()=>{
+    const row=selectedMindRow();
+    if(!row?.parent||!confirm('「'+mindLabel(row.node)+'」と下の枝を削除しますか？'))return;
+    $('mindTopicDialog').close();
+    change(()=>{row.parent.children.splice(row.parent.children.indexOf(row.node),1);mindSelected=row.parent.id});
+    notify('枝を削除しました',true);
+  };
+
   // ---------- 同期異常の目印（メニューを開かなくても気づけるように） ----------
   new MutationObserver(()=>{const t=$('syncStatus').textContent,bad=/競合|接続できません|オフライン/.test(t);$('menuTrigger').toggleAttribute('data-alert',bad);$('syncStatus').toggleAttribute('data-alert',bad);$('menuTrigger').setAttribute('aria-label',bad?'メニューを開く（同期に問題があります：'+t+'）':'メニューを開く');$('menuTrigger').title=bad?'同期に問題があります：'+t:'メニュー'}).observe($('syncStatus'),{childList:true,characterData:true,subtree:true});
 
   document.addEventListener('keydown',e=>{
     if(document.querySelector('dialog[open]'))return;
+    if(mindDrag?.base){
+      if(e.key==='Escape'){e.preventDefault();finishMindDrag(true)}
+      return;
+    }
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='z'&&!e.target.closest('textarea,input')){e.preventDefault();if(e.shiftKey)redo();else undo();return;}
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='y'&&!e.target.closest('textarea,input')){e.preventDefault();redo();return;}
     if(e.key==='Escape'){closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('stageContext')?.remove()}
   });
-  window.pmApp={get:()=>{syncWorkbook(state);return clone(state)},set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();emphasisEditing=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
-  renderPalette();render();let restoredZoom=1;try{restoredZoom=Number(localStorage.getItem(ZOOM_KEY))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v054'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v053'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v052'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v051'))||1}catch(e){}applyZoom(restoredZoom);
+  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog'])$(id).close();emphasisEditing=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
+  try{processZoom=Number(localStorage.getItem(ZOOM_KEY))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v054'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v053'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v052'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v051'))||1}catch{}
+  renderPalette();render();if(!currentMindSheet())applyZoom(processZoom);
 })();
 </script>
 <script src="config.js"></script><script src="sync.js"></script></body>
