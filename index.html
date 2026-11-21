@@ -285,17 +285,25 @@
     @media(hover:none),(pointer:coarse){.mind-node[data-selected]>.mind-grip{opacity:1;pointer-events:auto}}
     .mind-grip:hover,.mind-grip:focus-visible{background:color-mix(in srgb,var(--card-fg) 13%,var(--card-bg))}
     .mind-node.root{width:208px;min-height:74px;border:2px solid var(--accent);border-radius:15px}
+    .mind-node[data-shape="fork"]:not(.root){border-color:transparent;border-bottom-color:var(--branch-color);border-radius:0;background:var(--bg);color:var(--canvas-fg)}
+    .mind-node[data-shape="fork"]:not(.root)>.mind-grip{color:inherit}
     .mind-node[data-selected]{outline:2px solid var(--branch-color);outline-offset:3px}
     .mind-title{display:block;width:100%;min-height:32px;max-height:150px;resize:none;padding:5px 3px;margin:0;border:0;background:none;color:inherit;font:inherit;font-size:15px;line-height:22px;overflow-wrap:anywhere;outline:0;cursor:text}
     .mind-node.root .mind-title{font-size:17px;font-weight:650;text-align:center}
-    .mind-title::placeholder{color:var(--card-fg);opacity:.7}
-    .mind-node .mind-note-chip{align-self:flex-start;min-height:32px;border:0;background:transparent;color:var(--card-fg);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+    .mind-title::placeholder{color:inherit;opacity:.7}
+    .mind-node .mind-note-chip{align-self:flex-start;min-height:32px;border:0;background:transparent;color:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px}
     .mind-fold{position:absolute;top:50%;transform:translateY(-50%);left:calc(100% + 5px);z-index:1;min-width:40px;min-height:40px;padding:0 3px;border-radius:8px;border:1px solid var(--branch-color);background:var(--card-bg);color:var(--card-fg);font-size:14px}
     .mind-node[data-left] .mind-fold{left:auto;right:calc(100% + 5px)}
     #sheetTypeDialog .sheet-types{display:grid;gap:8px}
     #sheetTypeDialog .sheet-types button{text-align:left;padding:12px 14px;margin:0}
     .sheet-types button strong,.sheet-types button span{display:block}
     .sheet-types button span{margin-top:3px;color:#a9b7c9;font-size:12px}
+    #mindImportDialog{width:min(90vw,440px);max-height:90dvh;overflow:auto}
+    #mindImportFile{width:100%;max-width:100%;color:inherit}
+    #mindImportSummary,#mindImportBranches,#mindImportStatus,#mindNoteLink{overflow-wrap:anywhere}
+    #mindImportBranches{padding-inline-start:22px;max-height:150px;overflow:auto}
+    #mindImportStatus[data-error]{color:#ffc2b9}
+    #mindNoteLink a{color:#a9ccfe}
     #mindNoteInput{width:100%;min-height:150px;resize:vertical}
     #mindNoteTitle,#mindTopicTitle{overflow-wrap:anywhere;white-space:pre-wrap}
     #mindMoveTo{width:100%;padding:10px;margin:6px 0;font:inherit;color:inherit;background:#111a25;border:1px solid #465c77;border-radius:8px}
@@ -425,13 +433,29 @@
   <div class="sheet-types">
     <button type="button" id="addProcessSheet"><strong>工程表</strong><span>タスク・期日・進捗を管理する</span></button>
     <button type="button" id="addMindSheet"><strong>マインドマップ</strong><span>思いついたことを枝とメモに書く</span></button>
+    <button type="button" id="importMindSheet"><strong>.mm を取り込む</strong><span>FreeMind形式を新しいマインドマップにする</span></button>
   </div>
   <button type="button" id="sheetTypeCancel">キャンセル</button>
+</dialog>
+<dialog id="mindImportDialog" aria-labelledby="mindImportHeading">
+  <form id="mindImportForm">
+    <h3 id="mindImportHeading">マインドマップを取り込む</h3>
+    <label for="mindImportFile">FreeMind形式のファイル（.mm）</label>
+    <input type="file" id="mindImportFile">
+    <p id="mindImportStatus" class="settings-label" role="status"></p>
+    <div id="mindImportPreview" hidden>
+      <strong id="mindImportSummary"></strong>
+      <ul id="mindImportBranches"></ul>
+      <p id="mindImportNotice" class="settings-label" hidden></p>
+    </div>
+    <div class="settings-actions"><button id="mindImportCommit" type="submit" disabled>新しいシートに追加</button><button id="mindImportCancel" type="button">キャンセル</button></div>
+  </form>
 </dialog>
 <dialog id="mindNoteDialog" aria-labelledby="mindNoteHeading">
   <form id="mindNoteForm">
     <h3 id="mindNoteHeading">トピックのメモ</h3>
     <p id="mindNoteTitle" class="settings-label"></p>
+    <p id="mindNoteLink" class="settings-label" hidden></p>
     <textarea id="mindNoteInput" aria-label="メモの内容" placeholder="調べたいこと、理由、参考リンクなど"></textarea>
     <div class="settings-actions"><button type="submit">保存</button><button type="button" id="mindNoteCancel">キャンセル</button></div>
   </form>
@@ -473,6 +497,7 @@
   const map=$('map'),canvas=$('canvas');
   const WORKBOOK_KEY='__processmap_workbook_v1__:';
   const MIND_MAPS_KEY='__processmap_mindmaps_v1__:';
+  const MIND_IMPORT_KEY='__processmap_mind_import_v1__:';
   const MIND_EMPTY_SHEET='sheet_mindmap_placeholder';
   const MIND_TOPIC_LIMIT=500;
   const MIND_DEPTH_LIMIT=32;
@@ -573,7 +598,7 @@
     const isColor=v=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v);
     const appearance={canvas:isColor(raw.appearance?.canvas)?raw.appearance.canvas.toLowerCase():'#0e131b',task:isColor(raw.appearance?.task)?raw.appearance.task.toLowerCase():'#202c3a'};
     const workbook=restoreMindSheets(sheets,activeId,keys);
-    const result={schemaVersion:7,appearance,processedKeys:keys.filter(k=>!k.startsWith(WORKBOOK_KEY)&&!k.startsWith(MIND_MAPS_KEY)),...workbook};
+    const result={schemaVersion:7,appearance,processedKeys:keys.filter(k=>![WORKBOOK_KEY,MIND_MAPS_KEY,MIND_IMPORT_KEY].some(prefix=>k.startsWith(prefix))),...workbook};
     syncParents(result);return result;
   }
   function syncWorkbook(data){
@@ -598,6 +623,16 @@
     if(maps.length){
       // Old clients preserve processedKeys when they edit or normalize the workbook.
       processedKeys.push(MIND_MAPS_KEY+JSON.stringify({activeId:state.activeSheetId,maps}));
+      const imported=[];
+      for(const {id,root} of maps){
+        const topics=[];
+        for(const {node:{id,side,shape,link}} of mindTopics(root)){
+          if(side||shape||link)topics.push({id,side,shape,link});
+        }
+        if(topics.length)imported.push({id,topics});
+      }
+      // Keep import details when an older mind-map client rewrites the node tree.
+      if(imported.length)processedKeys.push(MIND_IMPORT_KEY+JSON.stringify(imported));
     }
     return {...state,processedKeys,sheets,activeSheetId:processSheet.id,stages:processSheet.stages};
   }
@@ -663,11 +698,14 @@
     while(used.has(name))name=base+(++n);
     const sheet={id:uid('sheet'),name,stages:[]};
     if(mind)sheet.mindMap=newMindTopic();
+    appendSheet(sheet);
+    if(mind)focusMindTopic(sheet.mindMap.id);
+  }
+  function appendSheet(sheet){
     change(()=>{
       state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;
       selectedCard=null;rememberSheet();canvas.scrollLeft=0;canvas.scrollTop=0;
     });
-    if(mind)focusMindTopic(sheet.mindMap.id);
   }
   $('sheetOptions').onclick=()=>openSheetSettings();$('sheetCancel').onclick=()=>$('sheetDialog').close();
   $('sheetForm').onsubmit=e=>{e.preventDefault();const name=$('sheetName').value.trim();if(!name){$('sheetName').setCustomValidity('シート名を入力してください');$('sheetName').reportValidity();return}$('sheetDialog').close();const dl=validDate($('sheetDeadline').value);change(()=>{const sh=curSheet();sh.name=name;if(!sh.mindMap&&(sh.goal.deadline||null)!==dl){sh.revisions.unshift({at:new Date().toISOString(),request:'締切の変更',lines:[`締切：${sh.goal.deadline||'なし'} → ${dl||'なし'}`]});sh.goal.deadline=dl}})};
@@ -1635,11 +1673,19 @@ ${outlineOf(sh.stages)}
     let saved;
     try{saved=JSON.parse(encoded.slice(MIND_MAPS_KEY.length))}catch{return fallback}
     if(!Array.isArray(saved?.maps))return fallback;
+    const importEntry=keys.findLast(key=>key.startsWith(MIND_IMPORT_KEY));
+    let imported=[];
+    if(importEntry){
+      try{
+        const details=JSON.parse(importEntry.slice(MIND_IMPORT_KEY.length));
+        if(Array.isArray(details))imported=details;
+      }catch{}
+    }
     const ids=new Set(sheets.map(sheet=>sheet.id));
     const maps=[];
     for(const item of saved.maps){
       if(typeof item?.id!=='string'||!item.id||ids.has(item.id))continue;
-      const root=normalizeMindTree(item.root);
+      const root=normalizeMindTree(item.root,imported.find(sheet=>sheet?.id===item.id)?.topics);
       if(!root)continue;
       ids.add(item.id);
       maps.push({id:item.id,name:cleanText(item.name||'マインドマップ'),stages:[],mindMap:root,position:item.position});
@@ -1653,8 +1699,12 @@ ${outlineOf(sh.stages)}
     const active=combined.find(sheet=>sheet.id===saved.activeId)||combined.find(sheet=>sheet.id===activeSheetId)||combined[0];
     return {sheets:combined,activeSheetId:active.id,stages:active.stages};
   }
-  function normalizeMindTree(raw){
+  function normalizeMindTree(raw,imported){
     const seen=new Set();
+    const fields=new Map();
+    if(Array.isArray(imported))for(const item of imported){
+      if(typeof item?.id==='string')fields.set(item.id,item);
+    }
     function visit(value,depth){
       if(!value||typeof value.id!=='string'||!value.id||seen.has(value.id)||seen.size>=MIND_TOPIC_LIMIT||depth>MIND_DEPTH_LIMIT)return null;
       seen.add(value.id);
@@ -1668,11 +1718,168 @@ ${outlineOf(sh.stages)}
       if(Number.isFinite(point?.x)&&Number.isFinite(point?.y)&&Math.abs(point.x)<=MIND_POSITION_LIMIT&&Math.abs(point.y)<=MIND_POSITION_LIMIT){
         topic.position={x:point.x,y:point.y};
       }
+      const saved=fields.get(value.id);
+      if(saved)copyMindImportFields(topic,saved);
+      copyMindImportFields(topic,value);
       return topic;
     }
     return visit(raw,0);
   }
   function newMindTopic(){return {id:uid('idea'),text:'',note:'',folded:false,children:[]}}
+  function copyMindImportFields(topic,source){
+    if(source.side==='left'||source.side==='right')topic.side=source.side;
+    if(source.shape==='bubble'||source.shape==='fork')topic.shape=source.shape;
+    if(typeof source.link==='string'&&source.link.trim())topic.link=source.link;
+  }
+  function publicMindUrl(value){
+    try{
+      const url=new URL(value);
+      return ['http:','https:'].includes(url.protocol)?url.href:null;
+    }catch{return null}
+  }
+
+  // ---------- FreeMind (.mm) 読み込み ----------
+  const MIND_IMPORT_LIMIT=2*1024*1024;
+  const mindImportDialog=$('mindImportDialog'),mindImportFile=$('mindImportFile');
+  let mindImportSequence=0,mindImportDraft=null;
+  function mindRichText(content){
+    if(!content)return '';
+    const body=content.getElementsByTagName('body')[0]||content;
+    const blocks=new Set(['p','div','li','ul','ol','h1','h2','h3','h4','h5','h6','pre','blockquote']);
+    const skip=new Set(['head','script','style','iframe','object']);
+    let text='';
+    function newline(){if(text&&!text.endsWith('\n'))text+='\n'}
+    function visit(node){
+      if(node.nodeType===Node.TEXT_NODE||node.nodeType===Node.CDATA_SECTION_NODE){
+        text+=node.nodeValue.replace(/[ \t\r\n]+/g,' ');
+        return;
+      }
+      if(node.nodeType!==Node.ELEMENT_NODE||skip.has(node.localName))return;
+      if(node.localName==='br'){text+='\n';return}
+      const block=blocks.has(node.localName);
+      if(block)newline();
+      for(const child of node.childNodes)visit(child);
+      if(block)newline();
+    }
+    visit(body);
+    return text.replace(/[ \t]*\n[ \t]*/g,'\n').trim();
+  }
+  async function readMindImport(file){
+    if(file.size>MIND_IMPORT_LIMIT)throw Error('2 MB 以下の .mm ファイルを選んでください。');
+    const bytes=new Uint8Array(await file.arrayBuffer());
+    let encoding='utf-8';
+    if((bytes[0]===0xff&&bytes[1]===0xfe)||(bytes[0]===0x3c&&bytes[1]===0))encoding='utf-16le';
+    else if((bytes[0]===0xfe&&bytes[1]===0xff)||(bytes[0]===0&&bytes[1]===0x3c))encoding='utf-16be';
+    else{
+      const header=new TextDecoder().decode(bytes.subarray(0,256));
+      encoding=header.match(/^<\?xml\s[^?]*?\bencoding\s*=\s*(['"])([\w-]+)\1/i)?.[2]||encoding;
+    }
+    let source;
+    try{source=new TextDecoder(encoding,{fatal:true}).decode(bytes)}
+    catch{throw Error('ファイルの文字コードを読み取れませんでした。')}
+    if(/<!(?:DOCTYPE|ENTITY)\s/i.test(source))throw Error('外部定義や独自の文字実体を含む .mm ファイルには対応していません。');
+    const xml=new DOMParser().parseFromString(source,'application/xml');
+    const map=xml.documentElement;
+    const roots=[...map.children].filter(child=>child.localName==='node');
+    if(map.localName!=='map'||xml.getElementsByTagName('parsererror').length||roots.length!==1){
+      throw Error('中心トピックが1つある FreeMind 形式の .mm ファイルを選んでください。');
+    }
+    const sourceIds=new Set([...map.querySelectorAll('node[ID]')].map(node=>node.getAttribute('ID')));
+    const seen=new Set();
+    let levels=0,omitted=false;
+    function visit(element,depth){
+      if(seen.size>=MIND_TOPIC_LIMIT)throw Error('1シートに取り込めるトピックは'+MIND_TOPIC_LIMIT+'件までです。');
+      if(depth>MIND_DEPTH_LIMIT)throw Error('中心を含めて'+(MIND_DEPTH_LIMIT+1)+'階層まで取り込めます。');
+      levels=Math.max(levels,depth+1);
+      const topic=newMindTopic(),id=element.getAttribute('ID');
+      if(id){
+        if(seen.has(id))throw Error('同じIDを持つトピックが複数あります。');
+        topic.id=id;
+      }else{
+        while(sourceIds.has(topic.id)||seen.has(topic.id))topic.id=uid('idea');
+      }
+      seen.add(topic.id);
+      const rich={};
+      for(const child of element.children){
+        if(child.localName==='node')topic.children.push(visit(child,depth+1));
+        else if(child.localName==='richcontent'){
+          const type=child.getAttribute('TYPE');
+          if(type==='NODE'||type==='NOTE')rich[type]=mindRichText(child);
+          omitted=true;
+        }else omitted=true;
+      }
+      topic.text=cleanText(element.getAttribute('TEXT')??rich.NODE);
+      topic.note=rich.NOTE||'';
+      topic.folded=/^(true|1)$/i.test(element.getAttribute('FOLDED')||'');
+      const shape=element.getAttribute('STYLE')?.toLowerCase();
+      if((shape&&shape!=='bubble'&&shape!=='fork')||element.hasAttribute('COLOR')||element.hasAttribute('BACKGROUND_COLOR'))omitted=true;
+      copyMindImportFields(topic,{side:element.getAttribute('POSITION')?.toLowerCase(),shape,link:element.getAttribute('LINK')});
+      return topic;
+    }
+    const root=visit(roots[0],0);
+    const fallback=file.name.replace(/\.(?:mm|xml)$/i,'').trim()||'マインドマップ';
+    const title=(root.text.trim()||fallback).replace(/\s+/g,' ').slice(0,96);
+    return {root,title,count:seen.size,levels,omitted};
+  }
+  function showMindImportStatus(message='',error=false){
+    const status=$('mindImportStatus');status.textContent=message;
+    status.toggleAttribute('data-error',error);
+    $('mindImportPreview').hidden=!mindImportDraft;
+    $('mindImportCommit').disabled=!mindImportDraft;
+  }
+  function clearMindImport(){
+    mindImportSequence++;
+    mindImportDraft=null;
+    mindImportFile.value='';
+    showMindImportStatus();
+  }
+  $('importMindSheet').onclick=()=>{
+    $('sheetTypeDialog').close();
+    clearMindImport();
+    mindImportDialog.showModal();
+  };
+  $('mindImportCancel').onclick=()=>mindImportDialog.close();
+  mindImportDialog.addEventListener('close',()=>{if(!mindImportDialog.open)clearMindImport()});
+  mindImportFile.onchange=async()=>{
+    const sequence=++mindImportSequence;
+    const file=mindImportFile.files[0];
+    mindImportDraft=null;
+    showMindImportStatus(file?'ファイルを読み込んでいます…':'');
+    if(!file)return;
+    try{
+      const draft=await readMindImport(file);
+      if(sequence!==mindImportSequence||!mindImportDialog.open)return;
+      mindImportDraft=draft;
+      $('mindImportSummary').textContent=draft.title+'（'+draft.count+'トピック・'+draft.levels+'階層）';
+      const list=$('mindImportBranches');list.replaceChildren();
+      for(const branch of draft.root.children.slice(0,8))list.append(el('li','',mindLabel(branch)));
+      const remaining=draft.root.children.length-8;
+      if(remaining>0)list.append(el('li','','ほか '+remaining+' 本'));
+      list.hidden=!draft.root.children.length;
+      const notice=$('mindImportNotice');
+      notice.hidden=!draft.omitted;
+      notice.textContent='装飾付きの文字とメモはテキストとして取り込みます。独自の装飾・画像・枝間の追加リンクは省略します。';
+      showMindImportStatus('既存のシートを保持して、新しいシートに追加します。');
+    }catch(error){
+      if(sequence!==mindImportSequence||!mindImportDialog.open)return;
+      mindImportDraft=null;
+      showMindImportStatus(error.message||'ファイルを読み込めませんでした。',true);
+    }
+  };
+  $('mindImportForm').onsubmit=event=>{
+    event.preventDefault();
+    if(!mindImportDialog.open||!mindImportDraft)return;
+    if(state.sheets.length>=100){showMindImportStatus('シートは100枚までです。',true);return}
+    const {root,title}=mindImportDraft;
+    const names=new Set(state.sheets.map(sheet=>sheet.name));
+    let name=title,suffix=2;
+    while(names.has(name))name=title+' '+suffix++;
+    mindImportDialog.close();closeAI();
+    appendSheet({id:uid('sheet'),name,stages:[],mindMap:root});
+    fitMindMap(true);
+    $('sheetTabs').querySelector('[aria-selected="true"]')?.focus({preventScroll:true});
+  };
+
   function currentMindSheet(){
     return state.sheets.find(sheet=>sheet.id===state.activeSheetId&&sheet.mindMap);
   }
@@ -1941,6 +2148,7 @@ ${outlineOf(sh.stages)}
   function mindCard(node,root,color){
     const card=el('div','mind-node'+(root?' root':''));
     card.dataset.mindId=node.id;
+    if(node.shape)card.dataset.shape=node.shape;
     card.tabIndex=-1;
     card.setAttribute('role','group');
     card.setAttribute('aria-label',mindLabel(node));
@@ -1981,8 +2189,9 @@ ${outlineOf(sh.stages)}
       if(event.target===input&&(event.pointerType!=='mouse'||document.activeElement===input))return;
       startMindDrag(event,node,card,event.target===input);
     });
-    if(node.note.trim()){
-      card.append(btn('mind-note-chip','このトピックのメモを開く','メモを読む',()=>{
+    if(node.note.trim()||node.link){
+      const label=node.note.trim()?'メモを読む':'リンクを見る';
+      card.append(btn('mind-note-chip','このトピックのメモを開く',label,()=>{
         chooseMindTopic(node);openMindNote();
       }));
     }
@@ -2031,7 +2240,7 @@ ${outlineOf(sh.stages)}
     }
     const left=el('div','mind-children'),right=el('div','mind-children');
     if(!root.folded)root.children.forEach((child,index)=>{
-      const onLeft=!mindNarrow.matches&&index%2===1;
+      const onLeft=child.side?child.side==='left':!mindNarrow.matches&&index%2===1;
       (onLeft?left:right).append(branch(child,rootCard,onLeft?'left':'right',mindColors[index%mindColors.length]));
     });
     board.append(lines);
@@ -2055,7 +2264,7 @@ ${outlineOf(sh.stages)}
   }
   function drawMindLines(){
     if(!mindLayout)return;
-    const {board,lines,links}=mindLayout;
+    const {board,lines,links,root}=mindLayout;
     const bounds=board.getBoundingClientRect();
     const fragment=document.createDocumentFragment();
     for(const {parent,card,color} of links){
@@ -2065,8 +2274,10 @@ ${outlineOf(sh.stages)}
       const vertical=Math.abs(dx)<(a.width+b.width)/2&&Math.abs(dy)>=(a.height+b.height)/2;
       const x1=((vertical?ac.x:dx<0?a.left:a.right)-bounds.left)/zoom;
       const x2=((vertical?bc.x:dx<0?b.right:b.left)-bounds.left)/zoom;
-      const y1=((vertical?(dy<0?a.top:a.bottom):ac.y)-bounds.top)/zoom;
-      const y2=((vertical?(dy<0?b.bottom:b.top):bc.y)-bounds.top)/zoom;
+      const parentY=parent!==root&&parent.dataset.shape==='fork'?a.bottom:ac.y;
+      const childY=card.dataset.shape==='fork'?b.bottom:bc.y;
+      const y1=((vertical?(dy<0?a.top:a.bottom):parentY)-bounds.top)/zoom;
+      const y2=((vertical?(dy<0?b.bottom:b.top):childY)-bounds.top)/zoom;
       const midX=(x1+x2)/2,midY=(y1+y2)/2;
       const line=document.createElementNS(svgNS,'path');
       const bend=vertical?`${x1} ${midY} ${x2} ${midY}`:`${midX} ${y1} ${midX} ${y2}`;
@@ -2085,6 +2296,7 @@ ${outlineOf(sh.stages)}
     if(rows.length>=MIND_TOPIC_LIMIT||depth>MIND_DEPTH_LIMIT){notify('これ以上は別のシートに分けてください');return}
     const parent=beside||selected.node;
     const topic=newMindTopic();
+    if(beside&&selected.node.side)topic.side=selected.node.side;
     if(mindLayout?.points)topic.position=placeNewMindTopic(selected.node,parent,!!beside);
     const index=beside?parent.children.indexOf(selected.node)+1:parent.children.length;
     change(()=>{parent.folded=false;parent.children.splice(index,0,topic);mindSelected=topic.id});
@@ -2100,6 +2312,13 @@ ${outlineOf(sh.stages)}
     mindNoteTarget=row.node;
     $('mindNoteTitle').textContent=mindLabel(row.node);
     $('mindNoteInput').value=row.node.note;
+    const link=$('mindNoteLink');link.replaceChildren();link.hidden=!row.node.link;
+    if(row.node.link){
+      const href=publicMindUrl(row.node.link);
+      if(href){
+        const a=el('a','',row.node.link);a.href=href;a.target='_blank';a.rel='noopener noreferrer';link.append(a);
+      }else link.textContent=row.node.link;
+    }
     $('mindNoteDialog').showModal();
   }
   $('mindNoteOpen').onclick=openMindNote;
@@ -2128,7 +2347,7 @@ ${outlineOf(sh.stages)}
   function renderMindReview(){
     const query=$('mindSearch').value.trim().normalize('NFKC').toLocaleLowerCase();
     const rows=mindTopics(currentMindSheet()?.mindMap).filter(({node})=>
-      (node.text+'\n'+node.note).normalize('NFKC').toLocaleLowerCase().includes(query));
+      (node.text+'\n'+node.note+'\n'+(node.link||'')).normalize('NFKC').toLocaleLowerCase().includes(query));
     const list=$('mindReviewList');list.replaceChildren();
     if(!rows.length)list.append(el('p','settings-label','該当するトピックはありません'));
     for(const row of rows){
@@ -2148,15 +2367,19 @@ ${outlineOf(sh.stages)}
   $('mindSearch').oninput=renderMindReview;
   $('mindReviewClose').onclick=()=>$('mindReviewDialog').close();
   $('mindAdd').onclick=()=>addMindTopic();
-  $('mindFit').onclick=()=>{
+  $('mindFit').onclick=()=>fitMindMap();
+  function fitMindMap(keepLabelsReadable=false){
     if(!mindLayout)return;
     const boxes=[...mindLayout.board.querySelectorAll('.mind-node,.mind-fold')];
     const before=elementBounds(boxes);
     const fitting=Math.min(1,(canvas.clientWidth-48)/(before.width/zoom),(canvas.clientHeight-48)/(before.height/zoom));
-    applyZoom(Math.floor(fitting*100)/100,null,true);
+    const scale=Math.floor(fitting*100)/100;
+    const centerRoot=keepLabelsReadable&&scale<.8;
+    applyZoom(centerRoot ? .8 : scale,null,true);
     drawMindLines();
-    centerMindRect(elementBounds(boxes));
-  };
+    if(centerRoot)centerMindElement(mindLayout.root);
+    else centerMindRect(elementBounds(boxes));
+  }
   function mindMoveChoices(selected){
     const subDepth=Math.max(...mindTopics(selected.node).map(row=>row.ancestors.length));
     return mindTopics(currentMindSheet()?.mindMap).filter(row=>
@@ -2213,7 +2436,7 @@ ${outlineOf(sh.stages)}
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='y'&&!e.target.closest('textarea,input')){e.preventDefault();redo();return;}
     if(e.key==='Escape'){closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('stageContext')?.remove()}
   });
-  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog'])$(id).close();emphasisEditing=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
+  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','mindImportDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog'])$(id).close();emphasisEditing=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
   try{processZoom=Number(localStorage.getItem(ZOOM_KEY))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v054'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v053'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v052'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v051'))||1}catch{}
   renderPalette();render();if(!currentMindSheet())applyZoom(processZoom);
 })();

@@ -448,11 +448,132 @@ async function addMindSheet(page){
 const mindTitle=(page,title)=>page.getByRole('group',{name:title,exact:true}).locator('.mind-title');
 const mindRoot=page=>page.getByRole('textbox',{name:'中心テーマ',exact:true});
 const activeMindTitle=page=>page.locator('.mind-title:focus');
+const mindStoragePrefix='__processmap_mindmaps_v1__:';
 const readMindMaps=doc=>{
-  const prefix='__processmap_mindmaps_v1__:';
-  const entry=doc.processedKeys.find(key=>key.startsWith(prefix));
-  return entry?JSON.parse(entry.slice(prefix.length)).maps:[];
+  const entry=doc.processedKeys.find(key=>key.startsWith(mindStoragePrefix));
+  return entry?JSON.parse(entry.slice(mindStoragePrefix.length)).maps:[];
 };
+
+const sampleMindXml=`<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0.1">
+  <node ID="ID_ROOT" TEXT="展示の計画 &amp; メモ">
+    <node ID="ID_RIGHT" TEXT="準備 " POSITION="right" STYLE="bubble">
+      <node ID="ID_CHILD" TEXT="会場&amp;機材" STYLE="fork" LINK="https://example.test/check">
+        <richcontent TYPE="NOTE"><html><body><p>確認事項</p><p>備品<br/>持ち物</p><script>window.importScriptRan=true</script></body></html></richcontent>
+        <node ID="ID_FOLDED" TEXT="見積もり" FOLDED="true">
+          <node ID="ID_EMPTY" TEXT="" STYLE="fork" LINK="javascript:window.importScriptRan=true"/>
+        </node>
+      </node>
+    </node>
+    <node ID="ID_LEFT" POSITION="left" STYLE="bubble">
+      <richcontent TYPE="NODE"><html><body><p>公開日</p></body></html></richcontent>
+    </node>
+  </node>
+</map>`;
+async function openMindImport(page){
+  await page.locator('#addSheet').click();
+  await page.locator('#importMindSheet').click();
+}
+function chooseMindFile(page,buffer){
+  return page.locator('#mindImportFile').setInputFiles({name:'sample.mm',mimeType:'application/x-freemind',buffer:Buffer.from(buffer)});
+}
+
+await test('[マインドマップ][.mm][同期] 階層・順番・折りたたみ・メモ・左右・外観を引き継ぐ',async browser=>{
+  const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});
+  const {page:a}=await newPage(browser,{mock,user:USER});
+  const {page:b}=await newPage(browser,{mobile:true,mock,user:USER});
+  await waitStatus(a,'保存済み');await waitStatus(b,'保存済み');
+  const original=(await state(a)).sheets;
+  await openMindImport(a);
+  await chooseMindFile(a,sampleMindXml);
+  await a.getByText('展示の計画 & メモ（6トピック・5階層）',{exact:true}).waitFor();
+  assert.deepEqual((await state(a)).sheets,original);
+  assert.equal(await a.locator('#mindImportNotice').isVisible(),true);
+  await a.locator('#mindImportCommit').click();
+  await waitStatus(a,'保存済み');
+  const imported=await state(a), [{root}]=readMindMaps(imported);
+  assert.deepEqual(imported.sheets,original);
+  assert.equal(root.id,'ID_ROOT');
+  assert.deepEqual(root.children.map(({id,text,side,shape})=>({id,text,side,shape})),[
+    {id:'ID_RIGHT',text:'準備 ',side:'right',shape:'bubble'},
+    {id:'ID_LEFT',text:'公開日',side:'left',shape:'bubble'},
+  ]);
+  const child=root.children[0].children[0];
+  assert.equal(child.text,'会場&機材');
+  assert.equal(child.shape,'fork');
+  assert.equal(child.note,'確認事項\n備品\n持ち物');
+  assert.equal(child.children[0].folded,true);
+  assert.equal(child.children[0].children[0].text,'');
+  assert.equal(await a.locator('[data-mind-id="ID_EMPTY"]').count(),0);
+  const childCard=a.locator('[data-mind-id="ID_CHILD"]');
+  assert.equal(await childCard.getAttribute('data-shape'),'fork');
+  await childCard.locator('.mind-note-chip').click();
+  assert.equal(await a.locator('#mindNoteLink a').getAttribute('href'),'https://example.test/check');
+  assert.equal(await a.locator('#mindNoteInput').inputValue(),child.note);
+  await a.locator('#mindNoteCancel').click();
+  await a.locator('[data-mind-id="ID_FOLDED"] .mind-fold').click();
+  await a.locator('[data-mind-id="ID_EMPTY"] .mind-note-chip').click();
+  assert.equal(await a.locator('#mindNoteLink a').count(),0);
+  assert.equal(await a.locator('#mindNoteLink').textContent(),'javascript:window.importScriptRan=true');
+  assert.equal(await a.evaluate(()=>window.importScriptRan),undefined);
+  await a.locator('#mindNoteCancel').click();
+  await waitStatus(a,'保存済み');
+  const saved=readMindMaps(await state(a));
+  await a.reload();
+  await mindRoot(a).waitFor();
+  assert.deepEqual(readMindMaps(await state(a)),saved);
+  await b.getByRole('tab',{name:/展示の計画/}).tap();
+  assert.deepEqual(readMindMaps(await state(b)),saved);
+  assert.equal(await b.locator('[data-mind-id="ID_LEFT"]').getAttribute('data-left'),'');
+  assert.equal(await b.locator('[data-mind-id="ID_RIGHT"]').getAttribute('data-left'),null);
+  // Earlier clients rewrite the node tree without the three new optional fields.
+  const olderDocument=await state(a);
+  const index=olderDocument.processedKeys.findIndex(key=>key.startsWith(mindStoragePrefix));
+  const written=JSON.parse(olderDocument.processedKeys[index].slice(mindStoragePrefix.length));
+  const pending=written.maps.map(map=>map.root);
+  while(pending.length){
+    const node=pending.pop();
+    delete node.side;
+    delete node.shape;
+    delete node.link;
+    pending.push(...node.children);
+  }
+  olderDocument.processedKeys[index]=mindStoragePrefix+JSON.stringify(written);
+  await a.evaluate(document=>pmApp.set(document),olderDocument);
+  assert.deepEqual(readMindMaps(await state(a)),saved);
+  assert.deepEqual([...a.errors,...b.errors],[]);
+});
+
+await test('[マインドマップ][.mm][SP] 読み込めない形式と上限を案内し、確定までは追加しない',async browser=>{
+  const {page}=await newPage(browser,{mobile:true});
+  const original=await state(page);
+  await openMindImport(page);
+  const invalidFiles=[
+    {xml:'<map><node TEXT="未終了">',message:'中心トピックが1つある'},
+    {xml:'<map><node/><node/></map>',message:'中心トピックが1つある'},
+    {xml:'<!DOCTYPE map SYSTEM "https://example.test/sample.dtd"><map><node/></map>',message:'外部定義'},
+    {xml:'<map>'+('<node>'.repeat(34))+('</node>'.repeat(34))+'</map>',message:'33階層まで'},
+    {xml:'<map><node>'+('<node/>'.repeat(500))+'</node></map>',message:'500件まで'},
+  ];
+  for(const {xml,message} of invalidFiles){
+    await chooseMindFile(page,xml);
+    await page.locator('#mindImportStatus[data-error]').filter({hasText:message}).waitFor();
+    assert.equal(await page.locator('#mindImportCommit').isDisabled(),true);
+    assert.deepEqual(await state(page),original);
+  }
+  const utf16=Buffer.concat([Buffer.from([0xff,0xfe]),Buffer.from('<map><node TEXT="スマホで取り込む"/></map>','utf16le')]);
+  await chooseMindFile(page,utf16);
+  await page.getByText('スマホで取り込む（1トピック・1階層）',{exact:true}).waitFor();
+  await page.locator('#mindImportCancel').tap();
+  assert.deepEqual(await state(page),original);
+  await openMindImport(page);
+  assert.equal(await page.locator('#mindImportCommit').isDisabled(),true);
+  await chooseMindFile(page,utf16);
+  await page.getByText('スマホで取り込む（1トピック・1階層）',{exact:true}).waitFor();
+  await page.locator('#mindImportCommit').tap();
+  assert.equal(await mindRoot(page).inputValue(),'スマホで取り込む');
+  assert.deepEqual(page.errors,[]);
+});
 
 await test('[マインドマップ][PC] Tab/Enter・IME・深い枝・折りたたみからメモ検索',async browser=>{
   const {page}=await newPage(browser);
