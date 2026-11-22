@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0e131b">
   <title>ProcessMap</title>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <style>
     :root { --bg:#0e131b;--card-bg:#202c3a;--card-fg:#edf0f4;--sub-card-fg:#bfcbdc;--grand-card-fg:#bfcbdc;--canvas-fg:#a9b7c9;--node-muted:#8fa2be;--rail:#6d829f4c;--dots:#a5bbd50a;--txt:#edf0f4;--soft:#a9b7c9;--dim:#74839a;--line:#38485c;--accent:#86a9df;--stagew:296px;--gap:70px; }
     * { box-sizing:border-box; }
@@ -339,6 +339,7 @@
             <div class="account-details"><span class="menu-label">アカウント</span><span id="accountInfo">未ログイン</span></div>
             <button id="loginOpen">ログイン</button>
             <button id="logout" hidden>ログアウト</button>
+            <button id="aiConnectionOpen" type="button">AIの読み取り連携</button>
             <div class="sync-details"><span class="menu-label">保存・同期</span><span id="syncStatus" role="status" aria-live="polite">端末内に保存</span></div>
           </section>
           <hr>
@@ -411,6 +412,18 @@
   </div>
 </div>
 <dialog id="authDialog"><form id="authForm"><h3>ログイン・新規登録</h3><p>同じメールアドレスでPCとスマホを同期します。</p><input id="email" type="email" autocomplete="email" placeholder="メールアドレス" required><input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="パスワード（8文字以上）" required><button type="submit">ログイン</button><button type="button" id="signup">新規登録</button><p>初回登録後は確認メールのリンクをコピーし、下の欄に貼り付けてください。</p><input id="confirmationLink" type="url" placeholder="確認メールのリンク"><button type="button" id="verifyEmail">メール認証を完了</button><button type="button" id="authClose">閉じる</button><p id="authError" role="status"></p></form></dialog>
+<dialog id="aiConnectionDialog" aria-labelledby="aiConnectionTitle">
+  <h3 id="aiConnectionTitle">AIの読み取り連携</h3>
+  <p id="aiConnectionStatus" role="status"></p>
+  <p id="aiConnectionScope" hidden>工程表のタスク名・階層・完了状況・締切・優先度の読み取りを許可します。</p>
+  <div id="aiConnectionGrants"></div>
+  <div class="settings-actions">
+    <button id="aiConnectionLogin" type="button" hidden>ログイン</button>
+    <button id="aiConnectionApprove" type="button" hidden>読み取りを許可</button>
+    <button id="aiConnectionDeny" type="button" hidden>拒否する</button>
+    <button id="aiConnectionClose" type="button">閉じる</button>
+  </div>
+</dialog>
 <dialog id="conflictDialog"><h3>保存内容が競合しています</h3><p>両方のJSONを保存してから、採用する内容を選べます。上書き前に両方を端末内にも退避します。</p><button id="exportLocal">この端末をJSON保存</button><button id="exportRemote">サーバーをJSON保存</button><button id="keepLocal">この端末を採用</button><button id="keepRemote">サーバーを採用</button></dialog>
 <dialog id="emphasisDialog"><form id="emphasisForm"><h3>枠線で強調</h3><p id="emphasisTarget" class="settings-label"></p><label class="settings-row">太さ（px）<input id="emphasisWidth" type="number" min="0" max="32" step="any" required></label><label class="settings-row">色<input id="emphasisColor" type="color"><input id="emphasisHex" type="text" pattern="#[0-9a-fA-F]{6}" aria-label="枠線の色コード" required></label><div id="emphasisPreview">プレビュー</div><div class="settings-actions"><button type="submit">保存</button><button id="emphasisClear" type="button">強調を解除</button><button id="emphasisCancel" type="button">キャンセル</button></div></form></dialog>
 <dialog id="planDialog"><form id="planForm"><h3>AIで段取りを作る</h3>
@@ -2623,5 +2636,5 @@ ${outlineOf(sh.stages)}
   renderPalette();render();if(!currentMindSheet())applyZoom(processZoom);
 })();
 </script>
-<script src="config.js"></script><script src="sync.js"></script></body>
+<script src="/config.js"></script><script src="/sync.js"></script><script src="/oauth-consent.js"></script></body>
 </html>
