@@ -327,13 +327,17 @@ await test('[秘書] 状況に応じて次の指示が変わる（締切→見�
   await page.click('#secAction');await page.waitForTimeout(400);assert.ok(await page.evaluate(()=>document.querySelector('.selected')!==null),'このタスクへ で移動しません')});
 
 await test('[秘書] 思いついた→あとで箱→見直しで仕分け（あったら良い・捨てる）',async b=>{const {page}=await newPage(b);await setDeadline(page,plusDays(60));
-  await page.click('#captureOpen');await page.fill('#captureText','BGMを入れる');await page.keyboard.press('Enter');await page.fill('#captureText','やっぱり不要なもの');await page.keyboard.press('Enter');
-  assert.equal(await page.textContent('#inboxCount'),'2');await page.click('#captureClose');
+  await page.click('#captureOpen');await page.fill('#captureText','BGMを入れる');await page.keyboard.press('Control+Enter');
+  await page.fill('#captureText','やっぱり不要なもの');await page.keyboard.press('Control+Enter');
+  await page.fill('#captureText','他のシート用のメモ');await page.keyboard.press('Control+Enter');
+  assert.equal(await page.textContent('#inboxCount'),'3');await page.click('#captureClose');
   await page.click('#menuTrigger');await page.click('[data-menu="review"]');await page.click('#reviewNext');
   const rows=page.locator('#reviewBody .review-row');await rows.nth(0).locator('select').nth(0).selectOption('s2');await rows.nth(0).locator('select').nth(1).selectOption('nice');await rows.nth(1).locator('select').nth(0).selectOption('drop');
   await page.click('#reviewNext');await page.click('#reviewNext');await page.click('#reviewNext');
   const s=await state(page),sh=s.sheets.find(x=>x.id===s.activeSheetId),added=s.stages[1].tasks.find(t=>t.text==='BGMを入れる');
-  assert.ok(added&&added.nice&&added.changes[0].t==='added','あったら良いとして追加されません');assert.equal(sh.inbox.length,0);assert.ok(!JSON.stringify(s.sheets.map(x=>x.stages)).includes('やっぱり不要'),'捨てた項目がタスクになっています');assert.ok(sh.revisions[0].lines.some(l=>l.includes('捨てた：やっぱり不要')));
+  assert.ok(added&&added.nice&&added.changes[0].t==='added','あったら良いとして追加されません');assert.equal(await page.textContent('#inboxCount'),'1');
+  assert.ok(!JSON.stringify(s.sheets.map(x=>x.stages)).includes('やっぱり不要'),'捨てた項目がタスクになっています');assert.ok(sh.revisions[0].lines.some(l=>l.includes('捨てた：やっぱり不要')));
+  await page.click('#captureOpen');assert.deepEqual(await page.locator('#inboxList .inbox-text').allTextContents(),['他のシート用のメモ']);await page.click('#captureClose');
   assert.equal(await page.locator('[data-task-node="'+added.id+'"] .chg-chip.added').count(),1,'新規のハイライトが出ません');
   await page.locator('[data-task-node="'+added.id+'"] .chg-chip').click();assert.equal((await state(page)).stages[1].tasks.find(t=>t.id===added.id).changes.length,0,'ハイライトを確認済みにできません')});
 
@@ -373,12 +377,18 @@ ${'---工程表---'}
 - デザインを整える #s3
 `;
 await test('[秘書] AIに相談：相談文にIDと完了印、返答を差分で反映（完了は不変・保持）',async b=>{const {page,ctx}=await newPage(b);await setDeadline(page,plusDays(60));
+  await page.click('#captureOpen');await page.fill('#captureText','共通メモの1行目\n2行目');await page.click('#captureForm button[type=submit]');await page.click('#captureClose');
   await ctx.grantPermissions(['clipboard-read','clipboard-write']);
   await page.click('#menuTrigger');await page.click('[data-menu="consult"]');await page.locator('#consultChips button').first().click();await page.click('#consultCopy');
   const prompt=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(prompt.includes('#t1')&&prompt.includes('[x] 参考になるデザインを集める')&&prompt.includes('---工程表---')&&prompt.includes('締切：'),'相談文に必要な情報がありません');
+  assert.ok(!prompt.includes('共通メモの1行目'));assert.equal(await page.locator('#consultInboxRow').isVisible(),false);
+  await page.check('#consultIncludeInbox');await page.click('#consultCopy');
+  assert.match(await page.evaluate(()=>navigator.clipboard.readText()),/共通メモの1行目\n  2行目/);
+  assert.equal(await page.locator('#consultClearInbox').isChecked(),false);
   await page.fill('#consultReply',AI_REPLY());await page.waitForSelector('#consultPreview .diff-row');
   const pv=await page.textContent('#consultPreview');assert.ok(pv.includes('追加 1')&&pv.includes('削除 1')&&pv.includes('名称変更 1'),'プレビュー：'+pv);
   await page.click('#consultCommit');const s=await state(page);const st0=s.stages[0];
+  assert.equal(await page.textContent('#inboxCount'),'1');
   const t1=st0.tasks.find(t=>t.id==='t1');assert.equal(t1.text,'参考になるデザインを集める','完了済みの名前が変わりました');assert.equal(t1.done,true);
   assert.ok(st0.tasks.some(t=>t.id==='t3')===false,'未完了で外れたt3が残っています');
   assert.equal(st0.due,'2027-01-31');assert.ok(st0.changes.some(c=>c.t==='due'));
@@ -413,6 +423,34 @@ await test('[秘書][SP] スマホで秘書バー・困ったとき・思いつ�
   await page.locator('#secToggle').tap();await page.locator('.help-item summary').first().tap();await page.locator('.help-item[open] button').first().tap();
   assert.ok(await page.locator('#captureDialog[open]').count()===1,'困ったとき→あとで箱が開きません');await page.fill('#captureText','スマホで思いついた');await page.locator('#captureForm button[type=submit]').tap();
   assert.equal(await page.textContent('#inboxCount'),'1')});
+
+await test('[思いついた] 既存メモを引き継ぎ、工程表とマインドマップで改行入りのメモを共有',async b=>{
+  const prior=doc();
+  prior.sheets=[
+    {id:'old-one',name:'工程表A',stages:prior.stages,inbox:[{id:'a',text:'元のメモA',at:'2026-11-19'}]},
+    {id:'old-two',name:'工程表B',stages:[],inbox:[{id:'b',text:'元のメモB',at:'2026-11-20'}]},
+  ];
+  const {page}=await newPage(b,{storage:[['processmap_guest_v1',JSON.stringify(prior)]]});
+  assert.equal(await page.textContent('#inboxCount'),'2');
+  await addMindSheet(page);
+  await page.click('#captureOpen');
+  const input=page.locator('#captureText'),notes=page.locator('#inboxList .inbox-text');
+  assert.deepEqual(await notes.allTextContents(),['元のメモB','元のメモA']);
+  await input.fill('1行目');await input.press('Enter');await input.press('Alt+Enter');
+  await page.keyboard.insertText('3行目');
+  assert.equal(await input.inputValue(),'1行目\n\n3行目');
+  assert.equal(await notes.count(),2);
+  await input.press('Control+Enter');
+  assert.deepEqual(await notes.allTextContents(),['1行目\n\n3行目','元のメモB','元のメモA']);
+  assert.equal(await notes.first().evaluate(node=>getComputedStyle(node).whiteSpace),'pre-wrap');
+  await page.click('#captureClose');await page.getByRole('tab',{name:/工程表B/}).click();
+  await page.reload();await page.click('#menuTrigger');await page.click('[data-menu="inbox"]');
+  assert.deepEqual(await notes.allTextContents(),['1行目\n\n3行目','元のメモB','元のメモA']);
+  await page.locator('#inboxList .inbox-row').filter({hasText:'元のメモB'}).getByRole('button',{name:'削除'}).click();
+  await page.click('#captureClose');await page.getByRole('tab',{name:/工程表A/}).click();await page.click('#captureOpen');
+  assert.deepEqual(await notes.allTextContents(),['1行目\n\n3行目','元のメモA']);
+  assert.deepEqual(page.errors,[]);
+});
 
 // ---------- AI連携の同意（モック） ----------
 await test('[AI連携] 本人の同意と正しい戻り先を確認してから許可',async browser=>{
@@ -555,11 +593,19 @@ await test('[同期] 期日・メモがサーバーに保存され別端末で�
 
 await test('[同期] あとで箱・締切・今週★が別端末に同期される',async b=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});const A=await newPage(b,{mock,user:USER});await waitStatus(A.page,'保存済み');
-  await A.page.click('#captureOpen');await A.page.fill('#captureText','同期テスト');await A.page.keyboard.press('Enter');await A.page.click('#captureClose');
+  await A.page.click('#captureOpen');await A.page.fill('#captureText','同期テスト\n2行目');await A.page.keyboard.press('Control+Enter');await A.page.click('#captureClose');
   await A.page.click('#sheetOptions');await A.page.fill('#sheetDeadline','2027-02-01');await A.page.click('#sheetForm button[type=submit]');
   await menu(A.page,'t1','star');await waitStatus(A.page,'保存済み');await A.page.waitForTimeout(1500);
-  const B=await newPage(b,{mock,user:USER});await waitStatus(B.page,'保存済み');const s=await state(B.page),sh=s.sheets.find(x=>x.id===s.activeSheetId);
-  assert.equal(sh.inbox[0].text,'同期テスト');assert.equal(sh.goal.deadline,'2027-02-01');assert.equal(s.stages[0].tasks[0].star,true)});
+  const B=await newPage(b,{mobile:true,mock,user:USER});await waitStatus(B.page,'保存済み');const s=await state(B.page),sh=s.sheets.find(x=>x.id===s.activeSheetId);
+  assert.equal(sh.goal.deadline,'2027-02-01');assert.equal(s.stages[0].tasks[0].star,true);
+  await B.page.locator('#captureOpen').tap();
+  assert.deepEqual(await B.page.locator('#inboxList .inbox-text').allTextContents(),['同期テスト\n2行目']);
+  await B.page.fill('#captureText','スマホからのメモ\n2行目');
+  await B.page.locator('#captureForm button[type=submit]').tap();
+  await A.page.waitForFunction(()=>document.getElementById('inboxCount').textContent==='2',null,{timeout:10000});
+  await A.page.click('#captureOpen');
+  assert.deepEqual(await A.page.locator('#inboxList .inbox-text').allTextContents(),['スマホからのメモ\n2行目','同期テスト\n2行目']);
+});
 
 await test('[同期] 再読み込みを繰り返しても端末保存(localStorage)が増え続けない',async b=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:1});const {page}=await newPage(b,{mock,user:USER});await waitStatus(page,'保存済み');

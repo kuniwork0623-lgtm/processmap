@@ -207,7 +207,7 @@
     .help-item button,.sec-panel .mini{border:1px solid #41526a;background:#273850;color:#e3efff;border-radius:7px;font-size:12px;padding:6px 10px;margin:2px}
     .capture-fab{position:fixed;left:14px;bottom:60px;z-index:6;border:1px solid #ffffff1a;background:#1b2635ee;color:#e3efff;border-radius:999px;padding:9px 14px;font-size:13px;box-shadow:0 6px 20px #0004}.capture-fab:hover{background:#243146}
     .inbox-count{margin-left:6px;background:#e9c36b;color:#1b1406;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700}.inbox-count:empty{display:none}
-    .inbox-list{max-height:220px;overflow:auto;margin:6px 0}.inbox-row{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #ffffff0d;font-size:13px}.inbox-row span{flex:1;overflow-wrap:anywhere}.inbox-row .date{flex:0 0 auto;font-size:11px;color:var(--soft)}
+    .inbox-list{max-height:220px;overflow:auto;margin:6px 0}.inbox-row{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #ffffff0d;font-size:13px}.inbox-text{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}.inbox-row .date{flex:0 0 auto;font-size:11px;color:var(--soft)}
     .inbox-row button{min-height:30px;padding:3px 9px;font-size:12px;margin:0}
     #captureDialog,#reviewDialog,#consultDialog,#historyDialog{width:min(94vw,680px)}
     #captureText,#consultRequest,#consultReply{display:block;width:100%;margin:8px 0;padding:10px;border-radius:8px;border:1px solid #425067;background:#101824;color:#e4edf5;font:14px/1.6 inherit;resize:vertical;box-sizing:border-box}#consultReply{min-height:120px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
@@ -215,7 +215,7 @@
     .review-row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid #ffffff0d;font-size:14px}.review-row .grow{flex:1;min-width:0;overflow-wrap:anywhere}.review-row .sub{display:block;font-size:11px;color:var(--soft)}
     .review-row select{background:#101824;color:#e4edf5;border:1px solid #425067;border-radius:7px;padding:6px;font-size:13px;max-width:46%}
     .review-row input[type=checkbox],.check-row input{width:18px;height:18px;flex:0 0 18px;margin:0;accent-color:#86a9df}
-    .check-row{display:flex!important;align-items:center;gap:8px;font-size:13px;margin:6px 0;color:#cfd9e6}
+    .check-row:not([hidden]){display:flex!important;align-items:center;gap:8px;font-size:13px;margin:6px 0;color:#cfd9e6}
     .forecast{border-radius:10px;padding:12px 14px;margin:6px 0 10px;background:#ffffff08;font-size:14px;line-height:1.8}.forecast.late{background:#e8836f1c}.forecast.ok{background:#7fd1a014}
     .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.chip-row button{min-height:32px;padding:5px 10px;font-size:12px;border-radius:999px;margin:0}
     .diff-row{padding:3px 0;font-size:13px}.diff-row .tag{display:inline-block;min-width:70px;font-size:11px;border-radius:5px;padding:1px 6px;margin-right:8px;text-align:center}
@@ -346,7 +346,7 @@
           <button data-process-only data-menu="review">週の見直し（5分）</button>
           <button data-process-only data-menu="consult">AIに相談する</button>
           <button data-process-only data-menu="plan">AIで段取りを作る</button>
-          <button data-process-only data-menu="inbox">あとで箱</button>
+          <button data-menu="inbox">あとで箱</button>
           <button data-process-only data-menu="history">変更履歴</button>
           <hr>
           <button data-process-only data-menu="due">期日が近いタスク</button>
@@ -440,13 +440,21 @@
 <label class="detail-note-label">メモ<textarea id="detailNote" maxlength="5000" placeholder="補足・参考URLなど"></textarea></label><div id="detailLinks" class="detail-links"></div>
 <div class="settings-actions"><button type="submit">保存</button><button id="detailClearDue" type="button">期日を消す</button><button id="detailCancel" type="button">キャンセル</button></div></form></dialog>
 <dialog id="dueDialog"><h3>期日が近いタスク</h3><p class="settings-label">すべてのシートから、未完了で期日のあるタスクを表示します。</p><div id="dueList" class="due-list"></div><div class="settings-actions"><button id="dueClose" type="button">閉じる</button></div></dialog>
-<dialog id="captureDialog"><form id="captureForm"><h3>💡 思いついたこと → あとで箱</h3><p>作業中に見つかったことは、予定に差し込まずにここへ。週の見直しで仕分けます。</p><textarea id="captureText" rows="2" maxlength="1000" placeholder="例：タイトル画面にBGMが要る（Enterで追加・続けて入力できます）"></textarea><div id="inboxList" class="inbox-list"></div><div class="settings-actions"><button type="submit">あとで箱に入れる</button><button type="button" id="captureClose">閉じる</button></div></form></dialog>
+<dialog id="captureDialog" aria-labelledby="captureTitle"><form id="captureForm">
+<h3 id="captureTitle">💡 思いついたこと → あとで箱</h3>
+<p id="captureHint">全シートで共通のメモです。Enterで改行、Ctrl＋Enter（Macは⌘＋Enter）で保存できます。</p>
+<textarea id="captureText" rows="3" maxlength="1000" aria-label="メモ" aria-describedby="captureHint" placeholder="思いついたことを書く"></textarea>
+<div id="inboxList" class="inbox-list"></div>
+<div class="settings-actions"><button type="submit">あとで箱に入れる</button><button type="button" id="captureClose">閉じる</button></div>
+</form></dialog>
 <dialog id="reviewDialog"><form id="reviewForm"><div class="review-head"><h3 id="reviewTitle">週の見直し</h3><span id="reviewStep" class="settings-label"></span></div><p id="reviewLead"></p><div id="reviewBody" class="review-body"></div><div class="settings-actions"><button type="button" id="reviewBack">戻る</button><button type="submit" id="reviewNext">次へ</button><button type="button" id="reviewCancel">あとでやる</button></div></form></dialog>
 <dialog id="consultDialog"><form id="consultForm"><h3>AIに相談する</h3>
 <ol class="plan-steps"><li>相談したいことを選ぶ・書く</li><li>「相談文をコピー」→ AIチャット（いつものチャットでOK）に貼り付けて送信</li><li>AIの返答を全部そのまま下に貼り付け → 変更点を確認して反映</li></ol>
-<div id="consultChips" class="chip-row"></div><textarea id="consultRequest" rows="2" maxlength="1000" placeholder="例：2週間遅れている。間に合うように組み直したい"></textarea><button type="button" id="consultCopy">相談文をコピー</button>
+<div id="consultChips" class="chip-row"></div><textarea id="consultRequest" rows="2" maxlength="1000" placeholder="例：2週間遅れている。間に合うように組み直したい"></textarea>
+<label class="check-row" id="consultIncludeInboxRow" hidden><input type="checkbox" id="consultIncludeInbox"> 全シート共通のあとで箱を相談文に含める</label>
+<button type="button" id="consultCopy">相談文をコピー</button>
 <textarea id="consultReply" spellcheck="false" placeholder="AIの返答をここに貼り付け"></textarea><div id="consultPreview" class="plan-preview" aria-live="polite"></div>
-<label class="check-row"><input type="checkbox" id="consultKeepOpen"> AIの案から外れた未完了タスクも消さずに残す</label><label class="check-row" id="consultInboxRow"><input type="checkbox" id="consultClearInbox" checked> あとで箱を空にする（AIの案に取り込まれたため）</label>
+<label class="check-row"><input type="checkbox" id="consultKeepOpen"> AIの案から外れた未完了タスクも消さずに残す</label><label class="check-row" id="consultInboxRow" hidden><input type="checkbox" id="consultClearInbox"> 相談文に入れたメモをあとで箱から削除する</label>
 <div class="settings-actions"><button type="submit" id="consultCommit" disabled>この内容で反映</button><button type="button" id="consultClose">閉じる</button></div></form></dialog>
 <dialog id="historyDialog"><h3>変更履歴</h3><p class="settings-label">見直しやAIの提案でスケジュールを変えた記録です（新しい順）。</p><div id="historyList" class="due-list"></div><div class="settings-actions"><button type="button" id="historyClose">閉じる</button></div></dialog>
 <dialog id="sheetDialog"><form id="sheetForm"><h3>シートの設定</h3><label>シート名（プロジェクト名）<input id="sheetName" type="text" maxlength="100" required></label><label class="settings-row" id="sheetDeadlineRow">締切<input id="sheetDeadline" type="date"></label><div class="settings-actions"><button type="submit">保存</button><button id="sheetLeft" type="button">左へ移動</button><button id="sheetRight" type="button">右へ移動</button><button id="mindResetLayout" type="button" hidden>自動配置に戻す</button><button id="sheetDelete" type="button">シートを削除</button><button id="sheetCancel" type="button">閉じる</button></div></form></dialog>
@@ -532,6 +540,7 @@
   const MIND_MAPS_KEY='__processmap_mindmaps_v1__:';
   const MIND_IMPORT_KEY='__processmap_mind_import_v1__:';
   const CARD_DISPLAY_KEY='__processmap_card_display_v1__:';
+  const INBOX_KEY='__processmap_inbox_v1__:';
   const MIND_EMPTY_SHEET='sheet_mindmap_placeholder';
   const MIND_TOPIC_LIMIT=500;
   const MIND_DEPTH_LIMIT=32;
@@ -615,7 +624,19 @@
   // Highlights left by an AI schedule update (cleared when the user acknowledges them).
   const CHANGE_TYPES=['added','due','renamed','moved','done','kept','nice'];
   function normChanges(v){if(!Array.isArray(v))return [];return v.filter(c=>c&&CHANGE_TYPES.includes(c.t)).slice(0,6).map(c=>{const o={t:c.t};for(const k of ['from','to'])if(typeof c[k]==='string')o[k]=c[k].slice(0,200);else if(c[k]===null)o[k]=null;return o})}
-  function normInbox(v){if(!Array.isArray(v))return [];return v.filter(x=>x&&typeof x.text==='string'&&x.text.trim()).slice(0,500).map(x=>({id:typeof x.id==='string'&&x.id?x.id.slice(0,60):uid('in'),text:cleanText(x.text).slice(0,1000),at:validDate(x.at)||todayStr()}))}
+  function normInbox(v){if(!Array.isArray(v))return [];return v.filter(x=>x&&typeof x.text==='string'&&x.text.trim()).map(x=>({id:typeof x.id==='string'&&x.id?x.id.slice(0,60):uid('in'),text:cleanText(x.text).slice(0,1000),at:validDate(x.at)||todayStr()}))}
+  function restoreInbox(sheets,keys){
+    const encoded=keys.findLast(key=>key.startsWith(INBOX_KEY));
+    const saved=encoded?JSON.parse(encoded.slice(INBOX_KEY.length)):[];
+    // Keep notes added by older clients that still write to individual sheets.
+    const inbox=normInbox(saved).concat(sheets.flatMap(sheet=>normInbox(sheet.inbox)));
+    const ids=new Set();
+    for(const note of inbox){
+      if(ids.has(note.id))note.id=uid('in');
+      ids.add(note.id);
+    }
+    return inbox.sort((a,b)=>a.at.localeCompare(b.at));
+  }
   function normRevisions(v){if(!Array.isArray(v))return [];return v.filter(r=>r&&typeof r.at==='string').slice(0,30).map(r=>({at:r.at.slice(0,40),request:cleanText(r.request).slice(0,1000),lines:Array.isArray(r.lines)?r.lines.filter(x=>typeof x==='string').slice(0,300).map(x=>x.slice(0,300)):[]}))}
   function todayStr(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   function dueClass(due,done){if(!due||done)return '';if(due<todayStr())return 'overdue';if(due<=todayStr(3))return 'soon';return ''}
@@ -650,7 +671,7 @@
         return {id:id(t.id,'t'),text:cleanText(t.text),done:!!t.done,doneAt:t.done?(validDate(t.doneAt)??''):null,star:!!t.star,nice:!!t.nice,collapsed:!!t.collapsed,due:validDate(t.due),note:cleanText(t.note).slice(0,5000),changes:normChanges(t.changes),width:validCardWidth(t.width,PROCESS_WIDTH_MIN),emphasis:emphasis(t),children:depth?[]:children.map(c=>task(c,1))};
       };
       const inputStages=sheet.id===activeId?raw.stages:sheet.stages;if(inputStages.length>300)throw Error('工程が多すぎます');
-      return {id:sheet.id,name:cleanText(sheet.name||'シート'+(index+1)),revisions:normRevisions(sheet.revisions),inbox:normInbox(sheet.inbox),goal:{deadline:validDate(sheet.goal?.deadline),text:cleanText(sheet.goal?.text).slice(0,300)},lastReview:validDate(sheet.lastReview),stages:inputStages.map(st=>{
+      return {id:sheet.id,name:cleanText(sheet.name||'シート'+(index+1)),revisions:normRevisions(sheet.revisions),goal:{deadline:validDate(sheet.goal?.deadline),text:cleanText(sheet.goal?.text).slice(0,300)},lastReview:validDate(sheet.lastReview),stages:inputStages.map(st=>{
         if(!st||!Array.isArray(st.tasks))throw Error('工程の内容が不正です');
         return {id:id(st.id,'s'),title:cleanText(st.title),done:!!st.done,doneAt:st.done?(validDate(st.doneAt)??''):null,star:!!st.star,nice:!!st.nice,collapsed:!!st.collapsed,due:validDate(st.due),note:cleanText(st.note).slice(0,5000),changes:normChanges(st.changes),width:validCardWidth(st.width,PROCESS_WIDTH_MIN),emphasis:emphasis(st),tasks:st.tasks.map(t=>task(t))};
       })};
@@ -659,7 +680,7 @@
     const appearance={canvas:isColor(raw.appearance?.canvas)?raw.appearance.canvas.toLowerCase():'#0e131b',task:isColor(raw.appearance?.task)?raw.appearance.task.toLowerCase():'#202c3a'};
     const workbook=restoreMindSheets(sheets,activeId,keys);
     restoreCardDisplay(workbook.sheets,keys);
-    const result={schemaVersion:7,appearance,processedKeys:keys.filter(k=>![WORKBOOK_KEY,MIND_MAPS_KEY,MIND_IMPORT_KEY,CARD_DISPLAY_KEY].some(prefix=>k.startsWith(prefix))),...workbook};
+    const result={schemaVersion:7,appearance,inbox:restoreInbox(source,keys),processedKeys:keys.filter(k=>![WORKBOOK_KEY,MIND_MAPS_KEY,MIND_IMPORT_KEY,CARD_DISPLAY_KEY,INBOX_KEY].some(prefix=>k.startsWith(prefix))),...workbook};
     syncParents(result);return result;
   }
   function syncWorkbook(data){
@@ -668,6 +689,7 @@
   }
   function documentForStorage(){
     syncWorkbook(state);
+    const {inbox,...document}=state;
     const sheets=[],maps=[];
     for(const [position,sheet] of state.sheets.entries()){
       if(sheet.mindMap)maps.push({id:sheet.id,name:sheet.name,position,root:sheet.mindMap});
@@ -697,7 +719,8 @@
     }
     const display=cardDisplayForStorage(state.sheets);
     if(display.length)processedKeys.push(CARD_DISPLAY_KEY+JSON.stringify(display));
-    return {...state,processedKeys,sheets,activeSheetId:processSheet.id,stages:processSheet.stages};
+    if(inbox.length)processedKeys.push(INBOX_KEY+JSON.stringify(inbox));
+    return {...document,processedKeys,sheets,activeSheetId:processSheet.id,stages:processSheet.stages};
   }
   function* sheetCards(sheet){
     if(sheet.mindMap){
@@ -999,7 +1022,9 @@
     const mind=!!sheet.mindMap,changedMode=mind!==map.classList.contains('mind-map-view');
     map.classList.toggle('mind-map-view',mind);
     $('app').classList.toggle('is-mindmap',mind);
-    $('secretary').hidden=mind;$('captureOpen').hidden=mind;$('mindTools').hidden=!mind;
+    $('secretary').hidden=mind;$('mindTools').hidden=!mind;
+    $('inboxCount').textContent=state.inbox.length||'';
+    if($('captureDialog').open)renderInboxList();
     canvas.setAttribute('aria-label',mind?'マインドマップ':'工程マップ');
     if(changedMode)applyZoom(mind?mindZoom:processZoom,null,true);
     if(mind){renderMindMap(sheet);return}
@@ -1566,7 +1591,7 @@
   $('planForm').onsubmit=e=>{e.preventDefault();if(!planParsed)return;const stages=buildStages(planParsed);const mode=$('planForm').elements.planTarget.value;
     if(mode==='new'&&state.sheets.length>=100){notify('シートは100枚までです');return}const dl=validDate($('planDeadline').value);
     $('planDialog').close();
-    change(()=>{if(mode==='new'){const used=new Set(state.sheets.map(s=>s.name));let name=($('planTheme').value.trim()||'AIスケジュール').slice(0,40),base=name,i=2;while(used.has(name))name=base+' '+(i++);const sheet={id:uid('sheet'),name,stages,inbox:[],revisions:[{at:new Date().toISOString(),request:'AIで段取りを作成',lines:[`メインタスク${stages.length}件で作成`]}],goal:{deadline:dl,text:''},lastReview:null};state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;selectedCard=null;rememberSheet();}else{state.stages.push(...stages);const sh=curSheet();if(dl&&!sh.goal.deadline)sh.goal.deadline=dl}});
+    change(()=>{if(mode==='new'){const used=new Set(state.sheets.map(s=>s.name));let name=($('planTheme').value.trim()||'AIスケジュール').slice(0,40),base=name,i=2;while(used.has(name))name=base+' '+(i++);const sheet={id:uid('sheet'),name,stages,revisions:[{at:new Date().toISOString(),request:'AIで段取りを作成',lines:[`メインタスク${stages.length}件で作成`]}],goal:{deadline:dl,text:''},lastReview:null};state.sheets.push(sheet);state.activeSheetId=sheet.id;state.stages=sheet.stages;selectedCard=null;rememberSheet();}else{state.stages.push(...stages);const sh=curSheet();if(dl&&!sh.goal.deadline)sh.goal.deadline=dl}});
     canvas.scrollLeft=0;canvas.scrollTop=0;notify('段取りを登録しました。次は秘書バーの指示に従いましょう（Ctrl+Zで取り消し）',true);$('planText').value='';planParsed=null;};
   function openPlan(){renderPlanSteps();previewPlan();$('menu').hidden=true;$('planDialog').open||$('planDialog').showModal();$('planTheme').focus()}
 
@@ -1575,7 +1600,7 @@
   // ツール側が守らせる。状況から「今やるべきこと」を1つ指示し、困ったときの対処とAI相談を用意する。
   // =====================================================================
   const WEEK_MAX=5;
-  function curSheet(){const s=state.sheets.find(x=>x.id===state.activeSheetId);s.inbox??=[];s.revisions??=[];s.goal??={deadline:null,text:''};s.lastReview??=null;return s}
+  function curSheet(){const s=state.sheets.find(x=>x.id===state.activeSheetId);s.revisions??=[];s.goal??={deadline:null,text:''};s.lastReview??=null;return s}
   function daysBetween(a,b){const p=s=>{const [y,m,d]=s.split('-').map(Number);return Date.UTC(y,m-1,d)};return Math.round((p(b)-p(a))/86400000)}
   function shortDate(s){if(!s)return '';const [y,m,d]=s.split('-').map(Number);return (y===+todayStr().slice(0,4)?'':y+'/')+m+'/'+d}
   function leavesOf(stages){const out=[];for(const st of stages){if(!st.tasks.length){out.push({kind:'stage',item:st,stage:st,title:st.title});continue}for(const t of st.tasks){if(t.children.length)for(const c of t.children)out.push({kind:'task',item:c,stage:st,parent:t,title:c.text});else out.push({kind:'task',item:t,stage:st,title:t.text})}}return out}
@@ -1609,17 +1634,16 @@
     if(f.status==='done')return {tone:'good',text:'必須タスクはすべて完了しました。おつかれさまでした！「あったら良い」に取りかかるか、完成として区切りましょう。',label:'週の見直し',fn:()=>openReview()};
     if(since==null||since>=7)return {tone:'warn',text:since==null?'最初の「週の見直し」をしましょう（5分）。今週やることが決まり、迷わなくなります。':`前回の見直しから${since}日たちました。週の見直しの時間です（5分）。`,label:'見直しを始める',fn:()=>openReview()};
     if(f.status==='late')return {tone:'alert',text:`このままだと締切（${shortDate(f.deadline)}）に間に合いません。期日を延ばす前に「あったら良い」を後回しにして調整しましょう。`,label:'調整する',fn:()=>openReview(3)};
-    if(sh.inbox.length>=8)return {tone:'warn',text:`あとで箱に${sh.inbox.length}件たまっています。見直しで仕分けると予定がすっきりします。`,label:'仕分ける',fn:()=>openReview(2)};
+    if(state.inbox.length>=8)return {tone:'warn',text:`あとで箱に${state.inbox.length}件たまっています。見直しで仕分けると予定がすっきりします。`,label:'仕分ける',fn:()=>openReview(2)};
     if(f.overdue.length)return {tone:'warn',text:`期限切れのタスクが${f.overdue.length}件あります。やるか、後回しにするかを決めましょう。`,label:'見直す',fn:()=>openReview(3)};
     if(!f.stars.length){const done=f.L.some(l=>l.item.star&&l.item.done);return {tone:done?'good':'info',text:done?'今週やることは全部終わりました！次にやることを選びましょう。':'今週やることが決まっていません。3〜5個選ぶと迷わず進められます。',label:'今週やることを選ぶ',fn:()=>openReview(4)}}
-    const next=f.stars[0];return {tone:'info',text:`次はこれ：<b>${escapeHtml(next.title||'（空欄）')}</b><small>今週やること 残り${f.stars.length}件${f.deadline?` ／ 締切まであと${f.daysLeft}日`:''}${sh.inbox.length?` ／ あとで箱 ${sh.inbox.length}件`:''}</small>`,label:'このタスクへ',fn:()=>jumpTo({sheet:sh,kind:next.kind,item:next.item,done:false})};
+    const next=f.stars[0];return {tone:'info',text:`次はこれ：<b>${escapeHtml(next.title||'（空欄）')}</b><small>今週やること 残り${f.stars.length}件${f.deadline?` ／ 締切まであと${f.daysLeft}日`:''}${state.inbox.length?` ／ あとで箱 ${state.inbox.length}件`:''}</small>`,label:'このタスクへ',fn:()=>jumpTo({sheet:sh,kind:next.kind,item:next.item,done:false})};
   }
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   let secOpen=false;try{secOpen=localStorage.getItem('processmap_sec_open')==='1'}catch{}
   function renderSecretary(){
-    const sh=curSheet(),n=nextInstruction();$('secretary').dataset.tone=n.tone;$('secText').innerHTML=n.text;
+    const n=nextInstruction();$('secretary').dataset.tone=n.tone;$('secText').innerHTML=n.text;
     $('secAction').textContent=n.label||'';$('secAction').hidden=!n.label;$('secAction').onclick=()=>n.fn?.();
-    $('inboxCount').textContent=sh.inbox.length?String(sh.inbox.length):'';
     $('secToggle').setAttribute('aria-expanded',String(secOpen));$('secPanel').hidden=!secOpen;if(secOpen)renderSecPanel();
   }
   $('secToggle').onclick=()=>{secOpen=!secOpen;try{localStorage.setItem('processmap_sec_open',secOpen?'1':'0')}catch{}renderSecretary()};
@@ -1637,7 +1661,7 @@
     const week=el('div','sec-week');week.append(el('h4','','今週やること（★）'));
     if(f.stars.length)f.stars.forEach(l=>week.append(starRow(l)));else week.append(el('div','due-empty','まだ選ばれていません。'));
     const pick=el('button','mini','選び直す');pick.type='button';pick.onclick=()=>openReview(4);week.append(pick);p.append(week);
-    const st=el('div','');st.append(el('h4','','状況'));const box=el('div','sec-stats');box.innerHTML=forecastText(f)+(f.overdue.length?`<br><span class="late">期限切れ ${f.overdue.length}件</span>`:'')+`<br>あとで箱 ${sh.inbox.length}件／前回の見直し ${sh.lastReview?shortDate(sh.lastReview):'未実施'}`;st.append(box);
+    const st=el('div','');st.append(el('h4','','状況'));const box=el('div','sec-stats');box.innerHTML=forecastText(f)+(f.overdue.length?`<br><span class="late">期限切れ ${f.overdue.length}件</span>`:'')+`<br>あとで箱 ${state.inbox.length}件／前回の見直し ${sh.lastReview?shortDate(sh.lastReview):'未実施'}`;st.append(box);
     const b1=el('button','mini','週の見直し');b1.type='button';b1.onclick=()=>openReview();const b2=el('button','mini','AIに相談');b2.type='button';b2.onclick=()=>openConsult('');st.append(b1,b2);p.append(st);
     const help=el('div','');help.append(el('h4','','困ったときは'));
     for(const [q,a,acts] of HELP){const d=el('details','help-item');d.append(el('summary','',q));d.append(el('p','',a));const r=el('div','settings-actions');for(const [label,fn] of acts){const b=el('button','',label);b.type='button';b.onclick=fn;r.append(b)}d.append(r);help.append(d)}
@@ -1645,25 +1669,47 @@
   }
 
   // ---- あとで箱 ----
-  function renderInboxList(){const list=$('inboxList');list.replaceChildren();const sh=curSheet();
-    for(const it of [...sh.inbox].reverse()){const row=el('div','inbox-row');row.append(el('span','',it.text));row.append(el('span','date',shortDate(it.at)));const del=el('button','','削除');del.type='button';del.onclick=()=>{change(()=>{sh.inbox=sh.inbox.filter(x=>x.id!==it.id)});renderInboxList()};row.append(del);list.append(row)}
-    if(!sh.inbox.length)list.append(el('div','due-empty','あとで箱は空です。'))}
+  function renderInboxList(){
+    const list=$('inboxList');list.replaceChildren();
+    for(const it of [...state.inbox].reverse()){
+      const row=el('div','inbox-row');
+      const del=el('button','','削除');del.type='button';
+      del.onclick=()=>change(()=>{state.inbox=state.inbox.filter(x=>x.id!==it.id)});
+      row.append(el('span','inbox-text',it.text),el('span','date',shortDate(it.at)),del);list.append(row);
+    }
+    if(!state.inbox.length)list.append(el('div','due-empty','あとで箱は空です。'));
+  }
   function openCapture(){renderInboxList();$('captureDialog').showModal();$('captureText').focus()}
   $('captureOpen').onclick=openCapture;$('captureClose').onclick=()=>$('captureDialog').close();
-  $('captureForm').onsubmit=e=>{e.preventDefault();const lines=cleanText($('captureText').value).split('\n').map(s=>s.trim()).filter(Boolean);if(!lines.length){$('captureDialog').close();return}
-    const sh=curSheet();change(()=>{for(const text of lines)sh.inbox.push({id:uid('in'),text:text.slice(0,1000),at:todayStr()})});$('captureText').value='';renderInboxList();notify(lines.length+'件をあとで箱に入れました。作業に戻りましょう');$('captureText').focus()};
-  $('captureText').addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key==='Enter'&&!e.shiftKey&&!e.altKey){e.preventDefault();$('captureForm').requestSubmit()}});
+  $('captureForm').onsubmit=e=>{
+    e.preventDefault();
+    const input=$('captureText');
+    const text=cleanText(input.value).slice(0,input.maxLength);
+    if(!text.trim()){input.focus();return}
+    change(()=>state.inbox.push({id:uid('in'),text,at:todayStr()}));
+    input.value='';notify('あとで箱に入れました');input.focus();
+  };
+  $('captureText').addEventListener('keydown',e=>{
+    if(e.key!=='Enter'||e.isComposing||e.keyCode===229)return;
+    if(e.altKey){
+      e.preventDefault();
+      const input=e.currentTarget;
+      if(input.value.length-input.selectionEnd+input.selectionStart<input.maxLength){
+        input.setRangeText('\n',input.selectionStart,input.selectionEnd,'end');
+      }
+    }else if(e.ctrlKey||e.metaKey){e.preventDefault();$('captureForm').requestSubmit()}
+  });
 
   // ---- 週の見直し（4ステップ） ----
   let rv=null;
   const REVIEW_STEPS=[
     ['1. 終わったものにチェック','今週やることや期日が近いものから、終わったものにチェックを付けましょう。'],
-    ['2. あとで箱の仕分け','思いついたことを、どこに入れるか決めます。迷ったら「あったら良い」に。やらないものは捨ててOK。'],
+    ['2. あとで箱の仕分け','このシートに入れるメモだけ、行き先を選びます。'],
     ['3. 締切に間に合うか確認','締切は動かさず、中身で調整するのがコツです。間に合わないときは、必須でないものを「あったら良い」に回しましょう。'],
     ['4. 今週やることを選ぶ',`今週やることを${WEEK_MAX}個までに絞ります。少なめがうまくいくコツです。`],
   ];
   function openReview(step=1){
-    const sh=curSheet();rv={step,inbox:new Map(sh.inbox.map(x=>[x.id,{dest:sh.stages.find(s=>!effectiveMainDone(s))?.id||sh.stages[0]?.id||'new',nice:false}])),nice:new Set(),stars:null,deadline:sh.goal.deadline||''};
+    const sh=curSheet();rv={step,inbox:new Map(),nice:new Set(),stars:null,deadline:sh.goal.deadline||''};
     $('reviewDialog').open||$('reviewDialog').showModal();renderReview();
   }
   function candidateLeaves(){const f=forecast();const open=f.L.filter(l=>!l.item.done);const order=new Map(f.L.map((l,i)=>[l.item,i]));
@@ -1676,10 +1722,20 @@
       for(const l of rows){const r=el('label','review-row');const cb=el('input');cb.type='checkbox';cb.checked=!!l.item.done;cb.onchange=()=>{change(()=>l.item.done=cb.checked)};r.append(cb);const g=el('span','grow',l.title||'（空欄）');g.append(el('span','sub',l.stage.title+(l.item.star?' ・★今週':'')+(dueOf(l)?' ・期日 '+shortDate(dueOf(l)):'')));r.append(g);body.append(r)}
       const all=el('button','mini','すべてのタスクを表示');all.type='button';all.onclick=()=>{$('reviewDialog').close();setHideDone(false)};body.append(all);
     }else if(rv.step===2){
-      if(!sh.inbox.length)body.append(el('div','due-empty','あとで箱は空です。次へ進みましょう。'));
-      for(const it of sh.inbox){const d=rv.inbox.get(it.id)||{dest:'new',nice:false};rv.inbox.set(it.id,d);const r=el('div','review-row');r.append(el('span','grow',it.text));
-        const dest=el('select');dest.setAttribute('aria-label','入れる場所');for(const s of sh.stages){const o=el('option','',s.title||'（無題）');o.value=s.id;dest.append(o)}const o1=el('option','','新しいメインタスクにする');o1.value='new';const o2=el('option','','やらない（捨てる）');o2.value='drop';dest.append(o1,o2);dest.value=d.dest;dest.onchange=()=>{d.dest=dest.value;pr.disabled=d.dest==='drop'};
-        const pr=el('select');pr.setAttribute('aria-label','重要度');for(const [v,t] of [['must','必須'],['nice','あったら良い']]){const o=el('option','',t);o.value=v;pr.append(o)}pr.value=d.nice?'nice':'must';pr.disabled=d.dest==='drop';pr.onchange=()=>d.nice=pr.value==='nice';r.append(dest,pr);body.append(r)}
+      if(!state.inbox.length)body.append(el('div','due-empty','あとで箱は空です。次へ進みましょう。'));
+      for(const it of state.inbox){
+        const d=rv.inbox.get(it.id)||{dest:'keep',nice:false};rv.inbox.set(it.id,d);
+        const r=el('div','review-row');r.append(el('span','grow inbox-text',it.text));
+        const dest=el('select');dest.setAttribute('aria-label','入れる場所');
+        const destinations=[['keep','あとで箱に残す'],...sh.stages.map(s=>[s.id,s.title||'（無題）']),['new','新しいメインタスクにする'],['drop','削除する']];
+        for(const [value,label] of destinations){const option=el('option','',label);option.value=value;dest.append(option)}
+        dest.value=d.dest;
+        const pr=el('select');pr.setAttribute('aria-label','重要度');
+        for(const [v,t] of [['must','必須'],['nice','あったら良い']]){const o=el('option','',t);o.value=v;pr.append(o)}
+        pr.value=d.nice?'nice':'must';pr.disabled=d.dest==='keep'||d.dest==='drop';
+        dest.onchange=()=>{d.dest=dest.value;pr.disabled=d.dest==='keep'||d.dest==='drop'};
+        pr.onchange=()=>d.nice=pr.value==='nice';r.append(dest,pr);body.append(r);
+      }
     }else if(rv.step===3){
       const dl=el('label','settings-row','締切');const di=el('input');di.type='date';di.value=rv.deadline;di.onchange=()=>{rv.deadline=validDate(di.value)||'';renderReview()};dl.append(di);body.append(dl);
       const sim=forecastWith(rv);const fc=el('div','forecast '+(sim.status==='late'?'late':sim.status==='ok'||sim.status==='done'?'ok':''));fc.innerHTML=forecastText(sim)+(sim.overdue.length?`<br><span class="late">期限切れ ${sim.overdue.length}件</span>`:'');body.append(fc);
@@ -1700,11 +1756,21 @@
   function finishReview(){
     const sh=curSheet(),lines=[],stars=rv.stars||new Set();$('reviewDialog').close();
     change(()=>{
-      for(const it of sh.inbox){const d=rv.inbox.get(it.id);if(!d)continue;if(d.dest==='drop'){lines.push('あとで箱から捨てた：'+it.text);continue}
+      state.inbox=state.inbox.filter(it=>{
+        const d=rv.inbox.get(it.id);
+        if(!d||d.dest==='keep')return true;
+        if(d.dest==='drop'){lines.push('あとで箱から捨てた：'+it.text);return false}
+        if(d.dest==='new'){
+          const s=makeTask('');delete s.text;delete s.children;
+          Object.assign(s,{id:uid('s'),title:it.text,tasks:[],emphasis:null,nice:d.nice,changes:[{t:'added'}]});
+          sh.stages.push(s);lines.push('メインタスクを追加：'+it.text);return false;
+        }
+        const s=sh.stages.find(x=>x.id===d.dest);
+        if(!s)return true;
         const t=makeTask(it.text);t.nice=d.nice;t.changes=[{t:'added'}];
-        if(d.dest==='new'){const s=makeTask('');delete s.text;delete s.children;Object.assign(s,{id:uid('s'),title:it.text,tasks:[],emphasis:null,nice:d.nice,changes:[{t:'added'}]});sh.stages.push(s);lines.push('メインタスクを追加：'+it.text)}
-        else{const s=sh.stages.find(x=>x.id===d.dest);s.tasks.push(t);s.collapsed=false;lines.push(`追加（${s.title}）：${it.text}${d.nice?'（あったら良い）':''}`)}}
-      sh.inbox=sh.inbox.filter(it=>!rv.inbox.has(it.id));
+        s.tasks.push(t);s.collapsed=false;lines.push(`追加（${s.title}）：${it.text}${d.nice?'（あったら良い）':''}`);
+        return false;
+      });
       for(const item of rv.nice){if(!item.nice){item.nice=true;item.changes=[...(item.changes||[]).filter(c=>c.t!=='nice'),{t:'nice'}];lines.push('あったら良いに回した：'+(item.title??item.text))}}
       for(const l of forecast().L){const want=stars.has(l.item)&&!l.item.done;if(l.item.star!==want)l.item.star=want}
       if((sh.goal.deadline||'')!==(rv.deadline||'')){lines.push(`締切：${sh.goal.deadline||'なし'} → ${rv.deadline||'なし'}`);sh.goal.deadline=rv.deadline||null}
@@ -1718,8 +1784,9 @@
   function outlineOf(stages){const L=[];const d=x=>x.due?' @'+x.due:'';const m=(x,done)=>(done?'[x] ':'')+(x.star&&!done?'★ ':'');const n=x=>x.nice?'（あったら良い）':'';const flat=s=>String(s||'').replace(/\n+/g,' / ');
     for(const s of stages){L.push(`- ${m(s,effectiveMainDone(s))}${flat(s.title)||'(無題)'}${n(s)}${d(s)} #${s.id}`);for(const t of s.tasks){L.push(`  - ${m(t,effectiveDone(t))}${flat(t.text)||'(空欄)'}${n(t)}${d(t)} #${t.id}`);for(const c of t.children)L.push(`    - ${m(c,c.done)}${flat(c.text)||'(空欄)'}${n(c)}${d(c)} #${c.id}`)}}return L.join('\n')}
   const OUTLINE_MARK='---工程表---';
-  function consultPrompt(request){
+  function consultPrompt(request,notes){
     const sh=curSheet(),f=forecast(sh);const recent=sh.revisions.slice(0,3).map(r=>`・${r.at.slice(0,10)} ${r.request||''}：${r.lines.slice(0,6).join(' / ')}`).join('\n')||'なし';
+    const inbox=notes.length?`【全シート共通のあとで箱】\n${notes.map(x=>'・'+x.text.replace(/\n/g,'\n  ')).join('\n')}\n`:'';
     return `あなたは私の制作スケジュール秘書です。私は計画が途中で崩れやすいので、次のルールで管理しています。
 ・締切は固定し、間に合わないときは中身（必須でないもの）を削って調整する
 ・作業中に見つかったことは「あとで箱」に入れ、見直しでまとめて仕分ける
@@ -1729,9 +1796,7 @@
 
 【プロジェクト】${sh.name}　今日：${todayStr()}　締切：${sh.goal.deadline||'未設定'}
 【状況】必須の残り${f.remaining}件／全体 ${f.done}/${f.total} 完了／最近2週間の完了 ${f.recent}件${f.eta?`／このペースでの完了見込み ${f.eta}`:''}／期限切れ ${f.overdue.length}件
-【あとで箱（未整理）】
-${sh.inbox.map(x=>'・'+x.text).join('\n')||'なし'}
-【最近の変更】
+${inbox}【最近の変更】
 ${recent}
 【工程表】（[x]=完了、★=今週やる、（あったら良い）=後回し可、#以降は管理ID）
 ${outlineOf(sh.stages)}
@@ -1746,14 +1811,24 @@ ${outlineOf(sh.stages)}
 ・今週やるものには行頭に ★（最大${WEEK_MAX}個）
 ・字下げは半角スペース2つ、最大3段。期日は @YYYY-MM-DD`;
   }
-  const CONSULT_CHIPS=[['遅れている','遅れていて締切に間に合いそうにない。何を後回しにすればいいか提案して組み直してほしい'],['やることが増えた','やることが増えて混乱している。あとで箱も含めて整理して、必須とあったら良いを分けてほしい'],['今週何をやるか','今週やるべきことを3〜5個に絞って提案してほしい'],['タスクが大きすぎる','今週やることを15〜30分で終わる具体的な作業に分割してほしい'],['予定が大きく変わった','予定が大きく変わった。完了済みは残して、残りを現実的に組み直してほしい']];
-  let consultResult=null;
+  const CONSULT_CHIPS=[['遅れている','遅れていて締切に間に合いそうにない。何を後回しにすればいいか提案して組み直してほしい'],['やることが増えた','やることが増えて混乱している。必須とあったら良いを分けて整理してほしい'],['今週何をやるか','今週やるべきことを3〜5個に絞って提案してほしい'],['タスクが大きすぎる','今週やることを15〜30分で終わる具体的な作業に分割してほしい'],['予定が大きく変わった','予定が大きく変わった。完了済みは残して、残りを現実的に組み直してほしい']];
+  let consultResult=null,consultCopiedNotes=new Set();
   function openConsult(request=''){
     const chips=$('consultChips');chips.replaceChildren();for(const [l,t] of CONSULT_CHIPS){const b=el('button','',l);b.type='button';b.onclick=()=>{$('consultRequest').value=t};chips.append(b)}
-    $('consultRequest').value=request;$('consultReply').value='';$('consultKeepOpen').checked=false;$('consultClearInbox').checked=true;consultResult=null;$('consultPreview').replaceChildren();$('consultCommit').disabled=true;$('consultInboxRow').hidden=!curSheet().inbox.length;
+    $('consultRequest').value=request;$('consultReply').value='';$('consultKeepOpen').checked=false;
+    $('consultIncludeInbox').checked=false;$('consultIncludeInboxRow').hidden=!state.inbox.length;
+    $('consultClearInbox').checked=false;$('consultInboxRow').hidden=true;consultCopiedNotes.clear();
+    consultResult=null;$('consultPreview').replaceChildren();$('consultCommit').disabled=true;
     document.querySelectorAll('dialog[open]').forEach(d=>d!==$('consultDialog')&&d.close());$('menu').hidden=true;$('consultDialog').open||$('consultDialog').showModal();
   }
-  $('consultCopy').onclick=async()=>{const txt=consultPrompt($('consultRequest').value.trim());try{await navigator.clipboard.writeText(txt);notify('相談文をコピーしました。AIチャットに貼り付けて送信してください')}catch{$('consultReply').value=txt;$('consultReply').select();notify('コピーできない環境です。下の欄の文章を選択してコピーしてください')}};
+  $('consultCopy').onclick=async()=>{
+    const notes=$('consultIncludeInbox').checked?state.inbox:[];
+    const txt=consultPrompt($('consultRequest').value.trim(),notes);
+    consultCopiedNotes=new Set(notes.map(note=>note.id));
+    $('consultClearInbox').checked=false;$('consultInboxRow').hidden=!notes.length;
+    try{await navigator.clipboard.writeText(txt);notify('相談文をコピーしました。AIチャットに貼り付けて送信してください')}
+    catch{$('consultReply').value=txt;$('consultReply').select();notify('コピーできない環境です。下の欄の文章を選択してコピーしてください')}
+  };
   $('consultClose').onclick=()=>$('consultDialog').close();
   $('consultReply').oninput=previewConsult;$('consultKeepOpen').onchange=previewConsult;
   function extractOutline(text,known){const i=text.indexOf(OUTLINE_MARK);if(i>=0)return text.slice(i+OUTLINE_MARK.length);const lines=text.split('\n');const k=lines.findIndex(l=>[...l.matchAll(/#([\w-]{1,60})/g)].some(m=>known.has(m[1])));if(k<0)return null;let s=k;while(s>0&&/^\s*([-*+・]|\d+[.)．]|#{1,6}\s)/.test(lines[s-1])&&!/^\s*$/.test(lines[s-1]))s--;return lines.slice(s).join('\n')}
@@ -1772,7 +1847,9 @@ ${outlineOf(sh.stages)}
   }
   $('consultForm').onsubmit=e=>{e.preventDefault();if(!consultResult)return;const sh=curSheet(),r=consultResult,req=$('consultRequest').value.trim()||'AIに相談';
     $('consultDialog').close();
-    change(()=>{sh.stages.splice(0,sh.stages.length,...r.stages);state.stages=sh.stages;if($('consultClearInbox').checked&&!$('consultInboxRow').hidden)sh.inbox=[];sh.revisions.unshift({at:new Date().toISOString(),request:req,lines:r.log.map(x=>`[${x.t}] ${x.text}`)});sh.revisions=sh.revisions.slice(0,30)});
+    change(()=>{sh.stages.splice(0,sh.stages.length,...r.stages);state.stages=sh.stages;
+      if($('consultClearInbox').checked)state.inbox=state.inbox.filter(note=>!consultCopiedNotes.has(note.id));
+      sh.revisions.unshift({at:new Date().toISOString(),request:req,lines:r.log.map(x=>`[${x.t}] ${x.text}`)});sh.revisions=sh.revisions.slice(0,30)});
     notify('AIの提案を反映しました。変わったところはハイライトされています',true)};
 
   // 既存の工程表とAIの案を突き合わせる。完了済み（[x]）は名前・期日・完了状態を変えず、案から消えても残す。
@@ -1858,7 +1935,7 @@ ${outlineOf(sh.stages)}
       maps.push({id:item.id,name:cleanText(item.name||'マインドマップ'),stages:[],mindMap:root,position:item.position});
     }
     if(!maps.length)return fallback;
-    const combined=sheets.filter(sheet=>!(sheet.id===MIND_EMPTY_SHEET&&sheet.name==='シート1'&&!sheet.stages.length&&!sheet.goal.deadline&&!sheet.goal.text&&!sheet.lastReview&&!sheet.inbox.length&&!sheet.revisions.length));
+    const combined=sheets.filter(sheet=>!(sheet.id===MIND_EMPTY_SHEET&&sheet.name==='シート1'&&!sheet.stages.length&&!sheet.goal.deadline&&!sheet.goal.text&&!sheet.lastReview&&!sheet.revisions.length));
     maps.sort((a,b)=>(a.position||0)-(b.position||0));
     for(const {position,...sheet} of maps){
       combined.splice(Number.isInteger(position)?Math.max(0,position):combined.length,0,sheet);
