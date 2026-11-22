@@ -414,6 +414,57 @@ await test('[秘書][SP] スマホで秘書バー・困ったとき・思いつ�
   assert.ok(await page.locator('#captureDialog[open]').count()===1,'困ったとき→あとで箱が開きません');await page.fill('#captureText','スマホで思いついた');await page.locator('#captureForm button[type=submit]').tap();
   assert.equal(await page.textContent('#inboxCount'),'1')});
 
+// ---------- AI連携の同意（モック） ----------
+await test('[AI連携] 本人の同意と正しい戻り先を確認してから許可',async browser=>{
+  const {page}=await newPage(browser,{user:USER});
+  const id='00000000-0000-4000-8000-000000000100';
+  const path=new URL('/oauth/consent?authorization_id='+id,base).href;
+  const callback='https://chatgpt.com/connector_platform_oauth_redirect';
+  let target='https://example.test/callback',approvals=0;
+  await page.route(url=>url.origin===SUPA&&url.pathname.startsWith('/auth/v1/oauth/authorizations/'+id),async route=>{
+    if(route.request().method()==='GET')return route.fulfill({json:{
+      authorization_id:id,redirect_uri:target,scope:'openid',client:{name:'Test client'},
+    }});
+    approvals++;
+    assert.deepEqual(route.request().postDataJSON(),{action:'approve'});
+    return route.fulfill({json:{redirect_url:callback+'?code=mock&state=mock'}});
+  });
+  await page.route(callback+'**',route=>route.fulfill({body:'Callback received'}));
+  await page.goto(path);
+  await page.getByText('この接続先または権限は許可できません。').waitFor();
+  assert.equal(await page.locator('#aiConnectionApprove').isVisible(),false);
+  assert.equal(approvals,0);
+
+  target=callback;
+  await page.reload();
+  await page.locator('#aiConnectionApprove').waitFor();
+  assert.match(await page.locator('#aiConnectionStatus').textContent(),/ChatGPT.*mock-user@example\.test/);
+  assert.equal(approvals,0);
+  await page.locator('#aiConnectionApprove').click();
+  await page.getByText('Callback received').waitFor();
+  assert.equal(approvals,1);
+});
+
+await test('[AI連携][SP] 許可一覧から本人の接続を解除できる',async browser=>{
+  const {page}=await newPage(browser,{mobile:true,user:USER});
+  const id='00000000-0000-4000-8000-000000000100';
+  let revoked=false;
+  await page.route(SUPA+'/auth/v1/user/oauth/grants**',async route=>{
+    if(route.request().method()==='GET')return route.fulfill({json:revoked?[]:[{client:{id,name:'Claude Code'}}]});
+    assert.equal(route.request().method(),'DELETE');
+    assert.equal(new URL(route.request().url()).searchParams.get('client_id'),id);
+    revoked=true;
+    return route.fulfill({status:204});
+  });
+  await page.locator('#menuTrigger').tap();
+  await page.locator('#aiConnectionOpen').tap();
+  await page.getByText('Claude Code',{exact:false}).waitFor();
+  await page.getByRole('button',{name:'解除する'}).tap();
+  await page.getByText('許可済みの連携はありません。').waitFor();
+  assert.equal(revoked,true);
+  assert.deepEqual(page.errors,[]);
+});
+
 // ---------- 認証・同期（モック） ----------
 await test('[同期] ログイン済みでサーバーの工程表を読み込み、編集をrevision付きで保存',async b=>{
   const mock=mockSupabase();mock.db.set(USER.id,{document:doc(),revision:5});const {page}=await newPage(b,{mock,user:USER});

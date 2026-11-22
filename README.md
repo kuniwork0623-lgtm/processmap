@@ -110,6 +110,21 @@ scripts/deploy.sh --prod
 
 スクリプトは、プロジェクト名の照合、未コミット変更の拒否、READY待ち、アップロードしたファイルと手元のSHA1の一致確認を行う。トークンは Claude Code の「processmap」クラウド環境に api.vercel.com 用のネットワークシークレットとして保存されている（リポジトリには置かない）。ローカルで使う場合は `VERCEL_TOKEN` を環境変数で渡す。
 
+## AIから工程表の進捗を読む
+
+MCP接続先は `https://xgeviftkyrxhqbpgpfea.supabase.co/functions/v1/processmap-progress` です。接続後、ChatGPTまたはClaude Codeから、シート名を指定して最新の進捗を取得できます。取得結果には更新日時とリビジョンが付きます。共有する範囲は工程表の名前、階層、完了、期日と優先度です。ProcessMapの「⋯」→「AIの読み取り連携」から、接続相手と許可の解除を管理できます。
+
+### 連携を有効にする順序
+
+1. 既存のProcessMap Vercelプロジェクトに同意画面 `/oauth/consent` をデプロイします。
+2. ProcessMap専用Supabaseに `supabase/migrations/20261122000100_processmap_progress_oauth.sql` を適用し、Edge Function `processmap-progress` をデプロイします。関数の中で署名・発行元・宛先・OAuthセッションを検証します。
+3. Supabase Authで `pg-functions://postgres/processmap_connector/access_token` をカスタムアクセストークンフックに設定します。先に通常ログインが動くことを確認してから、OAuth 2.1サーバーと動的クライアント登録を有効にします。Authorization Pathは `/oauth/consent` です。
+4. Claude CodeではHTTPのMCPサーバーとして接続します。ChatGPTではアカウントにカスタムMCPの権限がある場合に、OAuth接続として追加します。いずれもProcessMapのアカウントでログインして許可します。
+
+フックはOAuthトークンを専用の権限なしロールに切り替え、MCP専用の宛先へ束縛します。このロールをPostgRESTの `authenticator` へ付与しないでください。関数は本人の文書だけを取得し、工程表の必要項目に絞って返します。既存のログイン用トークンは通常の保存に使います。DBの既存テーブル、ポリシー、行に対するSQL変更はありません。
+
+関数のテストは `deno test --config supabase/functions/processmap-progress/deno.json supabase/functions/processmap-progress/handler_test.ts` で実行できます。
+
 ## 切り戻し
 
 1. 直前の正常な本番デプロイに戻す（最速）: Vercel 管理画面 → processmap → Deployments → 正常な本番デプロイ → 「Promote to Production」/「Instant Rollback」
