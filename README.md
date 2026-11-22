@@ -114,6 +114,8 @@ scripts/deploy.sh --prod
 
 MCP接続先は `https://xgeviftkyrxhqbpgpfea.supabase.co/functions/v1/processmap-progress` です。接続後、ChatGPTまたはClaude Codeから、シート名を指定して最新の進捗を取得できます。取得結果には更新日時とリビジョンが付きます。共有する範囲は工程表の名前、階層、完了、期日と優先度です。ProcessMapの「⋯」→「AIの読み取り連携」から、接続相手と許可の解除を管理できます。
 
+ChatGPTがアカウント確認用のメールアドレスを求める場合や、AI側が読み取り接続の更新を求める場合は、許可する前に同意画面に表示されます。
+
 ### 連携を有効にする順序
 
 1. 既存のProcessMap Vercelプロジェクトに同意画面 `/oauth/consent` をデプロイします。

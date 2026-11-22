@@ -6,10 +6,13 @@
   if (!auth || !dialog) return;
 
   const idPattern = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+  // Supabase OAuth authorization IDs are opaque strings (not UUIDs).
+  const requestIdPattern = /^[A-Za-z0-9_-]{16,128}$/;
   const parameters = new URLSearchParams(location.search);
   let requestId = location.pathname === '/oauth/consent' ? parameters.get('authorization_id') : null;
   const status = byId('aiConnectionStatus');
   const scope = byId('aiConnectionScope');
+  const details = byId('aiConnectionDetails');
   const allow = byId('aiConnectionApprove');
   const deny = byId('aiConnectionDeny');
   const login = byId('aiConnectionLogin');
@@ -25,6 +28,7 @@
         url.pathname === '/connector_platform_oauth_redirect' ||
         /^\/connector\/oauth\/[a-z0-9_-]+$/i.test(url.pathname)
       )) return 'ChatGPT';
+      if (url.origin === 'https://claude.ai' && url.pathname === '/api/mcp/auth_callback') return 'Claude';
       if (url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname) &&
         url.port && url.pathname === '/callback') return 'Claude Code（この端末）';
     } catch { /* Malformed callback. */ }
@@ -41,13 +45,13 @@
 
   async function render() {
     const version = ++loading;
-    scope.hidden = allow.hidden = deny.hidden = login.hidden = true;
+    scope.hidden = details.hidden = allow.hidden = deny.hidden = login.hidden = true;
     grants.replaceChildren();
     status.textContent = '確認しています…';
     allow.disabled = deny.disabled = false;
     allow.onclick = deny.onclick = null;
     try {
-      if (requestId !== null && !idPattern.test(requestId)) {
+      if (requestId !== null && !requestIdPattern.test(requestId)) {
         status.textContent = '接続リクエストを読み取れません。AI側から接続をやり直してください。';
         return;
       }
@@ -88,16 +92,25 @@
         return;
       }
       const provider = providerFor(data.redirect_uri);
-      // The authorization server supplies the callback and checks the registered URI and PKCE.
-      // The consent UI also keeps this integration limited to the intended clients and identity scope.
-      const scopes = (data.scope || '').split(' ').filter(Boolean);
-      if (!provider || scopes.some(item => item !== 'openid')) {
+      const scopes = (typeof data.scope === 'string' ? data.scope : '').split(/\s+/).filter(Boolean);
+      const allowedScopes = ['openid', 'offline_access'];
+      if (provider === 'ChatGPT') allowedScopes.push('email');
+      if (!provider || !scopes.includes('openid') || scopes.some(item => !allowedScopes.includes(item))) {
         status.textContent = 'この接続先または権限は許可できません。';
         return;
       }
       const expected = new URL(data.redirect_uri);
       scope.hidden = allow.hidden = deny.hidden = false;
       status.textContent = provider + ' が「' + email + '」の工程表の読み取りを求めています。';
+      const notices = [];
+      if (scopes.includes('email')) {
+        notices.push('ChatGPTにアカウント確認用のメールアドレスが共有されます。');
+      }
+      if (scopes.includes('offline_access')) {
+        notices.push('今後も工程表を読み取れるように接続を更新します。ProcessMapの「AIの読み取り連携」からいつでも解除できます。');
+      }
+      details.textContent = notices.join('');
+      details.hidden = notices.length === 0;
       async function decide(approve) {
         allow.disabled = deny.disabled = true;
         try {
