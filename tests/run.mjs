@@ -725,6 +725,7 @@ await test('[幅・折り返し][マインドマップ][SP] トピック別の�
   await toggle.tap();
   assert.equal(await mindRoot(page).getAttribute('wrap'),'off');
   assert.equal(await topic.inputValue(),expected);
+  assert.ok(await topic.evaluate(input=>input.scrollWidth<=input.clientWidth+1));
   await page.getByRole('tab',{name:/シート1/}).tap();
   assert.equal(await toggle.getAttribute('aria-pressed'),'false');
   await page.getByRole('tab',{name:/マインドマップ/}).tap();
@@ -739,7 +740,47 @@ await test('[幅・折り返し][マインドマップ][SP] トピック別の�
   await toggle.tap();
   assert.equal(await mindRoot(page).getAttribute('wrap'),null);
   assert.equal(await topic.getAttribute('wrap'),'off');
+  assert.equal(await topic.evaluate(input=>input.closest('.mind-node').offsetWidth),140);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[マインドマップ][PC] 位置と固定幅を保持してシート全体の名前を折り返さずに表示',async browser=>{
+  const {page}=await newPage(browser);
+  await addMindSheet(page);
+  await mindRoot(page).fill('中心テーマの長い名前を固定幅でも折り返さず表示する');
+  await page.click('#mindMore');await page.click('#mindDisplay');
+  await page.fill('#cardDisplayWidth','150');await page.click('#cardDisplayForm button[type=submit]');
+  await page.click('#mindAdd');
+  const title='移動済みのカードに長い名前を入れて全体の折り返し切り替えを確認する';
+  await activeMindTitle(page).fill(title+'\n手動改行');
+  await page.evaluate(prefix=>{
+    const doc=window.pmApp.get();
+    const entry=doc.processedKeys.findIndex(key=>key.startsWith(prefix));
+    const data=JSON.parse(doc.processedKeys[entry].slice(prefix.length));
+    data.maps[0].root.position={x:0,y:0};
+    data.maps[0].root.children[0].position={x:250,y:0};
+    doc.processedKeys[entry]=prefix+JSON.stringify(data);
+    window.pmApp.set(doc);
+  },mindStoragePrefix);
+  const root=page.locator('.mind-node.root'),branch=page.locator('.mind-node:not(.root)');
+  const input=branch.locator('.mind-title'),before=await input.evaluate(el=>el.clientHeight);
+  await page.click('#sheetNoWrap');
+  assert.ok(await root.evaluate(card=>card.offsetWidth>150));
+  assert.equal(await input.inputValue(),title+'\n手動改行');
+  assert.ok(await input.evaluate((el,previousHeight)=>el.scrollWidth<=el.clientWidth+1&&el.clientHeight<previousHeight,before));
+  assert.equal(await branch.evaluate(card=>{
+    const a=card.getBoundingClientRect(),b=document.querySelector('.mind-node.root').getBoundingClientRect();
+    return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+  }),false);
+  const [{root:stored}]=readMindMaps(await state(page));
+  assert.equal(stored.width,150);
+  assert.deepEqual(stored.children[0].position,{x:250,y:0});
+  await page.reload();
+  assert.ok(await input.evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+  await page.click('#sheetNoWrap');
+  assert.equal(await root.evaluate(card=>card.offsetWidth),150);
+  assert.equal(await input.evaluate(el=>el.clientHeight),before);
   assert.deepEqual(page.errors,[]);
 });
 
@@ -912,6 +953,7 @@ await test('[マインドマップ][PC] Tab/Enter・IME・深い枝・折りた�
 await test('[マインドマップ][SP] タップで枝・同列を追加し、枝を移動して全体を表示',async browser=>{
   const {page}=await newPage(browser,{mobile:true});
   await addMindSheet(page);
+  assert.equal(await page.locator('#mindTools').evaluate(bar=>new Set([...bar.querySelectorAll('button')].map(button=>button.offsetTop)).size),1);
   await mindRoot(page).fill('週末に作りたいもの');
   await page.locator('#mindAdd').tap();await activeMindTitle(page).fill('準備');
   await page.locator('#mindSibling').tap();await activeMindTitle(page).fill('参考');
@@ -927,9 +969,38 @@ await test('[マインドマップ][SP] タップで枝・同列を追加し、�
   assert.equal(fits,true);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   await page.locator('#mindMore').tap();await page.locator('#mindDelete').tap();
+  assert.match(await page.textContent('#mindDeleteMessage'),/参考/);
+  await page.locator('#mindDeleteBranch').tap();
   assert.equal(await mindTitle(page,'参考').count(),0);
   await page.locator('#toastUndo').tap();
   assert.equal(await mindTitle(page,'参考').count(),1);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[マインドマップ][PC] Deleteキーと削除ボタンでカードだけ・枝ごと削除できる',async browser=>{
+  const {page}=await newPage(browser);
+  await addMindSheet(page);
+  await mindRoot(page).fill('中心テーマの名前');
+  assert.equal(await page.locator('#mindRemove').isDisabled(),true);
+  await page.click('#mindAdd');await activeMindTitle(page).fill('親カード');
+  await page.click('#mindAdd');await activeMindTitle(page).fill('子のカード');
+  const parent=mindTitle(page,'親カード'),child=mindTitle(page,'子のカード');
+  await parent.click();await parent.press('End');await parent.press('Delete');
+  assert.equal(await page.locator('#mindDeleteDialog').isVisible(),false);
+  await parent.press('Escape');await page.keyboard.press('Delete');
+  assert.match(await page.textContent('#mindDeleteMessage'),/親カード/);
+  await page.click('#mindDeleteCancel');
+  assert.equal(await parent.count(),1);assert.equal(await child.count(),1);
+  await page.click('#mindRemove');await page.click('#mindDeleteCard');
+  assert.equal(await parent.count(),0);assert.equal(await child.count(),1);
+  assert.equal(readMindMaps(await state(page))[0].root.children[0].text,'子のカード');
+  await page.click('#toastUndo');
+  const restored=readMindMaps(await state(page))[0].root.children[0];
+  assert.equal(restored.text,'親カード');assert.equal(restored.children[0].text,'子のカード');
+  await parent.click();await page.click('#mindRemove');await page.click('#mindDeleteBranch');
+  await page.reload();
+  assert.equal(await parent.count(),0);assert.equal(await child.count(),0);
+  assert.equal(await mindRoot(page).inputValue(),'中心テーマの名前');
   assert.deepEqual(page.errors,[]);
 });
 
