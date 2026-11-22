@@ -318,11 +318,16 @@ async function setDeadline(page,d){await page.evaluate(d=>{const s=window.pmApp.
 const plusDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
 
 await test('[秘書] 状況に応じて次の指示が変わる（締切→見直し→次のタスク）',async b=>{const {page}=await newPage(b);
+  assert.equal(await page.locator('#secretary').isVisible(),false);
+  assert.equal(await page.locator('#secToggle').isVisible(),true);
+  await page.click('#secToggle');
   assert.ok((await sec(page)).includes('締切が決まっていません'));assert.equal(await page.textContent('#secAction'),'締切を決める');
   await page.click('#secAction');await page.fill('#sheetDeadline',plusDays(60));await page.click('#sheetForm button[type=submit]');
+  await page.click('#secToggle');
   assert.ok((await sec(page)).includes('見直し'),'締切設定後に見直しを促しません');
   await page.click('#secAction');for(let i=0;i<3;i++)await page.click('#reviewNext');await page.click('#reviewNext');
   const s=await state(page);const sh=s.sheets.find(x=>x.id===s.activeSheetId);assert.ok(sh.lastReview,'見直し日が記録されません');assert.ok(sh.revisions[0].request==='週の見直し');
+  await page.click('#secToggle');
   assert.ok((await sec(page)).includes('次はこれ'),'見直し後に次のタスクを指示しません：'+await sec(page));
   await page.click('#secAction');await page.waitForTimeout(400);assert.ok(await page.evaluate(()=>document.querySelector('.selected')!==null),'このタスクへ で移動しません')});
 
@@ -345,11 +350,55 @@ await test('[秘書] 間に合わない見込みを警告し、あったら良�
   await page.evaluate(d=>{const s=window.pmApp.get();const sh=s.sheets.find(x=>x.id===s.activeSheetId);sh.goal={deadline:d,text:''};sh.lastReview=new Date().toISOString().slice(0,10);
     const ago=new Date();ago.setDate(ago.getDate()-3);s.stages[0].tasks[0].doneAt=ago.toISOString().slice(0,10); // pace: 1 per 14 days
     for(let i=0;i<6;i++)s.stages[1].tasks.push({id:'x'+i,text:'作業'+i,children:[]});window.pmApp.set(s)},plusDays(20));
+  assert.equal(await page.getAttribute('#secToggle','data-tone'),'alert');await page.click('#secToggle');
   assert.ok((await sec(page)).includes('間に合いません'),'遅れ警告が出ません：'+await sec(page));assert.equal(await page.getAttribute('#secretary','data-tone'),'alert');
-  await page.click('#secAction');assert.ok((await page.textContent('#reviewStep')).startsWith('3.'));
+  await page.click('#secAction');assert.ok(await page.locator('#replanDialog').isVisible());
+  assert.match(await page.textContent('#replanForecast'),/最近2週間のペース.*必要ペース/);
+  await page.click('#replanClose');await page.click('#menuTrigger');await page.click('[data-menu="review"]');
+  await page.click('#reviewNext');await page.click('#reviewNext');assert.ok((await page.textContent('#reviewStep')).startsWith('3.'));
   for(const cb of await page.locator('#reviewBody .review-row input').all())await cb.check();
   assert.ok((await page.textContent('#reviewBody .forecast')).includes('必須タスクはすべて完了')||(await page.textContent('#reviewBody .forecast')).includes('間に合います'),'調整後の見込みが更新されません');
   await page.click('#reviewNext');await page.click('#reviewNext');const s=await state(page);assert.ok(s.stages[1].tasks.every(t=>t.nice),'あったら良いに回りません')});
+
+await test('[秘書][SP] 全タスクを残して作業時間から日程を見直す',async b=>{
+  const {page,ctx}=await newPage(b,{mobile:true});
+  const due=plusDays(1),projectDeadline=plusDays(3),newDue=plusDays(2);
+  await page.evaluate(({due,projectDeadline})=>{
+    const data=window.pmApp.get();data.sheets[0].goal={deadline:projectDeadline,text:''};
+    data.stages[1].collapsed=true;data.stages[1].tasks[0].due=due;window.pmApp.set(data);
+  },{due,projectDeadline});
+  const before=await state(page);
+  await page.locator('#secToggle').tap();
+  assert.match(await sec(page),/完了記録が少ない/);
+  await page.locator('#secAction').tap();
+  assert.match(await page.textContent('#replanNext'),/必要な機能を整理する.*期日/);
+  await page.locator('#replanEdit').tap();assert.equal(await page.locator('#sheetDeadline').inputValue(),projectDeadline);
+  await page.locator('#sheetCancel').tap();
+  await page.locator('#secToggle').tap();await page.locator('#secAction').tap();
+  await page.fill('#replanHours','2.5');await page.locator('#replanConsult').tap();
+  assert.match(await page.locator('#consultRequest').inputValue(),/2\.5時間.*\n既存のタスクをすべて残したまま/);
+  assert.equal(await page.locator('#consultKeepOpen').isChecked(),true);
+  assert.equal(await page.locator('#consultKeepOpen').isDisabled(),true);
+  await ctx.grantPermissions(['clipboard-read','clipboard-write']);await page.locator('#consultCopy').tap();
+  const prompt=await page.evaluate(()=>navigator.clipboard.readText());
+  assert.ok(prompt.includes('今週使える作業時間は2.5時間')&&prompt.includes('既存の全行とID')&&prompt.includes('#t4'));
+  await page.fill('#consultReply','---工程表---\n- 新規の工程');
+  assert.equal(await page.locator('#consultCommit').isDisabled(),true);
+  assert.match(await page.textContent('#consultPreview'),/新規タスクか階層の変更/);
+  await page.fill('#consultReply',`---工程表---\n- 内容を詰める #s2\n  - [x] ★ 名前を書き換えた（あったら良い） @${newDue} #t4`);
+  await page.waitForSelector('#consultPreview .diff-row');
+  assert.deepEqual(await state(page),before);
+  await page.locator('#consultCommit').tap();
+  const after=await state(page),task=after.stages.find(s=>s.id==='s2').tasks[0];
+  assert.equal(task.text,before.stages[1].tasks[0].text);
+  assert.equal(task.due,newDue);assert.equal(task.done,false);assert.equal(task.nice,false);
+  assert.equal(after.stages.find(s=>s.id==='s1').tasks[0].done,true);
+  const ids=data=>data.stages.flatMap(s=>[s.id,...s.tasks.flatMap(t=>[t.id,...t.children.map(c=>c.id)])]).sort();
+  assert.deepEqual(ids(after),ids(before));assert.equal(after.sheets[0].goal.deadline,projectDeadline);
+  await page.locator('#secToggle').tap();await page.locator('#secAction').tap();await page.locator('#replanJump').tap();
+  await page.locator('[data-task-node="t4"] .task-card').waitFor();
+  assert.deepEqual(page.errors,[]);
+});
 
 await test('[秘書] 完了日を記録（過去の完了は不明扱い）・今週は5個まで',async b=>{const {page}=await newPage(b);
   let s=await state(page);assert.equal(s.stages[0].tasks[0].doneAt,'','既存の完了は不明扱いのはず');
@@ -416,11 +465,12 @@ await test('[秘書] このチャットから段取りを作る指示文・締�
   assert.ok(p.includes('このチャットでこれまで話した内容')&&p.includes('締切：2027-03-31')&&p.includes('（あったら良い）')&&p.includes('★'));
   await page.fill('#planText','- 企画 @2027-01-10\n  - ★ 企画書（あったら良い）\n  - [x] アイデア出し\n  - 仕様を決める');await page.click('#planCommit');
   const s=await state(page),sh=s.sheets.find(x=>x.id===s.activeSheetId);assert.equal(sh.goal.deadline,'2027-03-31');const t=s.stages[0].tasks;
-  assert.ok(t[0].star&&t[0].nice&&t[0].text==='企画書');assert.ok(t[1].done&&t[1].doneAt==='');assert.ok((await sec(page)).includes('見直し'),'登録後の指示：'+await sec(page))});
+  assert.ok(t[0].star&&t[0].nice&&t[0].text==='企画書');assert.ok(t[1].done&&t[1].doneAt==='');
+  await page.click('#secToggle');assert.ok((await sec(page)).includes('見直し'),'登録後の指示：'+await sec(page))});
 
-await test('[秘書][SP] スマホで秘書バー・困ったとき・思いついたボタンが使える',async b=>{const {page}=await newPage(b,{mobile:true});
+await test('[秘書][SP] スマホでベル・困ったとき・思いついたボタンが使える',async b=>{const {page}=await newPage(b,{mobile:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'横にはみ出しています');
-  await page.locator('#secToggle').tap();await page.locator('.help-item summary').first().tap();await page.locator('.help-item[open] button').first().tap();
+  await page.locator('#secToggle').tap();await page.locator('#secHelp > summary').tap();await page.locator('#secHelp details > summary').first().tap();await page.locator('#secHelp details[open] button').first().tap();
   assert.ok(await page.locator('#captureDialog[open]').count()===1,'困ったとき→あとで箱が開きません');await page.fill('#captureText','スマホで思いついた');await page.locator('#captureForm button[type=submit]').tap();
   assert.equal(await page.textContent('#inboxCount'),'1')});
 
@@ -818,7 +868,7 @@ await test('[マインドマップ][PC] Tab/Enter・IME・深い枝・折りた�
   const {page}=await newPage(browser);
   const original=(await state(page)).stages;
   await addMindSheet(page);
-  assert.equal(await page.locator('#secretary').isVisible(),false);
+  assert.equal(await page.locator('#secToggle').isVisible(),false);
   assert.equal(await mindRoot(page).evaluate(input=>input===document.activeElement),true);
   await mindRoot(page).fill('次回の展示');
   await page.keyboard.press('Tab');
@@ -855,7 +905,7 @@ await test('[マインドマップ][PC] Tab/Enter・IME・深い枝・折りた�
   assert.equal(await mindRoot(page).inputValue(),'次回の展示');
   await page.getByRole('tab',{name:/シート1/}).click();
   assert.deepEqual((await state(page)).stages,original);
-  assert.equal(await page.locator('#secretary').isVisible(),true);
+  assert.equal(await page.locator('#secToggle').isVisible(),true);
   assert.deepEqual(page.errors,[]);
 });
 
