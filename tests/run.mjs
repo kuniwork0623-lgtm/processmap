@@ -416,14 +416,17 @@ await test('[秘書][SP] スマホで秘書バー・困ったとき・思いつ�
 
 // ---------- AI連携の同意（モック） ----------
 await test('[AI連携] 本人の同意と正しい戻り先を確認してから許可',async browser=>{
-  const {page}=await newPage(browser,{user:USER});
-  const id='00000000-0000-4000-8000-000000000100';
+  const mock=mockSupabase();
+  mock.db.set(USER.id,{document:doc(),revision:1});
+  const {page}=await newPage(browser,{mock,user:USER});
+  await waitStatus(page,'保存済み');
+  const id='mock-authorization_id_100';
   const path=new URL('/oauth/consent?authorization_id='+id,base).href;
-  const callback='https://chatgpt.com/connector_platform_oauth_redirect';
-  let target='https://example.test/callback',approvals=0;
+  const callback='https://chatgpt.com/connector/oauth/mock-client';
+  let target='https://example.test/callback',requestedScope='openid email offline_access',approvals=0;
   await page.route(url=>url.origin===SUPA&&url.pathname.startsWith('/auth/v1/oauth/authorizations/'+id),async route=>{
     if(route.request().method()==='GET')return route.fulfill({json:{
-      authorization_id:id,redirect_uri:target,scope:'openid',client:{name:'Test client'},
+      authorization_id:id,redirect_uri:target,scope:requestedScope,client:{name:'Test client'},
     }});
     approvals++;
     assert.deepEqual(route.request().postDataJSON(),{action:'approve'});
@@ -436,11 +439,55 @@ await test('[AI連携] 本人の同意と正しい戻り先を確認してから
   assert.equal(approvals,0);
 
   target=callback;
+  requestedScope='openid email offline_access profile';
+  await page.reload();
+  await page.getByText('この接続先または権限は許可できません。').waitFor();
+  assert.equal(await page.locator('#aiConnectionApprove').isVisible(),false);
+
+  requestedScope='openid email offline_access';
   await page.reload();
   await page.locator('#aiConnectionApprove').waitFor();
   assert.match(await page.locator('#aiConnectionStatus').textContent(),/ChatGPT.*mock-user@example\.test/);
+  const details=page.locator('#aiConnectionDetails');
+  assert.equal(await details.isVisible(),true);
+  assert.match(await details.textContent(),/メールアドレスが共有されます。.*接続を更新します。/);
   assert.equal(approvals,0);
   await page.locator('#aiConnectionApprove').click();
+  await page.getByText('Callback received').waitFor();
+  assert.equal(approvals,1);
+});
+
+await test('[AI連携][SP] Claudeの読み取りと接続更新の許可',async browser=>{
+  const mock=mockSupabase();
+  mock.db.set(USER.id,{document:doc(),revision:1});
+  const {page}=await newPage(browser,{mobile:true,mock,user:USER});
+  await waitStatus(page,'保存済み');
+  const id='mock-authorization_id_101';
+  const path=new URL('/oauth/consent?authorization_id='+id,base).href;
+  const callback='https://claude.ai/api/mcp/auth_callback';
+  let requestedScope='openid offline_access email',approvals=0;
+  await page.route(url=>url.origin===SUPA&&url.pathname.startsWith('/auth/v1/oauth/authorizations/'+id),async route=>{
+    if(route.request().method()==='GET')return route.fulfill({json:{
+      authorization_id:id,redirect_uri:callback,scope:requestedScope,client:{name:'Claude'},
+    }});
+    approvals++;
+    assert.deepEqual(route.request().postDataJSON(),{action:'approve'});
+    return route.fulfill({json:{redirect_url:callback+'?code=mock&state=mock'}});
+  });
+  await page.route(callback+'**',route=>route.fulfill({body:'Callback received'}));
+  await page.goto(path);
+  await page.getByText('この接続先または権限は許可できません。').waitFor();
+  assert.equal(await page.locator('#aiConnectionApprove').isVisible(),false);
+
+  requestedScope='openid offline_access';
+  await page.reload();
+  await page.locator('#aiConnectionApprove').waitFor();
+  assert.match(await page.locator('#aiConnectionStatus').textContent(),/^Claude が/);
+  const details=page.locator('#aiConnectionDetails');
+  assert.equal(await details.isVisible(),true);
+  assert.match(await details.textContent(),/^今後も工程表を読み取れるように接続を更新します。/);
+  assert.equal(approvals,0);
+  await page.locator('#aiConnectionApprove').tap();
   await page.getByText('Callback received').waitFor();
   assert.equal(approvals,1);
 });
