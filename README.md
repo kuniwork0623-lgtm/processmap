@@ -23,7 +23,7 @@ FreeMind形式のマインドマップは、下部の「＋」→「.mm を取�
 計画は必ず崩れる前提で、ツール側が次のルールを守らせる。
 
 1. **予定が崩れたら残りの作業を整理する** — 今週の作業時間、着手順、締切を見直す。後回しにできる項目があれば「あったら良い」に回す
-2. **思いついたら「あとで箱」** — 画面左下の「💡 思いついた」から、全シート共通の箱にメモする。Enter／Alt＋Enterで改行し、保存ボタンまたはCtrl＋Enter（Macは⌘＋Enter）で1件として保存。保存済みのメモは各行の「編集」から修正できる
+2. **思いついたら「あとで箱」** — 画面左下の「💡 思いついた」から、全シート共通の箱にメモする。Enter／Alt＋Enterで改行し、保存ボタンまたはCtrl＋Enter（Macは⌘＋Enter）で1件として保存。保存済みのメモは各行の「編集」から修正できる。以前のメモを探すには、入力したブラウザーでログインし、「端末内のメモを探す」を開く
 3. **細かく決めるのは今週だけ** — 「★今週」は最大5個
 4. **週1回5分の見直し** — 終わったものをチェック → あとで箱の仕分け → 間に合うか確認 → 今週の★を選ぶ
 
@@ -73,7 +73,7 @@ FreeMind形式のマインドマップは、下部の「＋」→「.mm を取�
 - 保存先: Supabase プロジェクト `processmap`（ref `xgeviftkyrxhqbpgpfea`）のテーブル `public.processmap_documents`（1ユーザー1行。列 `user_id`, `document`(JSON), `revision`）
 - 読み込み: `select document,revision where user_id = 自分`
 - 保存: RPC `save_processmap_document(p_document, p_expected_revision)`。サーバーの revision と一致しないと `REVISION_CONFLICT` → 画面で「この端末／サーバー」を選ぶ競合ダイアログ（両方を端末に退避してから上書き）
-- 端末側: localStorage にも保存（`processmap_user_<uid>_<タブID>`、未ログイン時は `processmap_guest_v1`）。2.5秒ごと・フォーカス時・オンライン復帰時に同期
+- 端末側: localStorage の `processmap_user_<uid>_<タブID>` にも保存。2.5秒ごと・フォーカス時・オンライン復帰時に同期。旧版のゲストデータは `processmap_guest_v1` に残る場合がある
 - 認証: Supabase Auth（メール＋パスワード）。確認メールのリンクを画面に貼って認証完了
 - 未ログインの利用者はテーブルに権限なし（`permission denied`、2026-11-20 確認）
 - 文書の形（`schemaVersion: 7`）: `{appearance, processedKeys, sheets:[{id,name,stages}], activeSheetId, stages}`。sheet = `{id,name,stages,goal:{deadline},lastReview,revisions}`、stage = `{id,title,done,doneAt,star,nice,collapsed,due,note,changes,width,emphasis,tasks}`、task = `{id,text,done,doneAt,star,nice,collapsed,due,note,changes,width,emphasis,children}`。`doneAt` は完了日（`''`=過去分で不明）（孫の children は常に空）。`due` は `YYYY-MM-DD` か null。`processedKeys` 内の `__processmap_workbook_v1__:` は旧版クライアントが他シートを消さないための互換データ。共通のあとで箱は `__processmap_inbox_v1__:` に保存し、旧版のシート別 `inbox` にあるメモも読み込む
