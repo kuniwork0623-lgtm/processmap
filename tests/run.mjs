@@ -109,6 +109,60 @@ for(const mobile of [false,true]){
     const s=await state(page);assert.ok(s.stages[0].tasks[0].text.includes('<img'),'保存本文がテキストのままではありません')});
 }
 
+await test('[SP] 工程表の文字サイズと選択したカードのつまみがズームでも崩れない',async browser=>{
+  const {page,ctx}=await newPage(browser,{mobile:true});
+  await page.evaluate(()=>{
+    const copied=window.pmApp.get();
+    copied.stages[0].title='ログインと保存の準備をする';
+    copied.stages[0].due=new Date().toLocaleDateString('sv-SE');
+    copied.stages[0].tasks[1].star=true;
+    window.pmApp.set(copied);
+  });
+  const measure=()=>page.evaluate(()=>{
+    const size=selector=>{
+      const element=document.querySelector(selector),range=document.createRange();
+      range.selectNodeContents(element);
+      return {font:parseFloat(getComputedStyle(element).fontSize),height:range.getClientRects()[0].height};
+    };
+    return {adjust:getComputedStyle(document.querySelector('.stage-title')).getPropertyValue('text-size-adjust'),
+      heading:size('.stage-title'),body:size('.task-text'),progress:size('.stage-progress .count'),
+      due:size('.stage-progress .due-chip'),star:size('.task-meta .star-chip'),add:size('.add-task')};
+  });
+  const initial=await measure();
+  assert.equal(initial.adjust,'100%');assert.equal(initial.body.font,16);
+  assert.ok(initial.progress.height<initial.heading.height&&initial.due.height<initial.heading.height);
+  assert.ok(initial.star.height<initial.body.height&&initial.add.height<initial.body.height);
+  await page.locator('#zoomOut').tap();await page.locator('#zoomOut').tap();
+  const zoomed=await measure();
+  assert.ok(zoomed.body.height<initial.body.height);
+  assert.ok(Math.abs(zoomed.star.height/zoomed.body.height-initial.star.height/initial.body.height)<.1);
+
+  const stage=page.locator('.stage-heading').first(),task=page.locator('[data-task-card="t1"]');
+  const visible='.task-resize:visible,.stage-resize:visible,.mobile-drag:visible';
+  assert.equal(await page.locator(visible).count(),0);
+  await stage.tap({position:{x:12,y:12}});
+  assert.equal(await stage.locator('.stage-resize').isVisible(),true);
+  assert.equal(await task.locator('.task-resize').isVisible(),false);
+  await task.locator('.task-text').tap();
+  assert.equal(await stage.locator('.stage-resize').isVisible(),false);
+  assert.equal(await task.locator('.task-resize').isVisible(),true);
+  assert.equal(await page.locator('.mobile-drag:visible').count(),1);
+  await page.locator('#canvas').tap({position:{x:50,y:600}});
+  assert.equal(await page.locator(visible).count(),0);
+
+  await task.locator('.task-text').tap();
+  const handle=task.locator('.task-resize');await handle.scrollIntoViewIfNeeded();
+  const before=await task.evaluate(card=>card.offsetWidth),box=await handle.boundingBox();
+  const x=box.x+box.width/2,y=box.y+box.height/2;
+  const cdp=await ctx.newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+35,y}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  assert.ok(await task.evaluate(card=>card.offsetWidth)>before);
+  assert.equal((await state(page)).stages[0].tasks[0].width,await task.evaluate(card=>card.offsetWidth));
+  assert.deepEqual(page.errors,[]);
+});
+
 await test('[PC] URL: Alt+クリックでURL部分を編集でき、保存はテキストのまま',async b=>{const {page}=await newPage(b);
   await page.evaluate(()=>{const s=window.pmApp.get();s.stages[0].tasks[0].text='https://example.com';window.pmApp.set(s)});
   await page.locator('.task-link').first().click({modifiers:['Alt']});await page.keyboard.type('/x');await page.locator('.brand').click();
