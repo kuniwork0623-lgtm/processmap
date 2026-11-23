@@ -19,14 +19,19 @@ function doc(title='サーバーの工程'){return {schemaVersion:7,appearance:{
 
 // In-memory Supabase mock with per-user rows (models RLS: a user only sees their own row).
 function mockSupabase(){
-  const db=new Map();const calls=[];let online=true;
+  const db=new Map();const calls=[];let online=true,authorized=true;
   async function handler(route){
     const req=route.request(),url=new URL(req.url());calls.push(req.method()+' '+url.pathname);
     if(!online)return route.abort('internetdisconnected');
     const auth=req.headers()['authorization']||'';const uid=auth.includes('mock-token-')?auth.split('mock-token-')[1]:null;
     if(url.pathname.startsWith('/auth/v1/user'))return route.fulfill({json:{id:uid,email:uid===USER.id?USER.email:OTHER.email,aud:'authenticated',role:'authenticated'}});
     if(url.pathname.startsWith('/auth/v1/logout'))return route.fulfill({status:204,body:''});
+    if(url.pathname==='/auth/v1/token'&&url.searchParams.get('grant_type')==='password'){
+      const target=[USER,OTHER].find(user=>user.email===req.postDataJSON().email);
+      return target?route.fulfill({json:JSON.parse(session(target))}):route.fulfill({status:400,json:{error:'mock login'}});
+    }
     if(url.pathname.startsWith('/auth/v1/'))return route.fulfill({status:400,json:{error:'mock'}});
+    if(!authorized&&url.pathname.startsWith('/rest/v1/'))return route.fulfill({status:401,json:{code:'PGRST301',message:'JWT expired'}});
     if(url.pathname==='/rest/v1/processmap_documents'&&req.method()==='GET'){
       const asked=(url.searchParams.get('user_id')||'').replace('eq.','');
       const row=uid&&asked===uid?db.get(uid):null; // RLS emulation
@@ -42,17 +47,22 @@ function mockSupabase(){
     }
     return route.fulfill({status:404,json:{message:'mock: unhandled '+url.pathname}});
   }
-  return {db,calls,handler,setOnline:v=>{online=v}};
+  return {db,calls,handler,setOnline:v=>{online=v},expireSession:()=>{authorized=false}};
 }
 function session(user){return JSON.stringify({access_token:'mock-token-'+user.id,refresh_token:'r',token_type:'bearer',expires_in:36000,expires_at:Math.floor(Date.now()/1000)+36000,user:{id:user.id,email:user.email,aud:'authenticated',role:'authenticated'}})}
 
-async function newPage(browser,{mobile=false,mock=mockSupabase(),user=null,storage=null}={}){
+async function newPage(browser,{mobile=false,mock=mockSupabase(),user=USER,storage=null}={}){
+  const createsDocument=!!user&&!mock.db.has(user.id);
   const ctx=await browser.newContext(mobile?{viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1}:{viewport:{width:1440,height:900}});
   await ctx.route(/supabase\.co/,mock.handler); // block every real Supabase request
   await ctx.addInitScript(([key,value,extra])=>{if(sessionStorage.getItem('__seeded'))return;sessionStorage.setItem('__seeded','1');if(value)localStorage.setItem(key,value);for(const [k,v] of extra||[])localStorage.setItem(k,v)},['sb-xgeviftkyrxhqbpgpfea-auth-token',user?session(user):null,storage]);
   const page=await ctx.newPage();page.errors=[];page.on('pageerror',e=>page.errors.push(e.message));
   page.on('dialog',d=>d.accept());
-  await page.goto(base);await page.waitForSelector('.stage');
+  await page.goto(base);
+  if(user){
+    await page.waitForSelector('.stage');
+    if(createsDocument)await waitStatus(page,'保存済み');
+  }else await page.locator('#loginGateOpen').waitFor();
   return {ctx,page,mock};
 }
 const state=page=>page.evaluate(()=>window.pmApp.get());
@@ -598,6 +608,66 @@ await test('[あとで箱] 保存済みメモの編集・キャンセル・PCと
   assert.deepEqual(pc.errors,[]);assert.deepEqual(phone.errors,[]);
 });
 
+await test('[復旧] ログイン前は工程表を表示せず、同じ端末のメモだけを選んで戻す',async browser=>{
+  const mock=mockSupabase(),prefix='__processmap_inbox_v1__:';
+  const fixture=(title,id,text)=>({...doc(title),processedKeys:[prefix+JSON.stringify([{id,text,at:'2026-11-22'}])]});
+  const existing='アカウントの現在のメモ',lost='失くした盤面のメモ\n2行目';
+  const title='アカウントの工程表';
+  mock.db.set(USER.id,{document:fixture(title,'current',existing),revision:1});
+  const {page}=await newPage(browser,{mock,mobile:true,user:null,storage:[
+    ['processmap_guest_v1',JSON.stringify(fixture('未ログインで作成した工程','guest',lost))],
+    [`processmap_user_${USER.id}_prior`,JSON.stringify(fixture('前の同期済みコピー','older','自分の退避メモ'))],
+    [`processmap_user_${USER.id}_prior_meta`,'{"revision":1,"dirty":false}'],
+    [`processmap_user_${OTHER.id}_prior`,JSON.stringify(fixture('別アカウントの工程','other','別アカウントのメモ'))],
+  ]});
+  assert.equal(await page.locator('.stage').count(),0);
+  assert.equal(await page.locator('#captureOpen').isVisible(),false);
+  await page.locator('#loginGateOpen').tap();
+  await page.fill('#email',USER.email);await page.fill('#password','mock-password');
+  await page.locator('#authForm button[type=submit]').tap();await page.locator('.stage-title').waitFor();
+  assert.equal(await page.locator('.stage-title').textContent(),title);
+  assert.equal(await page.locator('#loginGate').isVisible(),false);
+  await page.locator('#captureOpen').tap();await page.locator('#inboxRecoveryOpen').tap();
+  assert.deepEqual((await page.locator('#inboxRecoveryList .inbox-text').allTextContents()).sort(),[lost,'自分の退避メモ'].sort());
+  await page.fill('#inboxRecoverySearch','盤面');
+  assert.deepEqual(await page.locator('#inboxRecoveryList .inbox-text').allTextContents(),[lost]);
+  await page.getByRole('button',{name:'復旧する',exact:true}).tap();
+  await page.locator('#inboxRecoveryClose').tap();await page.locator('#captureClose').tap();
+  await waitStatus(page,'保存済み');
+  const saved=mock.db.get(USER.id).document;
+  assert.equal(saved.stages[0].title,title);
+  const encoded=saved.processedKeys.find(key=>key.startsWith(prefix));
+  assert.deepEqual(JSON.parse(encoded.slice(prefix.length)).map(note=>note.text),[existing,lost]);
+  await page.locator('#menuTrigger').tap();await page.locator('#logout').tap();
+  await page.locator('#loginGateOpen').waitFor();
+  assert.equal(await page.locator('.stage').count(),0);
+  assert.equal(await page.locator('#captureOpen').isVisible(),false);
+  assert.equal(await page.locator('#inboxList .inbox-text').count(),0);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[復旧] セッションの期限が切れたPCでは再ログインを求める',async browser=>{
+  const mock=mockSupabase();
+  mock.db.set(USER.id,{document:doc('非公開の工程表'),revision:1});
+  const {page,ctx}=await newPage(browser,{mock});
+  assert.equal(await page.locator('.stage-title').textContent(),'非公開の工程表');
+  const heading=await page.locator('.stage-heading').boundingBox();
+  await page.mouse.move(heading.x+8,heading.y+8);
+  await page.mouse.down();await page.mouse.move(heading.x+24,heading.y+24);
+  await page.locator('body > .drag-outline').waitFor();
+  mock.expireSession();
+  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  await page.locator('#loginGateOpen').waitFor();
+  await page.mouse.up();
+  assert.equal(await page.locator('.stage').count(),0);
+  assert.equal(await page.locator('body > .drag-outline').count(),0);
+  const staleTab=await ctx.newPage();
+  await staleTab.goto(base);
+  await staleTab.locator('#loginGateOpen').waitFor();
+  assert.equal(await staleTab.locator('.stage').count(),0);
+  assert.deepEqual(page.errors,[]);
+});
+
 // ---------- AI連携の同意（モック） ----------
 await test('[AI連携] 本人の同意と正しい戻り先を確認してから許可',async browser=>{
   const mock=mockSupabase();
@@ -827,6 +897,7 @@ await test('[幅・折り返し][マインドマップ][SP] トピック別の�
   await page.getByRole('tab',{name:/マインドマップ/}).tap();
   assert.equal(await toggle.getAttribute('aria-pressed'),'true');
   await page.reload();
+  await mindRoot(page).waitFor();
   assert.equal(await toggle.getAttribute('aria-pressed'),'true');
   const [{root}]=readMindMaps(await state(page));
   assert.equal(root.width,170);
@@ -1139,6 +1210,7 @@ await test('[マインドマップ] 旧版形式の再読込と、マインド�
   await page.locator('#sheetOptions').click();await page.locator('#sheetDelete').click();
   assert.equal(await page.getByRole('tab').count(),1);
   await page.reload();
+  await mindRoot(page).waitFor();
   assert.equal(await page.getByRole('tab').count(),1);
   assert.equal(await mindRoot(page).inputValue(),'保存する発想');
   assert.equal(readMindMaps(await state(page)).length,1);

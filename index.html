@@ -14,6 +14,9 @@
     button { font:inherit; cursor:pointer; }
     button:focus-visible,[contenteditable]:focus-visible { outline:2px solid #8baadd; outline-offset:3px; }
     #app { height:100dvh; display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+    .login-gate{min-height:100dvh;display:grid;place-content:center;justify-items:start;padding:24px;color:var(--txt)}
+    .login-gate h1{font-size:26px;margin:0 0 8px}.login-gate p{color:var(--soft);line-height:1.6;margin:0 0 18px}
+    .login-gate button{min-height:44px;padding:8px 18px;border:0;border-radius:8px;background:#86a9df;color:#0b1728;font-weight:700}
     .topbar { height:52px; flex:0 0 auto; padding:0 27px; display:flex; align-items:center; justify-content:space-between; background:var(--bg); border-bottom:1px solid #ffffff0b; z-index:10; }
     .brand {user-select:none;}
     .brand-name {font-weight:540;font-size:12px;letter-spacing:.12em;color:var(--canvas-fg);}
@@ -221,7 +224,7 @@
     .inbox-count{margin-left:6px;background:#e9c36b;color:#1b1406;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700}.inbox-count:empty{display:none}
     .inbox-list{max-height:220px;overflow:auto;margin:6px 0}.inbox-row{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #ffffff0d;font-size:13px}.inbox-text{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}.inbox-row .date{flex:0 0 auto;font-size:11px;color:var(--soft)}
     .inbox-row button{min-height:30px;padding:3px 9px;font-size:12px;margin:0}
-    #captureDialog,#inboxEditDialog,#reviewDialog,#consultDialog,#historyDialog{width:min(94vw,680px)}
+    #captureDialog,#inboxEditDialog,#inboxRecoveryDialog,#reviewDialog,#consultDialog,#historyDialog{width:min(94vw,680px)}
     #captureText,#inboxEditText,#consultRequest,#consultReply{display:block;width:100%;margin:8px 0;padding:10px;border-radius:8px;border:1px solid #425067;background:#101824;color:#e4edf5;font:14px/1.6 inherit;resize:vertical;box-sizing:border-box}#consultReply{min-height:120px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
     .review-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.review-body{max-height:56dvh;overflow:auto;margin:8px 0}
     .review-row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid #ffffff0d;font-size:14px}.review-row .grow{flex:1;min-width:0;overflow-wrap:anywhere}.review-row .sub{display:block;font-size:11px;color:var(--soft)}
@@ -340,7 +343,12 @@
   </style>
 </head>
 <body>
-<div id="app">
+<main id="loginGate" class="login-gate" aria-labelledby="loginGateTitle">
+  <h1 id="loginGateTitle">ProcessMap</h1>
+  <p id="loginGateStatus" role="status">ログイン状態を確認しています…</p>
+  <button id="loginGateOpen" type="button" hidden>ログイン</button>
+</main>
+<div id="app" hidden>
   <header class="topbar">
     <div class="brand"><span class="brand-name">ProcessMap</span></div>
     <div class="top-actions">
@@ -411,7 +419,7 @@
     <button id="zoomReset" aria-label="標準倍率100%に戻す" title="標準倍率100%に戻す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.4-5.6"/><path d="M20 4v5h-5"/></svg></button>
   </div>
 </div>
-<div class="quick-actions">
+<div id="appQuickActions" class="quick-actions" hidden>
   <button id="captureOpen" class="capture-fab" type="button" title="作業中に思いついたことを、予定をいじらずに一旦しまう">💡 思いついた<span id="inboxCount" class="inbox-count"></span></button>
   <button id="secToggle" class="sec-toggle" type="button" aria-label="秘書" aria-haspopup="dialog" aria-controls="secretary" title="秘書"><span aria-hidden="true">🔔</span></button>
 </div>
@@ -461,13 +469,20 @@
 <p id="captureHint">全シートで共通のメモです。Enterで改行、Ctrl＋Enter（Macは⌘＋Enter）で保存できます。</p>
 <textarea id="captureText" rows="3" maxlength="1000" aria-label="メモ" aria-describedby="captureHint" placeholder="思いついたことを書く"></textarea>
 <div id="inboxList" class="inbox-list"></div>
-<div class="settings-actions"><button type="submit">あとで箱に入れる</button><button type="button" id="captureClose">閉じる</button></div>
+<div class="settings-actions"><button type="submit">あとで箱に入れる</button><button type="button" id="inboxRecoveryOpen">端末内のメモを探す</button><button type="button" id="captureClose">閉じる</button></div>
 </form></dialog>
 <dialog id="inboxEditDialog" aria-labelledby="inboxEditTitle"><form id="inboxEditForm">
 <h3 id="inboxEditTitle">メモを編集</h3>
 <textarea id="inboxEditText" rows="5" maxlength="1000" aria-label="メモの本文" required autofocus></textarea>
 <div class="settings-actions"><button type="submit">保存</button><button id="inboxEditCancel" type="button">キャンセル</button></div>
 </form></dialog>
+<dialog id="inboxRecoveryDialog" aria-labelledby="inboxRecoveryTitle">
+<h3 id="inboxRecoveryTitle">端末内のメモを探す</h3>
+<input id="inboxRecoverySearch" type="search" aria-label="メモのキーワード" placeholder="キーワードを入力">
+<p id="inboxRecoveryStatus" role="status"></p>
+<div id="inboxRecoveryList" class="inbox-list"></div>
+<button id="inboxRecoveryClose" type="button">閉じる</button>
+</dialog>
 <dialog id="secretary" aria-labelledby="secretaryTitle">
 <h3 id="secretaryTitle">秘書</h3>
 <section class="sec-current"><p id="secText"></p><button id="secAction" type="button"></button></section>
@@ -596,7 +611,7 @@
   const PROCESS_WIDTH_MIN=210,MIND_WIDTH_MIN=100,CARD_WIDTH_MAX=1200;
   const narrowCanvas=matchMedia('(max-width:700px)');
   const textMeasure=document.createElement('canvas').getContext('2d');
-  let state=load();
+  let state=normalize(defaultData),workspaceUser=null;
   let drag=null, dragTimer=null,pan=null,ghost=null;
   let selection=null, selectedCard=null, emphasisEditing=null, toastTimer=null;
   const undoHistory=[],redoHistory=[];
@@ -819,10 +834,6 @@
         }
       }
     }
-  }
-  function load(){
-    try{const raw=localStorage.getItem(window.pmStorageKey||KEY);if(raw)return restoreSheetView(normalize(JSON.parse(raw)));}catch(e){console.warn(e)}
-    return normalize(defaultData);
   }
   function syncParents(data=state){
     if(data.sheets){const active=data.sheets.find(s=>s.id===data.activeSheetId);if(active)active.stages=data.stages;}
@@ -1061,6 +1072,7 @@
     requestAnimationFrame(updateBranchLines);
   }
   function render(){
+    if(!workspaceUser)return;
     branchObserver?.disconnect();
     applyAppearance();renderSheets();
     if(!$('palettePanel').hidden)renderPalette();
@@ -1790,6 +1802,66 @@
 
   // ---- あとで箱 ----
   let editingInboxId=null;
+  function readInboxSnapshot(key){
+    try{
+      const snapshot=JSON.parse(localStorage.getItem(key));
+      if(Array.isArray(snapshot))return normInbox(snapshot);
+      if(!snapshot||typeof snapshot!=='object')return [];
+      const keys=Array.isArray(snapshot.processedKeys)?snapshot.processedKeys.filter(key=>typeof key==='string'):[];
+      let sheets=snapshot.sheets;
+      if(!Array.isArray(sheets)){
+        const workbook=keys.findLast(key=>key.startsWith(WORKBOOK_KEY));
+        try{sheets=workbook&&JSON.parse(workbook.slice(WORKBOOK_KEY.length)).sheets}catch{}
+      }
+      return restoreInbox(Array.isArray(sheets)?sheets.filter(Boolean):[],keys);
+    }catch{return []}
+  }
+  function recoveryKey(userId){return 'processmap_inbox_recovery_'+userId}
+  function inboxRecoveryCandidates(userId){
+    const ownPrefix='processmap_user_'+userId+'_';
+    const sources=[recoveryKey(userId),KEY,...Object.keys(localStorage).filter(key=>key.startsWith(ownPrefix)&&!key.endsWith('_meta'))];
+    const present=new Set(state.inbox.map(note=>note.text)),found=[];
+    for(const key of sources){
+      for(const note of readInboxSnapshot(key)){
+        if(present.has(note.text))continue;
+        present.add(note.text);found.push(note);
+      }
+    }
+    return found.sort((a,b)=>b.at.localeCompare(a.at));
+  }
+  function preserveInboxRecovery(userId){
+    try{
+      const notes=inboxRecoveryCandidates(userId);
+      if(notes.length)localStorage.setItem(recoveryKey(userId),JSON.stringify(notes));
+      return true;
+    }catch{return false}
+  }
+  function renderInboxRecovery(){
+    const list=$('inboxRecoveryList'),status=$('inboxRecoveryStatus');
+    list.replaceChildren();
+    if(!workspaceUser)return;
+    let notes;
+    try{notes=inboxRecoveryCandidates(workspaceUser)}catch{status.textContent='端末内の保存データを読み取れませんでした。';return}
+    const keyword=$('inboxRecoverySearch').value.trim().normalize('NFKC').toLowerCase();
+    const matches=notes.filter(note=>note.text.normalize('NFKC').toLowerCase().includes(keyword));
+    status.textContent=!notes.length?'このブラウザーに復旧候補のメモが見つかりませんでした。'
+      :matches.length?`${matches.length}件。戻したいメモの「復旧する」を押してください。`:'このキーワードに該当するメモがありません。';
+    for(const note of matches){
+      const row=el('div','inbox-row'),restore=el('button','','復旧する');restore.type='button';
+      restore.onclick=()=>{
+        if(!workspaceUser||state.inbox.some(item=>item.text===note.text))return;
+        change(()=>{state.inbox.push({...note,id:uid('in')});state.inbox.sort((a,b)=>a.at.localeCompare(b.at))});
+        renderInboxRecovery();$('inboxRecoveryStatus').textContent='メモをあとで箱に復旧しました。';
+      };
+      row.append(el('span','inbox-text',note.text),el('span','date',note.at),restore);list.append(row);
+    }
+  }
+  $('inboxRecoveryOpen').onclick=()=>{
+    if(!workspaceUser)return;
+    $('inboxRecoverySearch').value='';renderInboxRecovery();$('inboxRecoveryDialog').showModal();
+  };
+  $('inboxRecoverySearch').oninput=renderInboxRecovery;
+  $('inboxRecoveryClose').onclick=()=>$('inboxRecoveryDialog').close();
   function renderInboxList(){
     const list=$('inboxList');list.replaceChildren();
     for(const it of [...state.inbox].reverse()){
@@ -2912,6 +2984,7 @@ ${outlineOf(sh.stages)}
   new MutationObserver(()=>{const t=$('syncStatus').textContent,bad=/競合|接続できません|オフライン/.test(t);$('menuTrigger').toggleAttribute('data-alert',bad);$('syncStatus').toggleAttribute('data-alert',bad);$('menuTrigger').setAttribute('aria-label',bad?'メニューを開く（同期に問題があります：'+t+'）':'メニューを開く');$('menuTrigger').title=bad?'同期に問題があります：'+t:'メニュー'}).observe($('syncStatus'),{childList:true,characterData:true,subtree:true});
 
   document.addEventListener('keydown',e=>{
+    if(!workspaceUser)return;
     if(document.querySelector('dialog[open]'))return;
     if(mindDrag?.base){
       if(e.key==='Escape'){e.preventDefault();finishMindDrag(true)}
@@ -2921,9 +2994,29 @@ ${outlineOf(sh.stages)}
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='y'&&!e.target.closest('textarea,input')){e.preventDefault();redo();return;}
     if(e.key==='Escape'){closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('stageContext')?.remove()}
   });
-  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','cardDisplayDialog','mindImportDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog','mindDeleteDialog','inboxEditDialog'])$(id).close();emphasisEditing=null;displayTarget=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
+  function setWorkspace(mode,userId){
+    const wasOpen=!!workspaceUser;
+    workspaceUser=mode==='ready'?userId:null;
+    const open=!!workspaceUser;
+    $('app').hidden=$('appQuickActions').hidden=!open;
+    $('loginGate').hidden=open;
+    $('loginGateOpen').hidden=mode==='checking';
+    $('loginGateStatus').textContent=mode==='checking'?'ログイン状態を確認しています…':'工程表とメモを開くにはログインしてください。';
+    if(open){
+      renderPalette();render();if(!currentMindSheet())applyZoom(processZoom);
+    }else if(wasOpen){
+      clearMindDrag();
+      clearTimeout(dragTimer);dragPending=null;drag=null;pan=null;resizeSession=null;
+      ghost?.remove();ghost=null;document.body.style.userSelect='';canvas.classList.remove('panning');
+      for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close();
+      closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('toast').hidden=true;
+      for(const id of ['map','sheetTabs','inboxList','inboxRecoveryList'])$(id).replaceChildren();
+      for(const id of ['captureText','inboxEditText','inboxRecoverySearch'])$(id).value='';
+    }
+  }
+  $('loginGateOpen').onclick=()=>$('loginOpen').click();
+  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','cardDisplayDialog','mindImportDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog','mindDeleteDialog','inboxEditDialog','inboxRecoveryDialog'])$(id).close();emphasisEditing=null;displayTarget=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData),setWorkspace,preserveInboxRecovery};
   try{processZoom=Number(localStorage.getItem(ZOOM_KEY))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v054'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v053'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v052'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v051'))||1}catch{}
-  renderPalette();render();if(!currentMindSheet())applyZoom(processZoom);
 })();
 </script>
 <script src="/config.js"></script><script src="/sync.js"></script><script src="/oauth-consent.js"></script></body>
