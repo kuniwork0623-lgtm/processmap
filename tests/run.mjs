@@ -502,6 +502,48 @@ await test('[思いついた] 既存メモを引き継ぎ、工程表とマイ�
   assert.deepEqual(page.errors,[]);
 });
 
+await test('[あとで箱] 保存済みメモの編集・キャンセル・PCとスマホの同期',async browser=>{
+  const mock=mockSupabase(),initial=doc(),prefix='__processmap_inbox_v1__:';
+  const original={id:'edit-note',text:'元のメモ\n2行目',at:'2026-11-19'};
+  const other={id:'keep-note',text:'別のメモ',at:'2026-11-20'};
+  initial.processedKeys=[prefix+JSON.stringify([original,other])];
+  mock.db.set(USER.id,{document:initial,revision:1});
+  const {page:pc}=await newPage(browser,{mock,user:USER});
+  const {page:phone}=await newPage(browser,{mobile:true,mock,user:USER});
+  await waitStatus(pc,'保存済み');await waitStatus(phone,'保存済み');
+
+  await phone.locator('#captureOpen').tap();
+  await phone.fill('#captureText','入力中の新規メモ');
+  const phoneRow=phone.locator('[data-inbox-edit="edit-note"]'),phoneInput=phone.locator('#inboxEditText');
+  await phoneRow.tap();assert.equal(await phoneInput.inputValue(),original.text);
+  await phoneInput.fill('保存しない変更');await phone.locator('#inboxEditCancel').tap();
+  assert.equal(await phone.locator('#captureText').inputValue(),'入力中の新規メモ');
+  await phoneRow.tap();assert.equal(await phoneInput.inputValue(),original.text);
+  await phoneInput.fill('  \n ');await phone.locator('#inboxEditForm button[type=submit]').tap();
+  assert.equal(await phoneInput.evaluate(input=>input.validity.valid),false);
+  const edited='スマホで修正\n\n2段落目';
+  await phoneInput.fill(edited);await phone.locator('#inboxEditForm button[type=submit]').tap();
+  assert.equal(await phone.locator('#inboxEditDialog').isVisible(),false);
+  assert.equal(await phone.locator('#captureText').inputValue(),'入力中の新規メモ');
+  assert.equal(await phone.textContent('#inboxCount'),'2');
+  await phone.locator('#captureClose').tap();
+
+  await pc.waitForFunction(({prefix,edited})=>{
+    const record=window.pmApp.get().processedKeys.find(key=>key.startsWith(prefix));
+    return record&&JSON.parse(record.slice(prefix.length)).some(note=>note.text===edited);
+  },{prefix,edited},{timeout:10000});
+  await pc.click('#captureOpen');
+  assert.deepEqual(await pc.locator('#inboxList .inbox-text').allTextContents(),[other.text,edited]);
+  await pc.locator('[data-inbox-edit="edit-note"]').click();
+  const pcInput=pc.locator('#inboxEditText');
+  await pcInput.press('Control+End');await pcInput.press('Alt+Enter');await pc.keyboard.insertText('PCで追記');
+  await pcInput.press('Control+Enter');
+  const saved=(await state(pc)).processedKeys.find(key=>key.startsWith(prefix));
+  assert.deepEqual(JSON.parse(saved.slice(prefix.length)),[{...original,text:edited+'\nPCで追記'},other]);
+  assert.equal(await pc.locator('#inboxEditDialog').isVisible(),false);
+  assert.deepEqual(pc.errors,[]);assert.deepEqual(phone.errors,[]);
+});
+
 // ---------- AI連携の同意（モック） ----------
 await test('[AI連携] 本人の同意と正しい戻り先を確認してから許可',async browser=>{
   const mock=mockSupabase();

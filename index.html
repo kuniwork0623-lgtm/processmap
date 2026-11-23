@@ -216,8 +216,8 @@
     .inbox-count{margin-left:6px;background:#e9c36b;color:#1b1406;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700}.inbox-count:empty{display:none}
     .inbox-list{max-height:220px;overflow:auto;margin:6px 0}.inbox-row{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #ffffff0d;font-size:13px}.inbox-text{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}.inbox-row .date{flex:0 0 auto;font-size:11px;color:var(--soft)}
     .inbox-row button{min-height:30px;padding:3px 9px;font-size:12px;margin:0}
-    #captureDialog,#reviewDialog,#consultDialog,#historyDialog{width:min(94vw,680px)}
-    #captureText,#consultRequest,#consultReply{display:block;width:100%;margin:8px 0;padding:10px;border-radius:8px;border:1px solid #425067;background:#101824;color:#e4edf5;font:14px/1.6 inherit;resize:vertical;box-sizing:border-box}#consultReply{min-height:120px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+    #captureDialog,#inboxEditDialog,#reviewDialog,#consultDialog,#historyDialog{width:min(94vw,680px)}
+    #captureText,#inboxEditText,#consultRequest,#consultReply{display:block;width:100%;margin:8px 0;padding:10px;border-radius:8px;border:1px solid #425067;background:#101824;color:#e4edf5;font:14px/1.6 inherit;resize:vertical;box-sizing:border-box}#consultReply{min-height:120px;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
     .review-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.review-body{max-height:56dvh;overflow:auto;margin:8px 0}
     .review-row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid #ffffff0d;font-size:14px}.review-row .grow{flex:1;min-width:0;overflow-wrap:anywhere}.review-row .sub{display:block;font-size:11px;color:var(--soft)}
     .review-row select{background:#101824;color:#e4edf5;border:1px solid #425067;border-radius:7px;padding:6px;font-size:13px;max-width:46%}
@@ -457,6 +457,11 @@
 <textarea id="captureText" rows="3" maxlength="1000" aria-label="メモ" aria-describedby="captureHint" placeholder="思いついたことを書く"></textarea>
 <div id="inboxList" class="inbox-list"></div>
 <div class="settings-actions"><button type="submit">あとで箱に入れる</button><button type="button" id="captureClose">閉じる</button></div>
+</form></dialog>
+<dialog id="inboxEditDialog" aria-labelledby="inboxEditTitle"><form id="inboxEditForm">
+<h3 id="inboxEditTitle">メモを編集</h3>
+<textarea id="inboxEditText" rows="5" maxlength="1000" aria-label="メモの本文" required autofocus></textarea>
+<div class="settings-actions"><button type="submit">保存</button><button id="inboxEditCancel" type="button">キャンセル</button></div>
 </form></dialog>
 <dialog id="secretary" aria-labelledby="secretaryTitle">
 <h3 id="secretaryTitle">秘書</h3>
@@ -1761,13 +1766,16 @@
   };
 
   // ---- あとで箱 ----
+  let editingInboxId=null;
   function renderInboxList(){
     const list=$('inboxList');list.replaceChildren();
     for(const it of [...state.inbox].reverse()){
       const row=el('div','inbox-row');
+      const edit=el('button','','編集');edit.type='button';edit.dataset.inboxEdit=it.id;
+      edit.onclick=()=>openInboxEditor(it);
       const del=el('button','','削除');del.type='button';
       del.onclick=()=>change(()=>{state.inbox=state.inbox.filter(x=>x.id!==it.id)});
-      row.append(el('span','inbox-text',it.text),el('span','date',shortDate(it.at)),del);list.append(row);
+      row.append(el('span','inbox-text',it.text),el('span','date',shortDate(it.at)),edit,del);list.append(row);
     }
     if(!state.inbox.length)list.append(el('div','due-empty','あとで箱は空です。'));
   }
@@ -1781,16 +1789,43 @@
     change(()=>state.inbox.push({id:uid('in'),text,at:todayStr()}));
     input.value='';notify('あとで箱に入れました');input.focus();
   };
-  $('captureText').addEventListener('keydown',e=>{
+  function openInboxEditor(note){
+    editingInboxId=note.id;
+    const input=$('inboxEditText');
+    input.setCustomValidity('');input.value=note.text;
+    $('inboxEditDialog').showModal();
+  }
+  $('inboxEditCancel').onclick=()=>$('inboxEditDialog').close();
+  $('inboxEditText').oninput=e=>e.currentTarget.setCustomValidity('');
+  $('inboxEditDialog').addEventListener('close',e=>{if(!e.currentTarget.open)editingInboxId=null});
+  $('inboxEditForm').onsubmit=e=>{
+    e.preventDefault();
+    const dialog=$('inboxEditDialog');
+    if(!dialog.open)return;
+    const note=state.inbox.find(item=>item.id===editingInboxId);
+    if(!note){dialog.close();return}
+    const input=$('inboxEditText'),text=cleanText(input.value).slice(0,input.maxLength);
+    if(!text.trim()){
+      input.setCustomValidity('メモを入力してください。');input.reportValidity();return;
+    }
+    dialog.close();
+    if(text===note.text)return;
+    change(()=>{note.text=text});
+    $('inboxList').querySelector(`[data-inbox-edit="${CSS.escape(note.id)}"]`)?.focus({preventScroll:true});
+    notify('メモを更新しました');
+  };
+  function inboxTextKeys(e){
     if(e.key!=='Enter'||e.isComposing||e.keyCode===229)return;
+    const input=e.currentTarget;
     if(e.altKey){
       e.preventDefault();
-      const input=e.currentTarget;
       if(input.value.length-input.selectionEnd+input.selectionStart<input.maxLength){
         input.setRangeText('\n',input.selectionStart,input.selectionEnd,'end');
       }
-    }else if(e.ctrlKey||e.metaKey){e.preventDefault();$('captureForm').requestSubmit()}
-  });
+    }else if(e.ctrlKey||e.metaKey){e.preventDefault();input.form.requestSubmit()}
+  }
+  $('captureText').addEventListener('keydown',inboxTextKeys);
+  $('inboxEditText').addEventListener('keydown',inboxTextKeys);
 
   // ---- 週の見直し（4ステップ） ----
   let rv=null;
@@ -2863,7 +2898,7 @@ ${outlineOf(sh.stages)}
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='y'&&!e.target.closest('textarea,input')){e.preventDefault();redo();return;}
     if(e.key==='Escape'){closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('stageContext')?.remove()}
   });
-  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','cardDisplayDialog','mindImportDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog','mindDeleteDialog'])$(id).close();emphasisEditing=null;displayTarget=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
+  window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','cardDisplayDialog','mindImportDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog','mindDeleteDialog','inboxEditDialog'])$(id).close();emphasisEditing=null;displayTarget=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData)};
   try{processZoom=Number(localStorage.getItem(ZOOM_KEY))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v054'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v053'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v052'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v051'))||1}catch{}
   renderPalette();render();if(!currentMindSheet())applyZoom(processZoom);
 })();
