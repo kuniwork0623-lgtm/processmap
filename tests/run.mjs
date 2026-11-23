@@ -109,6 +109,60 @@ for(const mobile of [false,true]){
     const s=await state(page);assert.ok(s.stages[0].tasks[0].text.includes('<img'),'保存本文がテキストのままではありません')});
 }
 
+await test('[SP] 工程表の文字サイズと選択したカードのつまみがズームでも崩れない',async browser=>{
+  const {page,ctx}=await newPage(browser,{mobile:true});
+  await page.evaluate(()=>{
+    const copied=window.pmApp.get();
+    copied.stages[0].title='ログインと保存の準備をする';
+    copied.stages[0].due=new Date().toLocaleDateString('sv-SE');
+    copied.stages[0].tasks[1].star=true;
+    window.pmApp.set(copied);
+  });
+  const measure=()=>page.evaluate(()=>{
+    const size=selector=>{
+      const element=document.querySelector(selector),range=document.createRange();
+      range.selectNodeContents(element);
+      return {font:parseFloat(getComputedStyle(element).fontSize),height:range.getClientRects()[0].height};
+    };
+    return {adjust:getComputedStyle(document.querySelector('.stage-title')).getPropertyValue('text-size-adjust'),
+      heading:size('.stage-title'),body:size('.task-text'),progress:size('.stage-progress .count'),
+      due:size('.stage-progress .due-chip'),star:size('.task-meta .star-chip'),add:size('.add-task')};
+  });
+  const initial=await measure();
+  assert.equal(initial.adjust,'100%');assert.equal(initial.body.font,16);
+  assert.ok(initial.progress.height<initial.heading.height&&initial.due.height<initial.heading.height);
+  assert.ok(initial.star.height<initial.body.height&&initial.add.height<initial.body.height);
+  await page.locator('#zoomOut').tap();await page.locator('#zoomOut').tap();
+  const zoomed=await measure();
+  assert.ok(zoomed.body.height<initial.body.height);
+  assert.ok(Math.abs(zoomed.star.height/zoomed.body.height-initial.star.height/initial.body.height)<.1);
+
+  const stage=page.locator('.stage-heading').first(),task=page.locator('[data-task-card="t1"]');
+  const visible='.task-resize:visible,.stage-resize:visible,.mobile-drag:visible';
+  assert.equal(await page.locator(visible).count(),0);
+  await stage.tap({position:{x:12,y:12}});
+  assert.equal(await stage.locator('.stage-resize').isVisible(),true);
+  assert.equal(await task.locator('.task-resize').isVisible(),false);
+  await task.locator('.task-text').tap();
+  assert.equal(await stage.locator('.stage-resize').isVisible(),false);
+  assert.equal(await task.locator('.task-resize').isVisible(),true);
+  assert.equal(await page.locator('.mobile-drag:visible').count(),1);
+  await page.locator('#canvas').tap({position:{x:50,y:600}});
+  assert.equal(await page.locator(visible).count(),0);
+
+  await task.locator('.task-text').tap();
+  const handle=task.locator('.task-resize');await handle.scrollIntoViewIfNeeded();
+  const before=await task.evaluate(card=>card.offsetWidth),box=await handle.boundingBox();
+  const x=box.x+box.width/2,y=box.y+box.height/2;
+  const cdp=await ctx.newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+35,y}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  assert.ok(await task.evaluate(card=>card.offsetWidth)>before);
+  assert.equal((await state(page)).stages[0].tasks[0].width,await task.evaluate(card=>card.offsetWidth));
+  assert.deepEqual(page.errors,[]);
+});
+
 await test('[PC] URL: Alt+クリックでURL部分を編集でき、保存はテキストのまま',async b=>{const {page}=await newPage(b);
   await page.evaluate(()=>{const s=window.pmApp.get();s.stages[0].tasks[0].text='https://example.com';window.pmApp.set(s)});
   await page.locator('.task-link').first().click({modifiers:['Alt']});await page.keyboard.type('/x');await page.locator('.brand').click();
@@ -500,6 +554,48 @@ await test('[思いついた] 既存メモを引き継ぎ、工程表とマイ�
   await page.click('#captureClose');await page.getByRole('tab',{name:/工程表A/}).click();await page.click('#captureOpen');
   assert.deepEqual(await notes.allTextContents(),['1行目\n\n3行目','元のメモA']);
   assert.deepEqual(page.errors,[]);
+});
+
+await test('[あとで箱] 保存済みメモの編集・キャンセル・PCとスマホの同期',async browser=>{
+  const mock=mockSupabase(),initial=doc(),prefix='__processmap_inbox_v1__:';
+  const original={id:'edit-note',text:'元のメモ\n2行目',at:'2026-11-19'};
+  const other={id:'keep-note',text:'別のメモ',at:'2026-11-20'};
+  initial.processedKeys=[prefix+JSON.stringify([original,other])];
+  mock.db.set(USER.id,{document:initial,revision:1});
+  const {page:pc}=await newPage(browser,{mock,user:USER});
+  const {page:phone}=await newPage(browser,{mobile:true,mock,user:USER});
+  await waitStatus(pc,'保存済み');await waitStatus(phone,'保存済み');
+
+  await phone.locator('#captureOpen').tap();
+  await phone.fill('#captureText','入力中の新規メモ');
+  const phoneRow=phone.locator('[data-inbox-edit="edit-note"]'),phoneInput=phone.locator('#inboxEditText');
+  await phoneRow.tap();assert.equal(await phoneInput.inputValue(),original.text);
+  await phoneInput.fill('保存しない変更');await phone.locator('#inboxEditCancel').tap();
+  assert.equal(await phone.locator('#captureText').inputValue(),'入力中の新規メモ');
+  await phoneRow.tap();assert.equal(await phoneInput.inputValue(),original.text);
+  await phoneInput.fill('  \n ');await phone.locator('#inboxEditForm button[type=submit]').tap();
+  assert.equal(await phoneInput.evaluate(input=>input.validity.valid),false);
+  const edited='スマホで修正\n\n2段落目';
+  await phoneInput.fill(edited);await phone.locator('#inboxEditForm button[type=submit]').tap();
+  assert.equal(await phone.locator('#inboxEditDialog').isVisible(),false);
+  assert.equal(await phone.locator('#captureText').inputValue(),'入力中の新規メモ');
+  assert.equal(await phone.textContent('#inboxCount'),'2');
+  await phone.locator('#captureClose').tap();
+
+  await pc.waitForFunction(({prefix,edited})=>{
+    const record=window.pmApp.get().processedKeys.find(key=>key.startsWith(prefix));
+    return record&&JSON.parse(record.slice(prefix.length)).some(note=>note.text===edited);
+  },{prefix,edited},{timeout:10000});
+  await pc.click('#captureOpen');
+  assert.deepEqual(await pc.locator('#inboxList .inbox-text').allTextContents(),[other.text,edited]);
+  await pc.locator('[data-inbox-edit="edit-note"]').click();
+  const pcInput=pc.locator('#inboxEditText');
+  await pcInput.press('Control+End');await pcInput.press('Alt+Enter');await pc.keyboard.insertText('PCで追記');
+  await pcInput.press('Control+Enter');
+  const saved=(await state(pc)).processedKeys.find(key=>key.startsWith(prefix));
+  assert.deepEqual(JSON.parse(saved.slice(prefix.length)),[{...original,text:edited+'\nPCで追記'},other]);
+  assert.equal(await pc.locator('#inboxEditDialog').isVisible(),false);
+  assert.deepEqual(pc.errors,[]);assert.deepEqual(phone.errors,[]);
 });
 
 // ---------- AI連携の同意（モック） ----------
