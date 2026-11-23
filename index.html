@@ -334,7 +334,47 @@
     .mind-review-list button{text-align:left;margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
     .mind-review-list button small{display:block;margin-top:3px;color:#adbed3}
     .mind-tab-indicator{margin-right:6px;font-size:12px;color:var(--accent)}
-    @media(max-width:700px){
+    .mobile-only{display:none!important}
+    #backupChoices{max-height:min(48dvh,440px);overflow:auto;margin:8px 0}
+    #backupChoices .check-row{min-height:44px;overflow-wrap:anywhere}
+    @media(max-width:700px), (max-width:1024px) and (max-height:560px) and (pointer:coarse){
+      :root{--mobile-sheet-height:46px;--mobile-tools-height:56px;--mobile-safe-bottom:env(safe-area-inset-bottom,0px)}
+      .mobile-only{display:revert!important}
+      .mobile-only[hidden]{display:none!important}
+      .desktop-only{display:none!important}
+      .topbar{min-height:36px;height:36px;padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
+      .canvas{touch-action:pan-x pan-y}
+      .sheet-bar{flex-basis:var(--mobile-sheet-height);padding-inline:max(4px,env(safe-area-inset-left,0px)) max(4px,env(safe-area-inset-right,0px));gap:2px}
+      .sheet-tabs{touch-action:pan-x;overscroll-behavior-inline:contain}
+      .sheet-tab,.sheet-tool{min-height:44px}
+      #mobileTools button,.sheet-bar button,#zoomControls button{touch-action:manipulation}
+      .sheet-tool{min-width:44px}
+      #mobileTools{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start;flex:0 0 calc(var(--mobile-tools-height) + var(--mobile-safe-bottom));padding:0 max(4px,env(safe-area-inset-right,0px)) var(--mobile-safe-bottom) max(4px,env(safe-area-inset-left,0px));border-top:1px solid #ffffff12;background:#141d29;z-index:7}
+      #mobileTools button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;height:calc(var(--mobile-tools-height) - 1px);min-height:44px;margin:0;padding:2px;border:0;border-radius:8px;background:none;color:#d9e4f2;font-size:12px;line-height:1.15;box-shadow:none}
+      #mobileTools button:active,#mobileTools button[aria-expanded=true]{background:#ffffff0d;color:#edf4ff}
+      #mobileTools .tool-icon{display:block;width:21px;height:21px;font-size:18px;line-height:21px;flex:none;color:#aebfd4;filter:none}
+      .tool-icon svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+      #mobileTools .inbox-count,#mobileTools [data-alert]::after,#mobileTools .sec-toggle::after{position:absolute;top:5px;right:max(4px,calc(50% - 26px));margin:0}
+      #mobileTools #mobileContextSearch{grid-column:2;grid-row:1}
+      #mobileDisplayToggle{grid-column:3;grid-row:1}
+      #mobileTools #menuTrigger{grid-column:4;grid-row:1}
+      .zoom-controls{display:none;left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));bottom:calc(var(--mobile-tools-height) + var(--mobile-sheet-height) + var(--mobile-safe-bottom) + 6px);z-index:8;background:#1b2635;flex-direction:row;justify-content:center;flex-wrap:wrap;gap:3px;padding:4px}
+      .zoom-controls[data-open]{display:flex}
+      .zoom-controls button,.zoom-controls #zoomReset{min-width:44px;width:auto;height:44px;padding:0 8px}
+      .zoom-controls #mobileFit,.zoom-controls #sheetNoWrap,.zoom-controls #zoomReset{font-size:12px}
+      .zoom-controls #sheetNoWrap[aria-pressed=true]{background:#30445f;color:#edf4ff}
+      .zoom-controls .zoom-separator{display:none}
+      #zoomOut{order:-2}#zoomLevel{order:-1}
+      #mobileSettings,#captureDialog,#inboxEditDialog,#inboxRecoveryDialog{position:fixed;inset:auto 0 var(--keyboard-offset,0px);width:100%;max-width:none;max-height:min(86dvh,calc(var(--visible-height,100dvh) - 10px));margin:0;border-radius:16px 16px 0 0;padding:12px max(14px,env(safe-area-inset-right,0px)) max(12px,var(--mobile-safe-bottom)) max(14px,env(safe-area-inset-left,0px));overflow:auto;overscroll-behavior:contain;background:#1b2533}
+      .mobile-settings-head{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:1;background:#1b2533}
+      .mobile-settings-head h3{margin:0}.mobile-settings-head button{min-height:44px}
+      #mobileSettings .menu,#mobileSettings .palette-panel{position:static;width:100%;max-height:none;box-shadow:none;border:0;border-radius:0;background:none}
+      #mobileSettings .menu button{min-height:44px;margin:0}
+      #mobileSettings .menu :is(.menu-help,[data-menu=inbox],[data-menu=secretary]){display:none}
+      #captureText,#inboxEditText,#inboxRecoverySearch{font-size:16px;line-height:1.6}
+      #captureDialog .settings-actions button{min-height:44px}
+      #toast{bottom:calc(var(--mobile-tools-height) + var(--mobile-sheet-height) + var(--mobile-safe-bottom) + 8px)}
+      #app:has(#zoomControls[data-open])~#toast{top:max(44px,env(safe-area-inset-top,0px));bottom:auto}
       .mind-tools{padding-inline:8px;gap:2px;flex-wrap:wrap}.mind-tools button{padding:0 6px;min-width:28px}.mind-shortcuts{display:none}
       .map.mind-map-view{padding:36px 27px 68px}.mind-node{width:150px}.mind-node.root{width:154px}
       .mind-title{font-size:16px}
@@ -352,8 +392,8 @@
   <header class="topbar">
     <div class="brand"><span class="brand-name">ProcessMap</span></div>
     <div class="top-actions">
-      <div class="menu-wrap">
-        <button id="menuTrigger" class="quiet-button" aria-label="メニューを開く" title="メニュー" aria-expanded="false">···</button>
+      <div id="desktopMenu" class="menu-wrap">
+        <button id="menuTrigger" class="quiet-button" type="button" aria-label="メニューを開く" title="メニュー" aria-expanded="false"><span class="desktop-only" aria-hidden="true">···</span><span class="tool-icon mobile-only" aria-hidden="true">⚙</span><span class="mobile-only">設定</span></button>
         <div class="menu" id="menu" hidden>
           <section id="syncBar" aria-label="アカウントと保存・同期">
             <div class="account-details"><span class="menu-label">アカウント</span><span id="accountInfo">未ログイン</span></div>
@@ -381,7 +421,6 @@
           <hr>
           <button data-process-only data-menu="prompt">上級：AI用の現状をコピー（JSON更新用）</button>
           <button data-process-only data-menu="ai">上級：AI更新を取り込む（JSON）</button>
-          <button data-process-only data-menu="reset">サンプルに戻す</button>
           <hr>
           <div class="menu-help" data-process-only><b>操作のヒント</b><br>Enter：次のタスク／Tab：一段下に追加<br>Shift+Tab：孫を子に上げる／Ctrl+Enter：完了<br>↑↓：移動／Ctrl+Shift+↑↓：並べ替え<br>Esc：編集終了／Alt+Enter：改行／Ctrl+Z：取り消し<br>右クリック・⋯：カードのメニュー<br>Ctrl（⌘）+ホイール・ピンチ：ズーム<br>URLはクリックで別タブ、Alt+クリックで編集</div>
         </div>
@@ -403,27 +442,39 @@
     <button type="button" id="mindAdd" class="mind-add">＋ 枝</button>
     <button type="button" id="mindSibling">＋ 同列</button>
     <button type="button" id="mindNoteOpen">メモ</button>
-    <button type="button" id="mindReviewOpen">一覧・検索</button>
-    <button type="button" id="mindFit" title="表示中の枝を画面に収める">全体表示</button>
+    <button type="button" id="mindReviewOpen" class="desktop-only">一覧・検索</button>
+    <button type="button" id="mindFit" class="desktop-only" title="表示中の枝を画面に収める">全体表示</button>
     <button type="button" id="mindRemove" title="選択中のカードを削除" disabled>削除</button>
     <button type="button" id="mindMore" aria-label="トピックの操作">⋯</button>
     <span class="mind-shortcuts">Tabで枝 · Enterで同列 · つまみをドラッグして移動</span>
   </div>
   <main id="canvas" class="canvas" aria-label="工程マップ"><div id="map" class="map"></div></main>
   <nav class="sheet-bar" aria-label="シートの切り替え"><div id="sheetTabs" class="sheet-tabs" role="tablist" aria-label="シート"></div><button id="addSheet" class="sheet-tool" aria-label="シートを追加" title="シートを追加">＋</button><button id="sheetNoWrap" type="button" class="sheet-tool sheet-wrap" aria-pressed="false" title="このシートの自動折り返しを切り替えます">折り返しなし</button><button id="sheetOptions" class="sheet-tool" aria-label="シートの設定" title="シートの名前・並び順・削除">···</button></nav>
-  <div class="zoom-controls" role="group" aria-label="表示倍率">
+  <div id="mobileTools" class="mobile-only" role="group" aria-label="アプリの操作">
+    <button id="mobileContextSearch" type="button" aria-haspopup="dialog" aria-controls="mindReviewDialog" hidden><span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/></svg></span>検索</button>
+    <button id="mobileDisplayToggle" type="button" aria-controls="zoomControls" aria-expanded="false"><span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg></span>表示</button>
+  </div>
+  <dialog id="mobileSettings" class="mobile-only" aria-labelledby="mobileSettingsTitle"><div class="mobile-settings-head"><h3 id="mobileSettingsTitle">設定</h3><button id="mobileSettingsClose" type="button" autofocus>閉じる</button></div></dialog>
+  <div id="zoomControls" class="zoom-controls" role="group" aria-label="表示倍率">
     <div class="zoom-level" id="zoomLevel" aria-label="現在の表示倍率">100%</div>
     <button id="zoomIn" aria-label="拡大" title="拡大">＋</button>
     <button id="zoomOut" aria-label="縮小" title="縮小">−</button>
     <div class="zoom-separator" aria-hidden="true"></div>
-    <button id="zoomReset" aria-label="標準倍率100%に戻す" title="標準倍率100%に戻す"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.4-5.6"/><path d="M20 4v5h-5"/></svg></button>
+    <button id="zoomReset" aria-label="標準倍率100%に戻す" title="標準倍率100%に戻す"><svg class="desktop-only" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.4-5.6"/><path d="M20 4v5h-5"/></svg><span class="mobile-only">100%に戻す</span></button>
+    <button id="mobileFit" class="mobile-only" type="button">全体表示</button>
   </div>
 </div>
 <div id="appQuickActions" class="quick-actions" hidden>
-  <button id="captureOpen" class="capture-fab" type="button" title="作業中に思いついたことを、予定をいじらずに一旦しまう">💡 思いついた<span id="inboxCount" class="inbox-count"></span></button>
-  <button id="secToggle" class="sec-toggle" type="button" aria-label="秘書" aria-haspopup="dialog" aria-controls="secretary" title="秘書"><span aria-hidden="true">🔔</span></button>
+  <button id="captureOpen" class="capture-fab" type="button" aria-haspopup="dialog" aria-controls="captureDialog" title="作業中に思いついたことを、予定をいじらずに一旦しまう"><span class="desktop-only">💡 思いついた</span><span class="tool-icon mobile-only" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 12h-4l2.5-6h11l2.5 6h-4l-1.5 2h-5zM4 12v6h16v-6"/></svg></span><span class="mobile-only">あとで箱</span><span id="inboxCount" class="inbox-count"></span></button>
+  <button id="secToggle" class="sec-toggle" type="button" aria-label="秘書" aria-haspopup="dialog" aria-controls="secretary" title="秘書"><span class="tool-icon" aria-hidden="true">🔔</span><span class="mobile-only">秘書</span></button>
 </div>
 <input type="file" id="fileInput" class="hidden-input" accept="application/json,.json">
+<dialog id="backupImportDialog" aria-labelledby="backupImportTitle"><form id="backupImportForm">
+  <h3 id="backupImportTitle">バックアップからシートを追加</h3>
+  <p>追加するシートを選んでください。工程表とあとで箱の既存データはそのまま残ります。</p>
+  <div id="backupChoices"></div><p id="backupImportStatus" role="status"></p>
+  <div class="settings-actions"><button id="backupImportCommit" type="submit" disabled>選んだシートを追加</button><button id="backupImportCancel" type="button">キャンセル</button></div>
+</form></dialog>
 <div id="toast" class="toast" hidden><span id="toastText"></span><button id="toastUndo" hidden>元に戻す</button></div>
 <div id="modal" class="modal-backdrop" hidden role="dialog" aria-modal="true" aria-label="AI更新の取り込み">
   <div class="dialog">
@@ -469,7 +520,7 @@
 <p id="captureHint">全シートで共通のメモです。Enterで改行、Ctrl＋Enter（Macは⌘＋Enter）で保存できます。</p>
 <textarea id="captureText" rows="3" maxlength="1000" aria-label="メモ" aria-describedby="captureHint" placeholder="思いついたことを書く"></textarea>
 <div id="inboxList" class="inbox-list"></div>
-<div class="settings-actions"><button type="submit">あとで箱に入れる</button><button type="button" id="inboxRecoveryOpen">端末内のメモを探す</button><button type="button" id="captureClose">閉じる</button></div>
+<div class="settings-actions"><button type="submit">あとで箱に入れる</button><button type="button" id="inboxRecoveryOpen">端末内のメモを探す</button><button type="button" id="captureClose" autofocus>閉じる</button></div>
 </form></dialog>
 <dialog id="inboxEditDialog" aria-labelledby="inboxEditTitle"><form id="inboxEditForm">
 <h3 id="inboxEditTitle">メモを編集</h3>
@@ -610,6 +661,7 @@
   const MIND_POSITION_LIMIT=50000;
   const PROCESS_WIDTH_MIN=210,MIND_WIDTH_MIN=100,CARD_WIDTH_MAX=1200;
   const narrowCanvas=matchMedia('(max-width:700px)');
+  const mobileLayout=matchMedia('(max-width:700px), (max-width:1024px) and (max-height:560px) and (pointer:coarse)');
   const textMeasure=document.createElement('canvas').getContext('2d');
   let state=normalize(defaultData),workspaceUser=null;
   let drag=null, dragTimer=null,pan=null,ghost=null;
@@ -649,23 +701,35 @@
   }
   function stageWidth(st){let m=0;for(const t of st.tasks){m=Math.max(m,taskWidth(t));for(const c of t.children)m=Math.max(m,taskWidth(c)+30);}return Math.max(269,headingWidth(st),m+32);}
 
-  function applyZoom(value,anchor=null,precise=false){
+  function applyZoom(value,anchor=null,precise=false,contentPoint=null){
     if(mindDrag?.base)return;
     const mind=map.classList.contains('mind-map-view');
-    const old=zoom,min=mind ? .05 : .3;
+    const old=zoom,min=mind||mobileLayout.matches ? .05 : .3;
     zoom=Math.max(min,Math.min(1.8,precise?Math.round(value*100)/100:Math.round(value*10)/10));
     const rect=canvas.getBoundingClientRect();
     const ax=anchor?anchor.clientX-rect.left:canvas.clientWidth/2;
     const ay=anchor?anchor.clientY-rect.top:canvas.clientHeight/2;
-    const x=(canvas.scrollLeft+ax)/old,y=(canvas.scrollTop+ay)/old;
+    const x=contentPoint?.x??(canvas.scrollLeft+ax)/old,y=contentPoint?.y??(canvas.scrollTop+ay)/old;
     map.style.zoom=zoom;canvas.scrollLeft=x*zoom-ax;canvas.scrollTop=y*zoom-ay;
     $('zoomIn').disabled=zoom>=1.8;$('zoomOut').disabled=zoom<=min;$('zoomReset').disabled=zoom===1;
     $('zoomLevel').textContent=Math.round(zoom*100)+'%';
     if(mind){mindZoom=zoom;return}
-    processZoom=zoom;try{localStorage.setItem(ZOOM_KEY,String(zoom))}catch{}
+    processZoom=zoom;
+    if(!contentPoint)rememberProcessZoom();
   }
+  function rememberProcessZoom(){try{localStorage.setItem(ZOOM_KEY,String(processZoom))}catch{}}
   $('zoomLevel').title='Ctrl（⌘）＋ホイール、またはピンチでズーム';
   $('zoomIn').onclick=()=>applyZoom(zoom+.1);$('zoomOut').onclick=()=>applyZoom(zoom-.1);$('zoomReset').onclick=()=>applyZoom(1);
+  $('mobileFit').onclick=()=>{
+    if(currentMindSheet()){fitMindMap();return}
+    const cards=[...map.querySelectorAll('.stage-heading,.task-card')].filter(card=>card.getClientRects().length);
+    if(!cards.length){applyZoom(1);return}
+    const bounds=elementBounds(cards);
+    const available=canvas.clientHeight-$('zoomControls').offsetHeight;
+    const scale=Math.min(1,(canvas.clientWidth-32)/(bounds.width/zoom),(available-32)/(bounds.height/zoom));
+    applyZoom(Math.floor(scale*100)/100,null,true);
+    centerMindRect(elementBounds(cards),available);
+  };
   // Plain wheel / two-finger swipe scrolls the map. Ctrl/⌘+wheel and trackpad pinch (reported as ctrl+wheel) zoom.
   let wheelBuffer=0;
   canvas.addEventListener('wheel',e=>{
@@ -854,6 +918,7 @@
   function rememberSheet(){try{sessionStorage.setItem(sheetViewKey(),state.activeSheetId)}catch{}}
   function selectSheet(id,focus=false){
     const sheet=state.sheets.find(s=>s.id===id);if(!sheet)return;
+    stopCanvasPinch();setDisplayOpen(false);
     syncWorkbook(state);closeAI();selectedCard=null;selection=null;state.activeSheetId=id;state.stages=sheet.stages;rememberSheet();syncWorkbook(state);
     try{localStorage.setItem(window.pmStorageKey||KEY,JSON.stringify(documentForStorage()))}catch{notify('端末への保存に失敗しました。バックアップを書き出してください。')}
     canvas.scrollLeft=0;canvas.scrollTop=0;render();
@@ -992,7 +1057,7 @@
       e.stopPropagation();if(e.button!==0)return;
       e.preventDefault();suppressClick=false;linkPress={x:e.clientX,y:e.clientY};
       if(e.altKey){suppressClick=true;beginEdit();}
-      else if(e.pointerType==='touch')holdTimer=setTimeout(()=>{suppressClick=true;beginEdit();},450);
+      else if(e.pointerType==='touch')holdTimer=setTimeout(()=>{if(!canvasPinch){suppressClick=true;beginEdit();}},450);
     });
     x.addEventListener('pointermove',e=>{if(linkPress&&Math.hypot(e.clientX-linkPress.x,e.clientY-linkPress.y)>10){clearHold();suppressClick=true;}});
     x.addEventListener('pointerup',()=>{clearHold();linkPress=null;});
@@ -1082,8 +1147,8 @@
     const mind=!!sheet.mindMap,changedMode=mind!==map.classList.contains('mind-map-view');
     map.classList.toggle('mind-map-view',mind);
     $('app').classList.toggle('is-mindmap',mind);
-    $('secToggle').hidden=mind;$('mindTools').hidden=!mind;
-    $('inboxCount').textContent=state.inbox.length||'';
+    $('secToggle').hidden=mind;$('mobileContextSearch').hidden=!mind;$('mindTools').hidden=!mind;
+    $('inboxCount').textContent=state.inbox.length?(state.inbox.length>99?'99+':state.inbox.length):'';
     if($('captureDialog').open)renderInboxList();
     canvas.setAttribute('aria-label',mind?'マインドマップ':'工程マップ');
     if(changedMode)applyZoom(mind?mindZoom:processZoom,null,true);
@@ -1367,7 +1432,7 @@
     if(y>r.bottom-zone)canvas.scrollTop+=delta;
   }
   document.addEventListener('pointerdown',e=>{
-    if(e.button!==0||resizeSession||!canvas.contains(e.target))return;
+    if(e.button!==0||!e.isPrimary||canvasPinch||resizeSession||!canvas.contains(e.target))return;
     eventPointerType=e.pointerType;
     const node=dragCandidate(e.target);
     if(node){
@@ -1410,23 +1475,146 @@
   });
   // Touch long-press drags should not trigger native text selection.
   canvas.addEventListener('contextmenu',e=>{const c=e.target.closest('.task-card,.stage-heading');if(!c)return;if(e.defaultPrevented){return}e.preventDefault();if(eventPointerType==='touch')return;const ref=c.dataset.taskCard?{kind:'task',id:c.dataset.taskCard}:{kind:'stage',id:c.dataset.stageHandle};c.click();openCardMenu(ref.kind,ref.id,{left:e.clientX,right:e.clientX,top:e.clientY,bottom:e.clientY})});
-  $('menuTrigger').onclick=()=>{$('emphasisOpen').disabled=!selectedEmphasisTarget();const b=$('menu').hidden;$('palettePanel').hidden=true;$('menu').hidden=!b;$('menuTrigger').setAttribute('aria-expanded',String(b))};
-  document.addEventListener('pointerdown',e=>{if(!e.target.closest('.menu-wrap')){$('menu').hidden=true;$('palettePanel').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false')} });
-  $('menu').onclick=e=>{
-    const action=e.target.closest('[data-menu]');if(!action||action.hasAttribute('data-process-only')&&currentMindSheet())return;const v=action.dataset.menu;$('menu').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false');
-    if(v==='emphasis'){openEmphasis();}else if(v==='secretary'){openSecretary();}else if(v==='review'){openReview();}else if(v==='consult'){openConsult('');}else if(v==='inbox'){openCapture();}else if(v==='history'){openHistory();}else if(v==='clearmarks'){clearMarks();}else if(v==='plan'){openPlan();}else if(v==='due'){renderDueList();$('dueDialog').showModal();}else if(v==='hidedone'){setHideDone(!hideDone);}else if(v==='palette'){renderPalette();$('palettePanel').hidden=false;}else if(v==='export')exportJSON();else if(v==='import')$('fileInput').click();else if(v==='prompt')copyPrompt();else if(v==='ai')openAI();else if(v==='reset'){
-      if(confirm('表示中のシートをサンプルに戻しますか？ このシートの工程を置き換えます。他のシートは保持します。')){
-        try{localStorage.setItem('processmap_sample_backup_'+Date.now(),JSON.stringify(documentForStorage()))}catch{notify('バックアップできないため中止しました');return}
-        captureUndo('表示中のシートをサンプルに戻しました');const sample=normalize(defaultData);state.stages=sample.stages.map(st=>({...st,id:uid('s'),tasks:st.tasks.map(t=>({...t,id:uid('t'),children:t.children.map(c=>({...c,id:uid('t')}))}))}));save();render();
-      }
+  let canvasPinch=null;
+  function touchSpan(a,b){return {clientX:(a.clientX+b.clientX)/2,clientY:(a.clientY+b.clientY)/2,distance:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)}}
+  function stopCanvasPinch(){
+    if(!canvasPinch)return;
+    cancelAnimationFrame(canvasPinch.frame);canvasPinch=null;
+    if(!currentMindSheet())rememberProcessZoom();
+  }
+  canvas.addEventListener('touchstart',event=>{
+    if(!mobileLayout.matches||!workspaceUser||canvasPinch||event.touches.length!==2||resizeSession?.moved)return;
+    const a=event.touches[0],b=event.touches[1];
+    if(!canvas.contains(a.target)||!canvas.contains(b.target))return;
+    const span=touchSpan(a,b),rect=canvas.getBoundingClientRect();
+    if(span.distance<1)return;
+    if(event.cancelable)event.preventDefault();
+    clearTimeout(dragTimer);dragPending=null;pan=null;resizeSession=null;
+    drag?.elem.classList.remove('drag-source');drag=null;ghost?.remove();ghost=null;document.body.style.userSelect='';
+    canvas.classList.remove('panning');map.querySelectorAll('.drag-over-before,.drag-over-after,.drag-over-inside').forEach(card=>card.classList.remove('drag-over-before','drag-over-after','drag-over-inside'));
+    if(mindDrag)finishMindDrag(true);
+    canvasPinch={ids:[a.identifier,b.identifier],distance:span.distance,scale:zoom,x:(canvas.scrollLeft+span.clientX-rect.left)/zoom,y:(canvas.scrollTop+span.clientY-rect.top)/zoom,frame:0};
+  },{passive:false});
+  canvas.addEventListener('touchmove',event=>{
+    const gesture=canvasPinch;
+    if(!gesture){
+      if(mindDrag?.base&&event.cancelable)event.preventDefault();
+      return;
     }
+    const fingers=Array.from(event.touches),[a,b]=gesture.ids.map(id=>fingers.find(finger=>finger.identifier===id));
+    if(!a||!b){stopCanvasPinch();return}
+    if(event.cancelable)event.preventDefault();
+    gesture.span=touchSpan(a,b);
+    if(!gesture.frame)gesture.frame=requestAnimationFrame(()=>{
+      gesture.frame=0;
+      applyZoom(gesture.scale*gesture.span.distance/gesture.distance,gesture.span,true,gesture);
+    });
+  },{passive:false});
+  canvas.addEventListener('touchend',event=>{
+    const gesture=canvasPinch;
+    if(!gesture||gesture.ids.every(id=>Array.from(event.touches).some(t=>t.identifier===id)))return;
+    if(gesture.frame)applyZoom(gesture.scale*gesture.span.distance/gesture.distance,gesture.span,true,gesture);
+    stopCanvasPinch();
+  });
+  canvas.addEventListener('touchcancel',stopCanvasPinch);
+
+  function setDisplayOpen(open){
+    $('zoomControls').toggleAttribute('data-open',open);
+    $('mobileDisplayToggle').setAttribute('aria-expanded',String(open));
+  }
+  function closeSettings(){
+    $('mobileSettings').close();$('menu').hidden=true;$('palettePanel').hidden=true;
+    $('menuTrigger').setAttribute('aria-expanded','false');
+  }
+  function placeMobileControls(){
+    closeSettings();setDisplayOpen(false);stopCanvasPinch();
+    const menu=$('menu'),trigger=$('menuTrigger'),palette=$('palettePanel'),wrap=$('sheetNoWrap');
+    if(mobileLayout.matches){
+      $('mobileTools').prepend($('captureOpen'),$('secToggle'));
+      $('mobileTools').append(trigger);$('mobileSettings').append(menu,palette);$('zoomControls').append(wrap);
+      trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-controls','mobileSettings');
+    }else{
+      $('appQuickActions').append($('captureOpen'),$('secToggle'));
+      $('desktopMenu').append(trigger,menu,palette);$('sheetOptions').before(wrap);
+      trigger.removeAttribute('aria-haspopup');trigger.setAttribute('aria-controls','menu');
+    }
+    updateSyncIndicators();
+  }
+  $('mobileSettingsClose').onclick=closeSettings;
+  $('mobileSettings').addEventListener('close',()=>{if(!$('mobileSettings').open){$('menu').hidden=$('palettePanel').hidden=true;$('menuTrigger').setAttribute('aria-expanded','false')}});
+  $('mobileDisplayToggle').onclick=()=>setDisplayOpen(!$('zoomControls').hasAttribute('data-open'));
+  $('menuTrigger').onclick=()=>{
+    $('emphasisOpen').disabled=!selectedEmphasisTarget();
+    if(!$('menu').hidden||$('mobileSettings').open){closeSettings();return}
+    setDisplayOpen(false);$('palettePanel').hidden=true;$('menu').hidden=false;$('menuTrigger').setAttribute('aria-expanded','true');
+    if(mobileLayout.matches){$('mobileSettingsTitle').textContent='設定';$('mobileSettings').scrollTop=0;$('mobileSettings').showModal()}
+  };
+  document.addEventListener('pointerdown',event=>{
+    if(!event.target.closest('.menu-wrap,#menuTrigger,#mobileSettings'))closeSettings();
+    if(!event.target.closest('#zoomControls,#mobileDisplayToggle'))setDisplayOpen(false);
+  });
+  $('aiConnectionOpen').addEventListener('click',closeSettings);
+  $('menu').onclick=e=>{
+    const action=e.target.closest('[data-menu]');if(!action||action.hasAttribute('data-process-only')&&currentMindSheet())return;
+    const v=action.dataset.menu;
+    if(v==='palette'){
+      $('menu').hidden=true;renderPalette();$('palettePanel').hidden=false;
+      if(mobileLayout.matches){$('mobileSettingsTitle').textContent='配色を変更';$('mobileSettings').scrollTop=0;$('mobileSettingsClose').focus()}
+      else $('menuTrigger').setAttribute('aria-expanded','false');
+      return;
+    }
+    closeSettings();
+    if(v==='emphasis'){openEmphasis();}else if(v==='secretary'){openSecretary();}else if(v==='review'){openReview();}else if(v==='consult'){openConsult('');}else if(v==='inbox'){openCapture();}else if(v==='history'){openHistory();}else if(v==='clearmarks'){clearMarks();}else if(v==='plan'){openPlan();}else if(v==='due'){renderDueList();$('dueDialog').showModal();}else if(v==='hidedone'){setHideDone(!hideDone);}else if(v==='export')exportJSON();else if(v==='import')$('fileInput').click();else if(v==='prompt')copyPrompt();else if(v==='ai')openAI();
   };
   function exportJSON(){const blob=new Blob([JSON.stringify(documentForStorage(),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=el('a');a.href=url;a.download='processmap-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
-  $('fileInput').onchange=async e=>{
-    const file=e.target.files?.[0];e.target.value='';if(!file)return;
-    try{const raw=JSON.parse(await file.text());const parsed=normalize(raw);const sheets=parsed.sheets.map(sheet=>sheet.name).join(' / ');if(!confirm('読み込みプレビュー：'+parsed.sheets.length+'シート\n'+sheets.slice(0,400)+'\n現在の全シートをバックアップして、読み込んだ内容で置き換えますか？'))return;localStorage.setItem('processmap_import_backup_'+Date.now(),JSON.stringify(documentForStorage()));exportJSON();
-      captureUndo('バックアップを読み込みました');state=parsed;rememberSheet();save();render();
-    }catch(err){notify('読み込み失敗: '+err.message)}
+  let backupSheets=[],backupRequest=0;
+  function selectedBackupSheets(){
+    return [...$('backupChoices').querySelectorAll('input:checked')].map(input=>backupSheets[Number(input.value)]).filter(Boolean);
+  }
+  function updateBackupSelection(){
+    const count=selectedBackupSheets().length,available=100-state.sheets.length;
+    $('backupImportCommit').disabled=!count||count>available;
+    $('backupImportStatus').textContent=count>available?`追加できるのはあと${available}枚です。`:`${count}枚を選択中`;
+  }
+  $('backupChoices').onchange=updateBackupSelection;
+  $('backupImportCancel').onclick=()=>$('backupImportDialog').close();
+  $('backupImportDialog').addEventListener('close',()=>{if(!$('backupImportDialog').open){backupSheets=[];$('backupChoices').replaceChildren()}});
+  $('fileInput').onchange=async event=>{
+    const file=event.target.files?.[0];event.target.value='';if(!file||!workspaceUser)return;
+    const request=++backupRequest;
+    try{
+      const content=await file.text();
+      if(request!==backupRequest||!workspaceUser)return;
+      backupSheets=normalize(JSON.parse(content)).sheets;
+      const choices=$('backupChoices');choices.replaceChildren();
+      for(const [index,sheet] of backupSheets.entries()){
+        const label=el('label','check-row'),input=document.createElement('input');
+        input.type='checkbox';input.value=String(index);
+        label.append(input,el('span','',sheet.name+'（'+(sheet.mindMap?'マインドマップ':'工程表')+'）'));choices.append(label);
+      }
+      updateBackupSelection();$('backupImportDialog').showModal();
+    }catch(error){if(request===backupRequest&&workspaceUser)notify('読み込み失敗：'+error.message)}
+  };
+  $('backupImportForm').onsubmit=event=>{
+    event.preventDefault();
+    const selected=selectedBackupSheets();
+    if(!workspaceUser||!selected.length||state.sheets.length+selected.length>100){updateBackupSelection();return}
+    const names=new Set(state.sheets.map(sheet=>sheet.name));
+    const added=selected.map(source=>{
+      const sheet=clone(source);
+      let name=sheet.name,suffix=2;
+      while(names.has(name))name=`${sheet.name} (${suffix++})`;
+      names.add(name);sheet.name=name;sheet.id=uid('sheet');
+      for(const stage of sheet.stages){
+        stage.id=uid('s');
+        for(const task of stage.tasks){task.id=uid('t');for(const child of task.children)child.id=uid('t')}
+      }
+      for(const {node} of mindTopics(sheet.mindMap))node.id=uid('mind');
+      return sheet;
+    });
+    $('backupImportDialog').close();
+    change(()=>state.sheets.push(...added));
+    notify(`${added.length}枚のシートを追加しました`,true);
   };
   function currentSummary(){const d=x=>x.due?` （期日 ${x.due}）`:'';return state.stages.map((s,i)=>`${i+1}. [${s.id}] ${effectiveMainDone(s)?'✓':'□'} ${s.title}（メインタスク）${d(s)}\n${s.tasks.map((t,j)=>`  ${j+1}. [${t.id}] ${effectiveDone(t)?'✓':'□'} ${t.text||'(空欄)'}${d(t)}${t.children.map(c=>`\n     - [${c.id}] ${c.done?'✓':'□'} ${c.text||'(空欄)'}${d(c)}`).join('')}`).join('\n')}`).join('\n\n')}
   async function copyPrompt(){
@@ -1874,7 +2062,7 @@
     }
     if(!state.inbox.length)list.append(el('div','due-empty','あとで箱は空です。'));
   }
-  function openCapture(){renderInboxList();$('captureDialog').showModal();$('captureText').focus()}
+  function openCapture(){renderInboxList();$('captureDialog').showModal();if(!mobileLayout.matches)$('captureText').focus()}
   $('captureOpen').onclick=openCapture;$('captureClose').onclick=()=>$('captureDialog').close();
   $('captureForm').onsubmit=e=>{
     e.preventDefault();
@@ -2392,10 +2580,10 @@ ${outlineOf(sh.stages)}
     $('mindSibling').disabled=root;
     $('mindRemove').disabled=root;
   }
-  function centerMindRect(box){
+  function centerMindRect(box,visibleHeight=canvas.clientHeight){
     const viewport=canvas.getBoundingClientRect(),center=rectCenter(box);
     canvas.scrollLeft+=center.x-(viewport.left+canvas.clientWidth/2);
-    canvas.scrollTop+=center.y-(viewport.top+canvas.clientHeight/2);
+    canvas.scrollTop+=center.y-(viewport.top+visibleHeight/2);
   }
   function centerMindElement(element){
     if(element)centerMindRect(element.getBoundingClientRect());
@@ -2882,6 +3070,7 @@ ${outlineOf(sh.stages)}
   $('mindReviewOpen').onclick=()=>{
     $('mindSearch').value='';renderMindReview();$('mindReviewDialog').showModal();
   };
+  $('mobileContextSearch').onclick=$('mindReviewOpen').onclick;
   $('mindSearch').oninput=renderMindReview;
   $('mindReviewClose').onclick=()=>$('mindReviewDialog').close();
   $('mindAdd').onclick=()=>addMindTopic();
@@ -2890,13 +3079,14 @@ ${outlineOf(sh.stages)}
     if(!mindLayout)return;
     const boxes=[...mindLayout.board.querySelectorAll('.mind-node,.mind-fold')];
     const before=elementBounds(boxes);
-    const fitting=Math.min(1,(canvas.clientWidth-48)/(before.width/zoom),(canvas.clientHeight-48)/(before.height/zoom));
+    const visibleHeight=canvas.clientHeight-(mobileLayout.matches?$('zoomControls').offsetHeight:0);
+    const fitting=Math.min(1,(canvas.clientWidth-48)/(before.width/zoom),(visibleHeight-48)/(before.height/zoom));
     const scale=Math.floor(fitting*100)/100;
     const centerRoot=keepLabelsReadable&&scale<.8;
     applyZoom(centerRoot ? .8 : scale,null,true);
     drawMindLines();
     if(centerRoot)centerMindElement(mindLayout.root);
-    else centerMindRect(elementBounds(boxes));
+    else centerMindRect(elementBounds(boxes),visibleHeight);
   }
   function mindMoveChoices(selected){
     const subDepth=Math.max(...mindTopics(selected.node).map(row=>row.ancestors.length));
@@ -2981,7 +3171,22 @@ ${outlineOf(sh.stages)}
   $('mindDeleteDialog').addEventListener('close',()=>{if(!$('mindDeleteDialog').open)mindDeleteTarget=null});
 
   // ---------- 同期異常の目印（メニューを開かなくても気づけるように） ----------
-  new MutationObserver(()=>{const t=$('syncStatus').textContent,bad=/競合|接続できません|オフライン/.test(t);$('menuTrigger').toggleAttribute('data-alert',bad);$('syncStatus').toggleAttribute('data-alert',bad);$('menuTrigger').setAttribute('aria-label',bad?'メニューを開く（同期に問題があります：'+t+'）':'メニューを開く');$('menuTrigger').title=bad?'同期に問題があります：'+t:'メニュー'}).observe($('syncStatus'),{childList:true,characterData:true,subtree:true});
+  function updateSyncIndicators(){
+    const t=$('syncStatus').textContent,bad=/競合|接続できません|オフライン/.test(t);
+    const label=mobileLayout.matches?'設定':'メニュー';
+    $('menuTrigger').toggleAttribute('data-alert',bad);$('syncStatus').toggleAttribute('data-alert',bad);
+    $('menuTrigger').setAttribute('aria-label',label+'を開く'+(bad?'（同期に問題があります：'+t+'）':''));
+    $('menuTrigger').title=bad?'同期に問題があります：'+t:label;
+  }
+  new MutationObserver(updateSyncIndicators).observe($('syncStatus'),{childList:true,characterData:true,subtree:true});
+  function updateMobileViewport(){
+    const root=document.documentElement,viewport=window.visualViewport;
+    if(!mobileLayout.matches||!viewport||viewport.scale!==1){
+      root.style.removeProperty('--visible-height');root.style.removeProperty('--keyboard-offset');return;
+    }
+    root.style.setProperty('--visible-height',viewport.height+'px');
+    root.style.setProperty('--keyboard-offset',Math.max(0,innerHeight-viewport.height-viewport.offsetTop)+'px');
+  }
 
   document.addEventListener('keydown',e=>{
     if(!workspaceUser)return;
@@ -2992,7 +3197,7 @@ ${outlineOf(sh.stages)}
     }
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='z'&&!e.target.closest('textarea,input')){e.preventDefault();if(e.shiftKey)redo();else undo();return;}
     if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='y'&&!e.target.closest('textarea,input')){e.preventDefault();redo();return;}
-    if(e.key==='Escape'){closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('stageContext')?.remove()}
+    if(e.key==='Escape'){closeAI();closeCardMenu();closeSettings();setDisplayOpen(false);$('stageContext')?.remove()}
   });
   function setWorkspace(mode,userId){
     const wasOpen=!!workspaceUser;
@@ -3005,11 +3210,11 @@ ${outlineOf(sh.stages)}
     if(open){
       renderPalette();render();if(!currentMindSheet())applyZoom(processZoom);
     }else if(wasOpen){
-      clearMindDrag();
+      stopCanvasPinch();clearMindDrag();backupRequest++;setDisplayOpen(false);
       clearTimeout(dragTimer);dragPending=null;drag=null;pan=null;resizeSession=null;
       ghost?.remove();ghost=null;document.body.style.userSelect='';canvas.classList.remove('panning');
       for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close();
-      closeAI();closeCardMenu();$('menu').hidden=true;$('palettePanel').hidden=true;$('toast').hidden=true;
+      closeAI();closeCardMenu();closeSettings();$('toast').hidden=true;
       for(const id of ['map','sheetTabs','inboxList','inboxRecoveryList'])$(id).replaceChildren();
       for(const id of ['captureText','inboxEditText','inboxRecoverySearch'])$(id).value='';
     }
@@ -3017,6 +3222,10 @@ ${outlineOf(sh.stages)}
   $('loginGateOpen').onclick=()=>$('loginOpen').click();
   window.pmApp={get:()=>clone(documentForStorage()),set:raw=>{state=restoreSheetView(normalize(raw));selectedCard=null;$('sheetDialog').close();$('emphasisDialog').close();for(const id of ['sheetTypeDialog','cardDisplayDialog','mindImportDialog','mindNoteDialog','mindReviewDialog','mindTopicDialog','mindDeleteDialog','inboxEditDialog','inboxRecoveryDialog'])$(id).close();emphasisEditing=null;displayTarget=null;try{if(!sessionStorage.getItem(sheetViewKey()))rememberSheet()}catch{};undoHistory.length=0;redoHistory.length=0;render();},sample:()=>normalize(defaultData),setWorkspace,preserveInboxRecovery};
   try{processZoom=Number(localStorage.getItem(ZOOM_KEY))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v054'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v053'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v052'))||Number(localStorage.getItem('tokoyo_cockpit_zoom_v051'))||1}catch{}
+  placeMobileControls();updateMobileViewport();
+  mobileLayout.addEventListener('change',()=>{placeMobileControls();updateMobileViewport()});
+  window.visualViewport?.addEventListener('resize',updateMobileViewport);
+  window.visualViewport?.addEventListener('scroll',updateMobileViewport);
 })();
 </script>
 <script src="/config.js"></script><script src="/sync.js"></script><script src="/oauth-consent.js"></script></body>

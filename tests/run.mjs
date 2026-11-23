@@ -51,9 +51,9 @@ function mockSupabase(){
 }
 function session(user){return JSON.stringify({access_token:'mock-token-'+user.id,refresh_token:'r',token_type:'bearer',expires_in:36000,expires_at:Math.floor(Date.now()/1000)+36000,user:{id:user.id,email:user.email,aud:'authenticated',role:'authenticated'}})}
 
-async function newPage(browser,{mobile=false,mock=mockSupabase(),user=USER,storage=null}={}){
+async function newPage(browser,{mobile=false,mock=mockSupabase(),user=USER,storage=null,viewport={width:390,height:844}}={}){
   const createsDocument=!!user&&!mock.db.has(user.id);
-  const ctx=await browser.newContext(mobile?{viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1}:{viewport:{width:1440,height:900}});
+  const ctx=await browser.newContext(mobile?{viewport,isMobile:true,hasTouch:true,deviceScaleFactor:1}:{viewport:{width:1440,height:900}});
   await ctx.route(/supabase\.co/,mock.handler); // block every real Supabase request
   await ctx.addInitScript(([key,value,extra])=>{if(sessionStorage.getItem('__seeded'))return;sessionStorage.setItem('__seeded','1');if(value)localStorage.setItem(key,value);for(const [k,v] of extra||[])localStorage.setItem(k,v)},['sb-xgeviftkyrxhqbpgpfea-auth-token',user?session(user):null,storage]);
   const page=await ctx.newPage();page.errors=[];page.on('pageerror',e=>page.errors.push(e.message));
@@ -66,11 +66,23 @@ async function newPage(browser,{mobile=false,mock=mockSupabase(),user=USER,stora
   return {ctx,page,mock};
 }
 const state=page=>page.evaluate(()=>window.pmApp.get());
+const mindStoragePrefix='__processmap_mindmaps_v1__:';
+const readMindMaps=doc=>{
+  const entry=doc.processedKeys.find(key=>key.startsWith(mindStoragePrefix));
+  return entry?JSON.parse(entry.slice(mindStoragePrefix.length)).maps:[];
+};
 // Opens a card's ⋯ menu and runs one action (data-act).
 async function menu(page,taskId,act){const card=page.locator(`[data-task-node="${taskId}"] > .task-card`);await card.hover();await card.locator('.more').click();await page.click(`#cardMenu [data-act="${act}"]`)}
 async function typeEnd(page,loc,text){await loc.click();await page.keyboard.press('End');await page.keyboard.press('Control+End');await page.keyboard.type(text);await page.locator('.brand').click()}
 const status=page=>page.locator('#syncStatus').textContent();
 async function waitStatus(page,text,ms=8000){await page.waitForFunction(t=>document.getElementById('syncStatus').textContent.includes(t),text,{timeout:ms})}
+async function openMobileDisplay(page){
+  const display=page.locator('#mobileDisplayToggle');
+  if(await display.getAttribute('aria-expanded')!=='true')await display.tap();
+}
+async function fitMobile(page){
+  await openMobileDisplay(page);await page.locator('#mobileFit').tap();await page.locator('#mobileDisplayToggle').tap();
+}
 
 async function test(name,fn){
   if(process.env.TEST_FILTER&&!name.includes(process.env.TEST_FILTER))return;
@@ -142,7 +154,7 @@ await test('[SP] 工程表の文字サイズと選択したカードのつまみ
   assert.equal(initial.adjust,'100%');assert.equal(initial.body.font,16);
   assert.ok(initial.progress.height<initial.heading.height&&initial.due.height<initial.heading.height);
   assert.ok(initial.star.height<initial.body.height&&initial.add.height<initial.body.height);
-  await page.locator('#zoomOut').tap();await page.locator('#zoomOut').tap();
+  await openMobileDisplay(page);await page.locator('#zoomOut').tap();await page.locator('#zoomOut').tap();await page.locator('#mobileDisplayToggle').tap();
   const zoomed=await measure();
   assert.ok(zoomed.body.height<initial.body.height);
   assert.ok(Math.abs(zoomed.star.height/zoomed.body.height-initial.star.height/initial.body.height)<.1);
@@ -668,6 +680,115 @@ await test('[復旧] セッションの期限が切れたPCでは再ログイン
   assert.deepEqual(page.errors,[]);
 });
 
+await test('[スマホ下部] 320pxでシート一覧・あとで箱・表示・設定を独立して使える',async browser=>{
+  const mock=mockSupabase(),seed=doc();
+  seed.sheets=Array.from({length:6},(_,index)=>({id:`sheet-${index}`,name:`制作の工程表 ${index+1}`,stages:index===0?seed.stages:[]}));
+  seed.activeSheetId=seed.sheets[0].id;mock.db.set(USER.id,{document:seed,revision:1});
+  const {page}=await newPage(browser,{mobile:true,viewport:{width:320,height:568},mock});
+  const footer=page.locator('#mobileTools'),tabs=page.locator('.sheet-bar');
+  const start=await footer.boundingBox(),tabBox=await tabs.boundingBox();
+  assert.ok(tabBox.y+tabBox.height<=start.y+.5);assert.equal(start.y+start.height,568);
+  assert.equal(await page.locator('.topbar #menuTrigger').count(),0);
+  assert.equal(await footer.locator('button:visible').count(),4);
+  assert.ok(await footer.locator('button:visible').evaluateAll(buttons=>buttons.every(button=>button.offsetHeight>=44&&button.offsetWidth>=44)));
+  assert.ok(await page.locator('#sheetTabs').evaluate(el=>el.scrollWidth>el.clientWidth));
+  await page.locator('#canvas').evaluate(el=>el.scrollTo(95,10));
+  assert.deepEqual(await footer.boundingBox(),start);
+  await page.locator('#captureOpen').tap();
+  assert.equal(await page.locator('#captureDialog').isVisible(),true);
+  assert.equal(await page.locator('#captureText').evaluate(el=>el===document.activeElement),false);
+  await page.locator('#captureClose').tap();
+  await page.locator('#menuTrigger').tap();
+  assert.equal(await page.locator('#mobileSettings').isVisible(),true);
+  assert.equal(await page.getByText('サンプルに戻す',{exact:true}).count(),0);
+  await page.getByRole('dialog',{name:'設定'}).getByRole('button',{name:'閉じる'}).tap();
+  await openMobileDisplay(page);const display=await page.locator('#zoomControls').boundingBox();
+  assert.ok(display.x>=0&&display.x+display.width<=320&&display.y+display.height<=tabBox.y);
+  await page.locator('#sheetNoWrap').tap();
+  await page.getByRole('tab',{name:/制作の工程表 2/}).tap();
+  assert.equal(await page.locator('#zoomControls').isVisible(),false);
+  assert.equal(await page.locator('#sheetNoWrap').getAttribute('aria-pressed'),'false');
+  await addMindSheet(page);
+  assert.equal(await page.locator('#secToggle').isVisible(),false);
+  assert.equal(await footer.locator('button:visible').count(),4);
+  await page.locator('#mobileContextSearch').tap();
+  assert.equal(await page.locator('#mindReviewDialog').isVisible(),true);
+  await page.locator('#mindReviewClose').tap();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),320);
+  await page.setViewportSize({width:844,height:390});
+  assert.equal(await footer.isVisible(),true);
+  const landscape=await footer.boundingBox();
+  assert.equal(landscape.y+landscape.height,390);
+  assert.equal(await page.locator('.topbar #menuTrigger').count(),0);
+  assert.deepEqual(page.errors,[]);
+});
+
+await test('[ピンチ] 二本指の中心を保って拡大・縮小し、下部メニューと元のデータを保つ',async browser=>{
+  const {ctx,page}=await newPage(browser,{mobile:true});
+  const before=await state(page),footer=await page.locator('#mobileTools').boundingBox();
+  const canvas=page.locator('#canvas'),rect=await canvas.boundingBox();
+  await canvas.evaluate(el=>{el.scrollLeft=100});
+  const point={x:185,y:260};
+  const cdp=await ctx.newCDPSession(page);
+  const pinch=async (start,finish)=>{
+    const touchPoints=distance=>[0,1].map(id=>({id,x:point.x+(id===1?distance:-distance),y:point.y}));
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:touchPoints(start)});
+    for(let i=1;i<=5;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:touchPoints(start+(finish-start)*i/5)});
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  };
+  const anchor=await canvas.evaluate((el,x)=>el.scrollLeft+x,point.x-rect.x);
+  await pinch(32,48);
+  await page.waitForFunction(()=>document.querySelector('#zoomLevel').textContent==='150%');
+  const position=await canvas.evaluate((el,x)=>(el.scrollLeft+x)/1.5,point.x-rect.x);
+  assert.ok(Math.abs(position-anchor)<2,`拡大中心がずれました ${position} ${anchor}`);
+  assert.equal(await page.evaluate(()=>visualViewport.scale),1);
+  await pinch(48,32);
+  await page.waitForFunction(()=>document.querySelector('#zoomLevel').textContent==='100%');
+  assert.deepEqual(await page.locator('#mobileTools').boundingBox(),footer);
+  assert.deepEqual(await state(page),before);
+  await fitMobile(page);
+  assert.ok(Number.parseInt(await page.textContent('#zoomLevel'),10)<100);
+  await openMobileDisplay(page);await page.locator('#zoomReset').tap();
+  assert.equal(await page.textContent('#zoomLevel'),'100%');
+  await cdp.detach();assert.deepEqual(page.errors,[]);
+});
+
+await test('[バックアップ] 選んだ工程表とマインドマップを追加して既存のシート・メモを保つ',async browser=>{
+  const mock=mockSupabase(),initial=doc('現在の工程'),inbox='__processmap_inbox_v1__:';
+  const savedNote={id:'current-note',text:'いま使っているメモ',at:'2026-11-22'};
+  initial.sheets=[{id:'main-sheet',name:'現在のシート',stages:initial.stages}];initial.activeSheetId='main-sheet';
+  initial.processedKeys=[inbox+JSON.stringify([savedNote])];
+  mock.db.set(USER.id,{document:initial,revision:1});
+  const {page}=await newPage(browser,{mock});
+  const current=await state(page),backup=doc('保存していた工程');
+  backup.sheets=[{id:'main-sheet',name:'現在のシート',stages:backup.stages},{id:'skip',name:'選ばないシート',stages:[]}];
+  backup.activeSheetId='main-sheet';
+  backup.processedKeys=[inbox+JSON.stringify([{...savedNote,text:'バックアップにだけあるメモ'}]),'__processmap_mindmaps_v1__:'+JSON.stringify({activeId:'main-sheet',maps:[{id:'archive-map',name:'考えの整理',position:2,root:{id:'archive-root',text:'復旧したマップ',note:'枝のメモ',children:[{id:'archive-child',text:'枝',children:[]}]}}]})];
+  const file={name:'processmap-backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))};
+  await page.locator('#fileInput').setInputFiles(file);
+  const dialog=page.locator('#backupImportDialog');await dialog.waitFor();
+  assert.equal(await page.locator('#backupImportCommit').isDisabled(),true);
+  await page.getByLabel('現在のシート（工程表）',{exact:true}).check();
+  await page.locator('#backupImportCancel').click();
+  assert.deepEqual(await state(page),current);
+  await page.locator('#fileInput').setInputFiles(file);await dialog.waitFor();
+  assert.equal(await page.getByText('サンプルに戻す',{exact:true}).count(),0);
+  await page.getByLabel('現在のシート（工程表）',{exact:true}).check();
+  await page.getByLabel('考えの整理（マインドマップ）',{exact:true}).check();
+  await page.locator('#backupImportCommit').click();
+  await waitStatus(page,'保存済み');
+  const stored=mock.db.get(USER.id).document;
+  assert.deepEqual(stored.sheets[0],current.sheets[0]);
+  assert.equal(stored.activeSheetId,current.activeSheetId);
+  assert.equal(stored.sheets.length,2);assert.equal(stored.sheets[1].name,'現在のシート (2)');
+  assert.equal(stored.sheets[1].stages[0].title,'保存していた工程');
+  assert.notEqual(stored.sheets[1].stages[0].id,current.sheets[0].stages[0].id);
+  const maps=readMindMaps(stored);assert.equal(maps.length,1);assert.equal(maps[0].root.note,'枝のメモ');
+  assert.equal(maps[0].root.children[0].text,'枝');assert.notEqual(maps[0].id,'archive-map');
+  assert.equal(stored.processedKeys.find(key=>key.startsWith(inbox)),inbox+JSON.stringify([savedNote]));
+  assert.deepEqual(page.errors,[]);
+});
+
 // ---------- AI連携の同意（モック） ----------
 await test('[AI連携] 本人の同意と正しい戻り先を確認してから許可',async browser=>{
   const mock=mockSupabase();
@@ -854,12 +975,6 @@ async function addMindSheet(page){
 const mindTitle=(page,title)=>page.getByRole('group',{name:title,exact:true}).locator('.mind-title');
 const mindRoot=page=>page.getByRole('textbox',{name:'中心テーマ',exact:true});
 const activeMindTitle=page=>page.locator('.mind-title:focus');
-const mindStoragePrefix='__processmap_mindmaps_v1__:';
-const readMindMaps=doc=>{
-  const entry=doc.processedKeys.find(key=>key.startsWith(mindStoragePrefix));
-  return entry?JSON.parse(entry.slice(mindStoragePrefix.length)).maps:[];
-};
-
 await test('[幅・折り返し][マインドマップ][SP] トピック別の幅と改行を保存し、シートごとに切り替える',async browser=>{
   const {page}=await newPage(browser,{mobile:true});
   await addMindSheet(page);
@@ -888,6 +1003,7 @@ await test('[幅・折り返し][マインドマップ][SP] トピック別の�
   const toggle=page.locator('#sheetNoWrap');
   assert.equal(await topic.getAttribute('wrap'),'off');
   assert.equal(await mindRoot(page).getAttribute('wrap'),null);
+  await openMobileDisplay(page);
   await toggle.tap();
   assert.equal(await mindRoot(page).getAttribute('wrap'),'off');
   assert.equal(await topic.inputValue(),expected);
@@ -904,6 +1020,7 @@ await test('[幅・折り返し][マインドマップ][SP] トピック別の�
   assert.equal(root.children[0].width,140);
   assert.equal(root.children[0].text,expected);
   assert.equal(root.children[0].noWrap,true);
+  await openMobileDisplay(page);
   await toggle.tap();
   assert.equal(await mindRoot(page).getAttribute('wrap'),null);
   assert.equal(await topic.getAttribute('wrap'),'off');
@@ -1120,7 +1237,7 @@ await test('[マインドマップ][PC] Tab/Enter・IME・深い枝・折りた�
 await test('[マインドマップ][SP] タップで枝・同列を追加し、枝を移動して全体を表示',async browser=>{
   const {page}=await newPage(browser,{mobile:true});
   await addMindSheet(page);
-  assert.equal(await page.locator('#mindTools').evaluate(bar=>new Set([...bar.querySelectorAll('button')].map(button=>button.offsetTop)).size),1);
+  assert.equal(await page.locator('#mindTools').evaluate(bar=>new Set([...bar.querySelectorAll('button')].filter(button=>button.getClientRects().length).map(button=>button.offsetTop)).size),1);
   await mindRoot(page).fill('週末に作りたいもの');
   await page.locator('#mindAdd').tap();await activeMindTitle(page).fill('準備');
   await page.locator('#mindSibling').tap();await activeMindTitle(page).fill('参考');
@@ -1128,7 +1245,7 @@ await test('[マインドマップ][SP] タップで枝・同列を追加し、�
   await page.locator('#mindMoveTo').selectOption({label:'週末に作りたいもの › 準備'});
   await page.locator('#mindMove').tap();
   assert.equal(readMindMaps(await state(page))[0].root.children[0].children[0].text,'参考');
-  await page.locator('#mindFit').tap();
+  await fitMobile(page);
   const fits=await page.locator('.mind-board').evaluate(board=>{
     const map=document.querySelector('#canvas').getBoundingClientRect(),rect=board.getBoundingClientRect();
     return rect.left>=map.left-1&&rect.right<=map.right+1&&rect.top>=map.top-1&&rect.bottom<=map.bottom+1;
@@ -1307,7 +1424,7 @@ await test('[マインドマップ][SP] タッチで枝をドラッグし、全�
   await page.locator('#mindAdd').tap();await activeMindTitle(page).fill('子の枝');
   const branch=mindCardFor(page,'動かす枝'),child=mindCardFor(page,'子の枝');
   await branch.tap({position:{x:35,y:3}});
-  await page.locator('#mindFit').tap();
+  await fitMobile(page);
   const start=await pointOf(branch.locator('.mind-grip')),before=await pointOf(child);
   const cdp=await ctx.newCDPSession(page);
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});
@@ -1319,7 +1436,7 @@ await test('[マインドマップ][SP] タッチで枝をドラッグし、全�
   const delta=movement(before,await pointOf(child));
   assert.ok(Math.abs(delta.x+39)<2&&Math.abs(delta.y-105)<2,JSON.stringify(delta));
   assert.ok(readMindMaps(await state(page))[0].root.children[0].position.y>90);
-  await page.locator('#mindFit').tap();
+  await fitMobile(page);
   const fits=await page.locator('#canvas').evaluate(canvas=>{
     const box=canvas.getBoundingClientRect();
     return [...canvas.querySelectorAll('.mind-node,.mind-fold')].every(node=>{
@@ -1345,7 +1462,7 @@ await test('[マインドマップ] つまみはPCでホバー時、スマホで
     await addMindSheet(page);await mindRoot(page).fill('中心');
     await page.locator('#mindAdd').click();await activeMindTitle(page).fill('枝A');
     await page.locator('#mindSibling').click();await activeMindTitle(page).fill('枝B');
-    await page.locator('#mindFit').click();
+    if(mobile)await fitMobile(page);else await page.locator('#mindFit').click();
     const a=mindCardFor(page,'枝A'),b=mindCardFor(page,'枝B');
     const aGrip=a.locator('.mind-grip'),bGrip=b.locator('.mind-grip');
     assert.deepEqual(await gripState(aGrip),['0','none']);
